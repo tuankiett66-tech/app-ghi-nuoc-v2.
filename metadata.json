@@ -1,0 +1,8 @@
+{
+  "name": "Quản Lý Ghi Nước Chuyên Nghiệp",
+  "description": "Hệ thống quản lý chỉ số nước, tính hóa đơn, tích hợp Zalo và thanh toán QR code.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ]
+}

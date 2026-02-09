@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Quản lý Tiền Nước</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --sat: env(safe-area-inset-top);
+            --sab: env(safe-area-inset-bottom);
+        }
+        body {
+            background-color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            /* Bỏ overflow hidden ở đây để tránh lỗi bị che Top trên một số trình duyệt mobile */
+            margin: 0;
+            padding: 0;
+        }
+        .scroll-smooth {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        @keyframes pulse-custom {
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+          70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+        }
+        .animate-pulse {
+          animation: pulse-custom 1.5s infinite;
+        }
+        ::-webkit-scrollbar {
+          width: 0px;
+          background: transparent;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react/": "https://esm.sh/react@18.3.1/",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "lucide-react": "https://esm.sh/lucide-react@0.460.0?external=react,react-dom",
+    "xlsx": "https://esm.sh/xlsx@0.18.5",
+    "clsx": "https://esm.sh/clsx@2.1.1",
+    "tailwind-merge": "https://esm.sh/tailwind-merge@2.3.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
+</body>
+</html>
