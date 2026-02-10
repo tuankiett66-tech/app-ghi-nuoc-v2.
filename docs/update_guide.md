@@ -5,7 +5,7 @@
 - [ ] **Tim kiem Giong noi**: Bam bieu tuong Mic, noi "Tam muoi ba" -> kiem tra o nhap co hien "83" khong.
 - [ ] **Dieu huong Sua**: Vao Chi tiet -> Bam Cay viet -> Sua ten -> Luu -> Kiem tra co dung o trang Chi tiet do khong.
 - [ ] **Auto-clear Nhom**: Trong trang Chi tiet Nhom, nhap STT -> Bam "+" -> O nhap phai tu dong trang de nhap so tiep theo.
-- [ ] **Layout Compact**: Mo trang Nhom, kiem tra khoang cach giua cac ho dan co du gon de nhin thay it nhat 5-6 ho tren man hinh khong.
+- [ ] **Layout Compact**: Mo trang Nhom, kiem tra khoang cach giua cac ho dan co du gon de nhin thay it nhat 7-8 ho tren man hinh khong.
 
 ## 2. Huong Dan Su Dung Giong Noi
 - **Buoc 1**: Bam vao bieu tuong Micro (mau xanh).
