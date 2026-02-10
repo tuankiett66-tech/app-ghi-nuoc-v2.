@@ -10,7 +10,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString } from './utils';
 import { Customer } from './types';
 
 const App: React.FC = () => {
@@ -69,9 +69,29 @@ const App: React.FC = () => {
     const ni = parseInt(niStr) || 0;
     const vol = (ni > 0 && ni >= c.oldIndex) ? (ni - c.oldIndex) : 0;
     const amt = vol * config.waterRate;
-    const total = amt + c.oldDebt;
+    const total = Math.round(amt + c.oldDebt);
     const now = new Date();
-    return `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}\nKH: ${c.name}\nSỐ: ${ni} - ${c.oldIndex} = ${vol}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}\nNỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}\nCỘNG: ${total.toLocaleString('vi-VN')}\n---\n${config.globalMessage}`;
+    
+    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, total, c.name);
+    const cleanName = normalizeString(c.name).toUpperCase();
+    
+    return `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}
+KH: ${c.name}
+SỐ: ${ni} - ${c.oldIndex} = ${vol}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
+NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}
+CỘNG: ${total.toLocaleString('vi-VN')}
+
+👉 THÔNG TIN CHUYỂN KHOẢN:
+NH: ${config.bankId.toUpperCase()}
+STK: ${config.accountNo} (Bấm giữ để copy)
+TÊN: ${config.accountName}
+Nội dung: TT NUOC ${cleanName}
+
+👉 HOẶC QUÉT MÃ QR TẠI ĐÂY:
+${qrUrl}
+(Vui lòng chụp màn hình ảnh QR và mở App Ngân hàng chọn "Quét ảnh" để thanh toán nhanh)
+---
+${config.globalMessage}`;
   };
 
   const handleSyncCloud = async () => {
@@ -196,7 +216,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Navigation Tab Bar - FIXED STRUCTURE */}
+      {/* Navigation Tab Bar */}
       {(view === 'list' || view === 'stats' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg' || view === 'group_list' || view === 'group_detail' || view === 'verify') && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border-2 border-slate-100 p-1.5 rounded-[2.2rem] flex gap-1 shadow-2xl z-[200] mb-[var(--sab)] min-w-[340px]">
           <button 

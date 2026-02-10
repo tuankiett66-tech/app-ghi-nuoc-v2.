@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic } from 'lucide-react';
 import { Customer, SystemConfig, WaterGroup } from '../types';
-import { formatCurrency, copyToClipboard } from '../utils';
+import { formatCurrency, copyToClipboard, generateVietQrUrl, normalizeString } from '../utils';
 
 interface GroupDetailViewProps {
   group: WaterGroup;
@@ -69,11 +69,38 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
   const generateGroupMsg = () => {
     const now = new Date();
     const monthYear = `${now.getMonth() + 1}/${now.getFullYear()}`;
-    let msg = `KY NUOC THANG ${monthYear}\nNHOM: ${group.name.toUpperCase()}\n---------------------------\n`;
+    let msg = `KỲ NƯỚC THÁNG ${monthYear}
+NHÓM: ${group.name.toUpperCase()}
+---------------------------
+`;
     groupData.forEach((c) => {
-      msg += `KH: ${c.name}\nSO: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}\nNO CU: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}\nCONG: ${Math.round(c.amount + c.oldDebt).toLocaleString('vi-VN')}\n---------------------------\n`;
+      msg += `KH: ${c.name}
+SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}
+NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}
+CỘNG: ${Math.round(c.amount + c.oldDebt).toLocaleString('vi-VN')}
+---------------------------
+`;
     });
-    msg += `TONG THANH TOAN: ${Math.round(totals.total).toLocaleString('vi-VN')} d\n---\n${config.globalMessage}`;
+    
+    const totalAmt = Math.round(totals.total);
+    msg += `TỔNG THANH TOÁN: ${totalAmt.toLocaleString('vi-VN')} đ\n`;
+    
+    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, totalAmt, group.name);
+    const cleanGroupName = normalizeString(group.name).toUpperCase();
+
+    msg += `
+👉 CHUYỂN KHOẢN:
+NH: ${config.bankId.toUpperCase()}
+STK: ${config.accountNo}
+TÊN: ${config.accountName}
+Nội dung: TT NUOC ${cleanGroupName}
+
+👉 HOẶC QUÉT MÃ QR TẠI ĐÂY:
+${qrUrl}
+(Chụp màn hình mã QR và mở App Ngân hàng để Quét ảnh)
+---
+${config.globalMessage}`;
+    
     return msg;
   };
 

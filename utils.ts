@@ -2,11 +2,13 @@
 import * as XLSX from 'xlsx';
 import { Customer, GroupMember } from './types';
 
+// Ham xu ly so tu Excel mot cach an toan (Xoa moi dau phay, dau cham phan cach hang ngan)
 export const parseSafe = (val: any): number => {
   if (typeof val === 'number') return val;
   if (!val) return 0;
-  const clean = String(val).replace(/\./g, '').replace(/,/g, '.').replace(/[^0-9.-]/g, '');
-  return parseFloat(clean) || 0;
+  // Loai bo tat ca ky tu khong phai so hoac dau cham/phay de xu ly chuoi
+  const clean = String(val).replace(/[.,\s]/g, '').replace(/[^0-9-]/g, '');
+  return parseInt(clean) || 0;
 };
 
 export const calculateRow = (cust: any, rate: number) => {
@@ -91,16 +93,51 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
         const workbook = XLSX.read(data, { type: 'array' });
         const ws = workbook.Sheets[workbook.SheetNames[0]];
         const json: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
-        let start = 0;
-        for (let r = 0; r < 20; r++) { if (json[r] && String(json[r][0] || "").toUpperCase().includes("STT")) { start = r + 1; break; } }
+        
+        let headerRowIndex = -1;
+        let colMap: Record<string, number> = {
+          stt: 0, name: 1, address: 2, phone: 3, newIndex: 4, oldIndex: 5, oldDebt: 8, paid: 9, zalo: 11
+        };
+
+        // Tim hang tieu de va tu dong mapping cot theo ten
+        for (let r = 0; r < 20; r++) {
+          const row = json[r];
+          if (row && row.some(cell => String(cell || "").toUpperCase().includes("STT"))) {
+            headerRowIndex = r;
+            row.forEach((cell, idx) => {
+              const text = String(cell || "").toUpperCase();
+              if (text.includes("STT")) colMap.stt = idx;
+              else if (text.includes("KHÁCH") || text.includes("TÊN")) colMap.name = idx;
+              else if (text.includes("ĐỊA CHỈ")) colMap.address = idx;
+              else if (text.includes("THOẠI") || text.includes("ĐT")) colMap.phone = idx;
+              else if (text.includes("MỚI")) colMap.newIndex = idx;
+              else if (text.includes("CŨ")) colMap.oldIndex = idx;
+              else if (text.includes("NỢ KỲ") || text.includes("NỢ CŨ")) colMap.oldDebt = idx;
+              else if (text.includes("THANH TOÁN") || text.includes("ĐÃ TRẢ")) colMap.paid = idx;
+              else if (text.includes("ZALO")) colMap.zalo = idx;
+            });
+            break;
+          }
+        }
+
+        const start = headerRowIndex !== -1 ? headerRowIndex + 1 : 4;
         const res: Customer[] = [];
         for (let i = start; i < json.length; i++) {
           const row = json[i];
-          if (!row || !row[0] || isNaN(parseInt(row[0]))) continue;
+          if (!row || !row[colMap.stt] || isNaN(parseInt(row[colMap.stt]))) continue;
+          
           res.push(calculateRow({
-            id: `xl-${row[0]}-${listType}`, stt: parseInt(row[0]), name: String(row[1]), address: String(row[2]), phone: String(row[3]),
-            newIndex: parseSafe(row[4]), oldIndex: parseSafe(row[5]), oldDebt: parseSafe(row[8]), paid: parseSafe(row[9]),
-            listType, isZalo: String(row[11]).toUpperCase() === "X"
+            id: `xl-${row[colMap.stt]}-${listType}`,
+            stt: parseInt(row[colMap.stt]),
+            name: String(row[colMap.name] || ""),
+            address: String(row[colMap.address] || ""),
+            phone: String(row[colMap.phone] || ""),
+            newIndex: parseSafe(row[colMap.newIndex]),
+            oldIndex: parseSafe(row[colMap.oldIndex]),
+            oldDebt: parseSafe(row[colMap.oldDebt]),
+            paid: parseSafe(row[colMap.paid]),
+            listType,
+            isZalo: String(row[colMap.zalo] || "").toUpperCase() === "X"
           }, rate));
         }
         resolve(res);
@@ -124,14 +161,12 @@ export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> =>
         let currentDB: 'list1' | 'list2' = 'list1';
         let startRow = 0;
 
-        // Tu dong tim hang tieu de co chu STT
         for (let r = 0; r < 20; r++) {
             if (rows[r] && String(rows[r][0] || "").toUpperCase().includes("STT")) {
                 startRow = r + 1;
                 break;
             }
         }
-        // Neu khong tim thay STT, mac dinh doc tu dong 5 (index 4)
         if (startRow === 0) startRow = 4;
 
         for (let i = startRow; i < rows.length; i++) {

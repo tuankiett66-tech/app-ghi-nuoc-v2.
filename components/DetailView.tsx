@@ -19,10 +19,19 @@ interface DetailViewProps {
 export const DetailView: React.FC<DetailViewProps> = ({ 
   customer, config, onBack, onNavigate, onUpdate, onShowQr, onEditInfo, onSendZalo, generateMsg 
 }) => {
+  // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
   const [pi, setPi] = useState(customer.paid > 0 ? Math.round(customer.paid).toString() : "");
   const [showPreview, setShowPreview] = useState(false);
 
+  // QUAN TRONG: Reset o nhap lieu moi khi chuyen sang khach hang khac (customer.id thay doi)
+  useEffect(() => {
+    setNi(customer.newIndex > 0 ? customer.newIndex.toString() : "");
+    setPi(customer.paid > 0 ? Math.round(customer.paid).toString() : "");
+    setShowPreview(false);
+  }, [customer.id]);
+
+  // Cap nhat du lieu len store khi nguoi dung nhap lieu
   useEffect(() => {
     onUpdate({ newIndex: parseSafe(ni), paid: parseSafe(pi) });
   }, [ni, pi]);
@@ -30,11 +39,8 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const handleThuDu = () => {
     const vol = (parseSafe(ni) > 0 && parseSafe(ni) >= customer.oldIndex) ? (parseSafe(ni) - customer.oldIndex) : 0;
     const totalAmount = (vol * config.waterRate) + customer.oldDebt;
-    // Cap nhat so tien tra bang tong phai thu
     setPi(Math.round(totalAmount).toString());
-    // Thong bao cap nhat ngay lap tuc
     onUpdate({ newIndex: parseSafe(ni), paid: Math.round(totalAmount) });
-    // Quay lai danh sach sau mot chut de state kip cap nhat
     setTimeout(() => onBack(), 200);
   };
 

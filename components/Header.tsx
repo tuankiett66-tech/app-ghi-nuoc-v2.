@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, X, Plus, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, Users, ClipboardCheck, Mic } from 'lucide-react';
+import { Search, X, Plus, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -18,7 +18,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSyncing, onSync, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onShowVerify, onShowGroups
+  title, searchQuery, setSearchQuery, isSyncing, onSync, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onShowVerify
 }) => {
   const handleVoiceSearch = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -41,12 +41,11 @@ export const Header: React.FC<HeaderProps> = ({
         <h1 className="text-xl font-black text-blue-700 italic uppercase truncate max-w-[150px]">{title}</h1>
         <div className="flex gap-1 items-center">
           <button onClick={onShowVerify} title="Kiểm tra" className="p-2 text-emerald-600 active:scale-90 touch-manipulation"><ClipboardCheck size={24}/></button>
-          <button onClick={onShowGroups} title="Nhóm" className="p-2 text-indigo-600 active:scale-90 touch-manipulation"><Users size={24}/></button>
-          <button onClick={onShowMsgTemplate} className="p-2 text-amber-600 active:scale-90 touch-manipulation"><MessageSquareQuote size={24}/></button>
-          <button onClick={onShowAdd} className="p-2 text-blue-700 active:scale-90 touch-manipulation"><Plus size={24}/></button>
-          <button onClick={onToggleZaloFilter} className={`p-2 rounded-xl transition-colors touch-manipulation ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={22}/></button>
-          <button onClick={onSync} disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation">{isSyncing ? <Loader2 className="animate-spin" size={22}/> : <CloudDownload size={22}/>}</button>
-          <button onClick={onShowConfig} className="p-2 text-slate-700 active:scale-90 touch-manipulation"><Settings size={22}/></button>
+          <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-2 text-amber-600 active:scale-90 touch-manipulation"><MessageSquareQuote size={24}/></button>
+          <button onClick={onShowAdd} title="Thêm mới" className="p-2 text-blue-700 active:scale-90 touch-manipulation"><Plus size={24}/></button>
+          <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-2 rounded-xl transition-colors touch-manipulation ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={22}/></button>
+          <button onClick={onSync} title="Đồng bộ" disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation">{isSyncing ? <Loader2 className="animate-spin" size={22}/> : <CloudDownload size={22}/>}</button>
+          <button onClick={onShowConfig} title="Cấu hình" className="p-2 text-slate-700 active:scale-90 touch-manipulation"><Settings size={22}/></button>
         </div>
       </header>
 
