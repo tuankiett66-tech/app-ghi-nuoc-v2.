@@ -1,16 +1,14 @@
 
-# Bảng Tóm Tắt Tính Năng - App Ghi Nước (Cập nhật 2026-02-11)
+# Bảng Tóm Tắt Tính Năng - App Ghi Nước V3.0 (PWA)
 
-| Tên Tính Năng | File Phụ Trách | Trạng Thái | Ghi Chú Logic |
+| Nhóm Tính Năng | Chức Năng Chi Tiết | File Chính | Trạng Thái |
 | :--- | :--- | :--- | :--- |
-| **Quản lý Danh Bộ** | `hooks/useWaterData.ts` | Hoàn thành | Tách biệt Bộ 01 và Bộ 02 qua `activeTab`. Lưu trữ LocalStorage (`water_data_final_v21`). |
-| **Tính Toán Hóa Đơn** | `utils.ts`, `DetailView.tsx` | Hoàn thành | `Balance = (Mới - Cũ) * Giá + Nợ Cũ - Đã Trả`. Tự động trừ tiền khách trả ngay trong bill. |
-| **Tìm Kiếm & Lịch Sử** | `Header.tsx`, `App.tsx` | Tối ưu | Hỗ trợ Dropdown lịch sử tìm kiếm. Tự động xóa từ khóa sau khi chọn khách hàng để trả về danh sách sạch. |
-| **Tìm Kiếm Giọng Nói** | `Header.tsx`, `GroupDetailView.tsx` | Hoàn thành | Sử dụng Web Speech API để nhập STT hoặc Tìm tên nhanh bằng giọng nói. |
-| **Nhập Liệu & Điều Hướng** | `DetailView.tsx`, `Modals.tsx` | Hoàn thành | Ghi số mới, nhập số tiền khách trả tại chỗ. Nút "Thu đủ" tự động điền tổng tiền cần thu. |
-| **Quản lý Nhóm** | `GroupListView.tsx`, `GroupDetailView.tsx` | Hoàn thành | Gom nhiều hộ vào 1 nhóm. Hỗ trợ SĐT "Chủ nhóm" để gửi Zalo tổng hợp. |
-| **Gửi Zalo & QR Code** | `App.tsx`, `utils.ts` | Hoàn thành | Tự động sinh mã VietQR theo số dư cuối cùng (sau khi trừ tiền đã trả). Copy bill vào Clipboard. |
-| **Kiểm Tra Cuối Ngày** | `VerifyView.tsx` | Hoàn thành | Lọc danh sách khách hàng đã thay đổi thông tin/thu tiền trong ngày hôm nay để đối soát. |
-| **Báo Cáo & Chốt Kỳ** | `StatsView.tsx` | Hoàn thành | Thống kê doanh thu, nợ cũ, đã thu. Chốt kỳ: Chuyển Balance sang OldDebt, reset số cũ. |
-| **Đồng Bộ Cloud** | `App.tsx`, `ConfigView.tsx` | Hoàn thành | Fetch dữ liệu từ Google Apps Script theo Link cấu hình trong Cài đặt. |
-| **Nhập/Xuất Excel** | `utils.ts` | Hoàn thành | Hỗ trợ đọc file Excel có cấu hình cột linh hoạt và xuất file Backup/Báo cáo. |
+| **PWA & Offline** | Hỗ trợ chạy không mạng, cài đặt icon màn hình chính. | `sw.js`, `manifest.json` | Hoàn thành |
+| **Quản Lý Bộ 01/02** | Phân tách danh sách theo tab, chuyển đổi linh hoạt. | `useWaterData.ts`, `App.tsx` | Hoàn thành |
+| **Tìm Kiếm Thông Minh** | Dropdown lịch sử, Voice Search, Auto-clear sau khi chọn KH. | `Header.tsx`, `App.tsx` | Tối ưu |
+| **Ghi Chỉ Số & Thu Tiền** | Ghi số mới, nhập tiền khách trả, tính tiền nợ còn lại. | `DetailView.tsx`, `utils.ts` | Hoàn thành |
+| **Quản Lý Nhóm** | Gom nhiều hộ vào 1 bill tổng, gửi Zalo cho chủ nhóm. | `GroupDetailView.tsx` | Hoàn thành |
+| **Thanh Toán VietQR** | Tự động sinh mã QR đúng số tiền còn nợ (sau trừ đã trả). | `utils.ts`, `App.tsx` | Hoàn thành |
+| **Báo Cáo & Chốt Kỳ** | Thống kê doanh thu, nợ tồn, chốt kỳ chuyển nợ sang kỳ mới. | `StatsView.tsx` | Hoàn thành |
+| **Dữ Liệu Cloud** | Đồng bộ Google Sheets qua API Script riêng cho từng bộ. | `App.tsx`, `ConfigView.tsx` | Hoàn thành |
+| **Nhập/Xuất Excel** | Hỗ trợ file 12 cột chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành |

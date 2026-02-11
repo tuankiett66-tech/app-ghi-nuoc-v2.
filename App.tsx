@@ -67,11 +67,11 @@ const App: React.FC = () => {
 
   const generateMsg = (c: Customer, niStr: string, piStr: string) => {
     const ni = parseInt(niStr) || 0;
-    const pi = parseInt(piStr) || 0; // Số tiền khách đã trả
+    const pi = parseInt(piStr) || 0; 
     const vol = (ni > 0 && ni >= c.oldIndex) ? (ni - c.oldIndex) : 0;
     const amt = vol * config.waterRate;
     const subtotal = Math.round(amt + c.oldDebt);
-    const remaining = Math.max(0, subtotal - pi); // Tiền còn lại phải thu
+    const remaining = Math.max(0, subtotal - pi); 
     const now = new Date();
     
     const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, remaining, c.name);
@@ -105,7 +105,7 @@ ${config.globalMessage}`;
 
   const handleSyncCloud = async () => {
     const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
-    if (!url) return showToast("Chưa có Link Script!");
+    if (!url) return showToast("Chua co Link Script!");
     setIsSyncing(true);
     try {
       const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}list=${activeTab}&t=${Date.now()}`);
@@ -120,8 +120,8 @@ ${config.globalMessage}`;
         listType: activeTab, isZalo: !!item.isZalo, note: item.note || ''
       }, config.waterRate));
       setCustomers(prev => [...prev.filter(c => c.listType !== activeTab), ...mapped]);
-      showToast("Đồng bộ thành công!");
-    } catch (e) { showToast("Lỗi kết nối Cloud!"); }
+      showToast("Dong bo thanh cong!");
+    } catch (e) { showToast("Loi ket noi Cloud!"); }
     finally { setIsSyncing(false); }
   };
 
@@ -130,11 +130,17 @@ ${config.globalMessage}`;
     const msg = generateMsg(selectedCustomer, selectedCustomer.newIndex.toString(), selectedCustomer.paid.toString());
     await copyToClipboard(msg);
     updateCustomer(selectedCustomer.id, { isZalo: true });
-    showToast("Đã copy & Mở Zalo...");
+    showToast("Da copy & Mo Zalo...");
     setTimeout(() => {
       const sdt = normalizePhoneForZalo(selectedCustomer.phoneTenant || selectedCustomer.phone);
       window.location.href = `https://zalo.me/${sdt}`;
     }, 300);
+  };
+
+  // Ham dieu huong chung de xoa search query (Yeu cau auto-clear)
+  const navigateTo = (newView: string, resetSearch: boolean = true) => {
+    if (resetSearch) setSearchQuery('');
+    setView(newView);
   };
 
   return (
@@ -147,22 +153,21 @@ ${config.globalMessage}`;
             title={activeTab === 'list1' ? 'BỘ 01' : 'BỘ 02'}
             searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             isSyncing={isSyncing} onSync={handleSyncCloud}
-            onShowAdd={() => setView('add_customer')}
-            onShowConfig={() => setView('config')}
-            onShowMsgTemplate={() => setView('edit_msg')}
+            onShowAdd={() => navigateTo('add_customer')}
+            onShowConfig={() => navigateTo('config')}
+            onShowMsgTemplate={() => navigateTo('edit_msg', false)}
             onlyNonZalo={onlyNonZalo} onToggleZaloFilter={() => setOnlyNonZalo(!onlyNonZalo)}
-            onShowVerify={() => setView('verify')}
-            onShowGroups={() => setView('group_list')}
+            onShowVerify={() => navigateTo('verify')}
+            onShowGroups={() => navigateTo('group_list')}
           />
           <ListView 
             customers={filtered} 
             onSelect={(id) => { 
               setSelectedId(id); 
-              setView('detail'); 
-              setSearchQuery(''); // Yêu cầu: Tự xóa dữ liệu trong ô tìm kiếm khi chọn khách hàng
+              navigateTo('detail'); // Xoa search khi vao chi tiet
             }}
             onCall={(phone) => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(phone)}`; }}
-            onCopyMsg={async (c) => { await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); showToast("Đã copy hóa đơn!"); }}
+            onCopyMsg={async (c) => { await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); showToast("Da copy hoa don!"); }}
           />
         </>
       )}
@@ -170,7 +175,7 @@ ${config.globalMessage}`;
       {view === 'detail' && selectedCustomer && (
         <DetailView 
           customer={selectedCustomer} config={config}
-          onBack={() => { lastScrollId.current = selectedId; setView('list'); }}
+          onBack={() => { lastScrollId.current = selectedId; navigateTo('list', false); }} // Khong reset khi quay lai list tu detail de giu trang thai neu can (tuy chon)
           onNavigate={(dir) => {
             const idx = filtered.findIndex(c => c.id === selectedId);
             const target = dir === 'next' ? idx + 1 : idx - 1;
@@ -178,21 +183,21 @@ ${config.globalMessage}`;
           }}
           onUpdate={(upd) => updateCustomer(selectedId!, upd)}
           onShowQr={() => setShowQr(true)}
-          onEditInfo={() => setView('edit_customer')}
+          onEditInfo={() => navigateTo('edit_customer', false)}
           onSendZalo={handleSendZalo}
           generateMsg={generateMsg}
         />
       )}
 
       {view === 'verify' && (
-        <VerifyView customers={customers} activeTab={activeTab} onBack={() => setView('list')} onSelect={(id) => { setSelectedId(id); setView('detail'); }} />
+        <VerifyView customers={customers} activeTab={activeTab} onBack={() => navigateTo('list')} onSelect={(id) => { setSelectedId(id); navigateTo('detail'); }} />
       )}
 
       {view === 'group_list' && (
         <GroupListView 
           groups={groups} customers={customers}
-          onBack={() => setView('list')}
-          onSelectGroup={(id) => { setSelectedGroupId(id); setView('group_detail'); }}
+          onBack={() => navigateTo('list')}
+          onSelectGroup={(id) => { setSelectedGroupId(id); navigateTo('group_detail'); }}
           onAddGroup={addGroup} onDeleteGroup={deleteGroup}
         />
       )}
@@ -200,11 +205,11 @@ ${config.globalMessage}`;
       {view === 'group_detail' && activeGroup && (
         <GroupDetailView 
           group={activeGroup} customers={customers} config={config}
-          onBack={() => setView('group_list')}
+          onBack={() => navigateTo('group_list')}
           onUpdateGroup={updateGroup}
           onSendZalo={async (msg, sdt) => {
             await copyToClipboard(msg);
-            showToast("Đã copy Bill Nhóm!");
+            showToast("Da copy Bill Nhom!");
             if(sdt) setTimeout(() => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(sdt)}`; }, 300);
           }}
         />
@@ -213,18 +218,18 @@ ${config.globalMessage}`;
       {view === 'config' && (
         <ConfigView 
           config={config} setConfig={setConfig}
-          onBack={() => setView('list')}
+          onBack={() => navigateTo('list')}
           onImport={() => fileInputRef.current?.click()}
           onExport={() => exportToExcel(customers.filter(c => c.listType === activeTab), `Backup_${activeTab}`)}
-          onClear={() => { if(confirm("Xóa sạch dữ liệu?")) { localStorage.clear(); window.location.reload(); } }}
+          onClear={() => { if(confirm("Xoa sach du lieu?")) { localStorage.clear(); window.location.reload(); } }}
         />
       )}
 
       {view === 'stats' && (
         <StatsView 
           customers={customers} activeTab={activeTab}
-          onBack={() => setView('list')}
-          onClosePeriod={() => { if(!confirm("Chốt kỳ?")) return; const res = closePeriod(); exportToExcel(res, 'Ky_Moi'); showToast("Đã chốt kỳ!"); setView('list'); }}
+          onBack={() => navigateTo('list')}
+          onClosePeriod={() => { if(!confirm("Chot ky?")) return; const res = closePeriod(); exportToExcel(res, 'Ky_Moi'); showToast("Da chot ky!"); navigateTo('list'); }}
           onExport={() => exportToExcel(customers.filter(c => c.listType === activeTab), 'Bao_Cao')}
         />
       )}
@@ -233,25 +238,25 @@ ${config.globalMessage}`;
       {(view === 'list' || view === 'stats' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg' || view === 'group_list' || view === 'group_detail' || view === 'verify') && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border-2 border-slate-100 p-1.5 rounded-[2.2rem] flex gap-1 shadow-2xl z-[200] mb-[var(--sab)] min-w-[340px]">
           <button 
-            onClick={() => { setActiveTab('list1'); setView('list'); setSearchQuery(''); }} 
+            onClick={() => { setActiveTab('list1'); navigateTo('list'); }} 
             className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${activeTab === 'list1' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
           >
             BỘ 01
           </button>
           <button 
-            onClick={() => { setView('group_list'); setSearchQuery(''); }} 
+            onClick={() => navigateTo('group_list')} 
             className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${view.startsWith('group') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-400'}`}
           >
             NHÓM
           </button>
           <button 
-            onClick={() => { setView('stats'); setSearchQuery(''); }} 
+            onClick={() => navigateTo('stats')} 
             className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${view === 'stats' ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'text-slate-400'}`}
           >
             BÁO CÁO
           </button>
           <button 
-            onClick={() => { setActiveTab('list2'); setView('list'); setSearchQuery(''); }} 
+            onClick={() => { setActiveTab('list2'); navigateTo('list'); }} 
             className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${activeTab === 'list2' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
           >
             BỘ 02
@@ -278,7 +283,7 @@ ${config.globalMessage}`;
         if (file) {
           const res = await parseExcelFile(file, activeTab, config.waterRate);
           setCustomers(prev => [...prev.filter(c => c.listType !== activeTab), ...res]);
-          showToast("Đã nhập dữ liệu Excel!");
+          showToast("Da nhap du lieu Excel!");
           e.target.value = '';
         }
       }} />

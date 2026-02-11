@@ -1,22 +1,21 @@
 
-# Quy Trình Kiểm Sốát Chất Lượng (KCS) & Update
+# Quy Trình Kiểm Soát Chất Lượng (KCS) & Update V3.0
 
-## 1. Checklist Kiểm Tra Trước Khi Release
-- [x] **Logic Tìm Kiếm**: Gõ tìm khách -> Chọn khách -> Quay lại -> Ô tìm kiếm phải trống và hiện đủ danh sách.
-- [x] **Lịch Sử Tìm Kiếm**: Click vào ô tìm kiếm -> Phải hiện danh sách các từ khóa đã tìm trước đó.
-- [x] **Trừ Tiền Trực Tiếp**: Nhập "Số Mới" -> Nhập "Khách Trả" -> Kiểm tra dòng "CÒN LẠI" trong bill có trừ đúng không.
-- [x] **VietQR Dynamic**: Mã QR phải mang số tiền bằng đúng dòng "CÒN LẠI" cuối cùng trong hóa đơn.
-- [x] **Nhóm & Master Zalo**: Gửi Zalo nhóm -> Nội dung bill phải liệt kê đủ các hộ thành viên và trừ tiền đã trả của từng hộ.
-- [x] **Đồng Bộ Cloud**: Kiểm tra xem Link Script Bộ 01 và Bộ 02 có hoạt động độc lập theo Tab không.
+## 1. Checklist Kiểm Tra Toàn Diện
+- [ ] **Offline Check**: Tắt mạng Wifi/4G -> Load lại App -> App phải mở được và hiện dữ liệu.
+- [ ] **Filter Check**: Tìm "Lê" -> Chọn khách hàng -> Nhấn Quay lại -> Ô tìm kiếm phải trống, hiện đủ danh sách.
+- [ ] **Zalo Bill Check**: Gửi bill -> Kiểm tra dòng "CÒN LẠI" = (Tiền nước + Nợ cũ) - Đã trả.
+- [ ] **QR Code Check**: Quét mã QR sinh ra -> Số tiền trong App ngân hàng phải khớp với dòng "CÒN LẠI".
+- [ ] **Excel Check**: Nhập file Excel 12 cột -> Kiểm tra STT, Tên, Số Cũ, Nợ Cũ vào đúng ô không.
+- [ ] **Tab Sync Check**: Chuyển Bộ 01/02 -> Danh sách khách hàng và Link Cloud phải đổi tương ứng.
 
-## 2. Hướng Dẫn Kỹ Thuật (Dành cho Dev)
-- **Xóa Search Query**: Thực hiện trong `App.tsx` tại callback `onSelect` của `ListView`.
-- **Logic Tính Toán**: Luôn sử dụng `Math.round()` để tránh sai số thập phân khi hiển thị tiền VNĐ.
-- **Storage Key**: Phiên bản hiện tại sử dụng hậu tố `_v21` để tránh xung đột dữ liệu cũ.
+## 2. Hướng Dẫn Kỹ Thuật
+- **Storage**: Mọi dữ liệu lưu tại key `water_data_final_v21`.
+- **Navigation**: Sử dụng hàm `navigateTo` trong `App.tsx` để quản lý việc xóa search query đồng nhất.
 
 ## 3. Nhật Ký Phiên Bản (Version Log)
-| Ngày | Nội dung thay đổi | Kết quả KCS |
-| :--- | :--- | :--- |
-| 2024-05-25 | Thêm Tìm kiếm giọng nói, Tối ưu Layout Nhóm, Sửa lỗi điều hướng Edit KH. | Đạt chuẩn |
-| 2026-02-10 | Sửa lỗi logic CỘNG (trừ tiền khách trả) và cập nhật VietQR tự động theo số dư còn lại. | Đạt chuẩn |
-| 2026-02-11 | Update: Thêm Lịch sử tìm kiếm, Auto-clear ô search sau khi chọn khách, Hoàn thiện docs hệ thống. | Đạt chuẩn |
+| Phiên bản | Ngày | Nội dung | Ghi chú |
+| :--- | :--- | :--- | :--- |
+| **V1.0** | 2024 | Khởi tạo quản lý ghi nước cơ bản. | Stable |
+| **V2.0** | 2026-02-10 | Thêm VietQR động và trừ tiền khách trả. | Improved |
+| **V3.0** | 2026-02-11 | **Nâng cấp PWA**, Auto-clear search, Hoàn thiện docs hệ thống. | Current |
