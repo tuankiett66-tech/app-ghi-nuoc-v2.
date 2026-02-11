@@ -156,7 +156,11 @@ ${config.globalMessage}`;
           />
           <ListView 
             customers={filtered} 
-            onSelect={(id) => { setSelectedId(id); setView('detail'); }}
+            onSelect={(id) => { 
+              setSelectedId(id); 
+              setView('detail'); 
+              setSearchQuery(''); // Yêu cầu: Tự xóa dữ liệu trong ô tìm kiếm khi chọn khách hàng
+            }}
             onCall={(phone) => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(phone)}`; }}
             onCopyMsg={async (c) => { await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); showToast("Đã copy hóa đơn!"); }}
           />
