@@ -33,8 +33,9 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
     vol: acc.vol + curr.volume,
     amt: acc.amt + curr.amount,
     debt: acc.debt + curr.oldDebt,
-    total: acc.total + (curr.amount + curr.oldDebt)
-  }), { vol: 0, amt: 0, debt: 0, total: 0 }), [groupData]);
+    paid: acc.paid + curr.paid,
+    total: acc.total + curr.balance
+  }), { vol: 0, amt: 0, debt: 0, paid: 0, total: 0 }), [groupData]);
 
   const handleAddMember = () => {
     if (!previewCust) {
@@ -76,16 +77,21 @@ NHÓM: ${group.name.toUpperCase()}
     groupData.forEach((c) => {
       msg += `KH: ${c.name}
 SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}
-NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}
-CỘNG: ${Math.round(c.amount + c.oldDebt).toLocaleString('vi-VN')}
+NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
+
+      if (c.paid > 0) {
+        msg += `\nĐÃ TRẢ: -${Math.round(c.paid).toLocaleString('vi-VN')}`;
+      }
+
+      msg += `\nCÒN LẠI: ${Math.round(c.balance).toLocaleString('vi-VN')}
 ---------------------------
 `;
     });
     
-    const totalAmt = Math.round(totals.total);
-    msg += `TỔNG THANH TOÁN: ${totalAmt.toLocaleString('vi-VN')} đ\n`;
+    const finalTotal = Math.round(totals.total);
+    msg += `TỔNG THANH TOÁN: ${finalTotal.toLocaleString('vi-VN')} đ\n`;
     
-    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, totalAmt, group.name);
+    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, finalTotal, group.name);
     const cleanGroupName = normalizeString(group.name).toUpperCase();
 
     msg += `
@@ -164,7 +170,7 @@ ${config.globalMessage}`;
                   </div>
                   <div className="min-w-0">
                       <p className="font-black text-slate-900 uppercase text-[11px] truncate leading-none mb-0.5">{c.name}</p>
-                      <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.amount + c.oldDebt)}</p>
+                      <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.balance)}</p>
                   </div>
               </div>
               <button onClick={() => removeMember(c.stt, c.listType)} className="p-1.5 text-rose-300 active:scale-90"><Trash2 size={16}/></button>

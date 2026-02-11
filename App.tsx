@@ -67,19 +67,26 @@ const App: React.FC = () => {
 
   const generateMsg = (c: Customer, niStr: string, piStr: string) => {
     const ni = parseInt(niStr) || 0;
+    const pi = parseInt(piStr) || 0; // Số tiền khách đã trả
     const vol = (ni > 0 && ni >= c.oldIndex) ? (ni - c.oldIndex) : 0;
     const amt = vol * config.waterRate;
-    const total = Math.round(amt + c.oldDebt);
+    const subtotal = Math.round(amt + c.oldDebt);
+    const remaining = Math.max(0, subtotal - pi); // Tiền còn lại phải thu
     const now = new Date();
     
-    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, total, c.name);
+    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, remaining, c.name);
     const cleanName = normalizeString(c.name).toUpperCase();
     
-    return `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}
+    let msg = `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
-NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}
-CỘNG: ${total.toLocaleString('vi-VN')}
+NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}`;
+
+    if (pi > 0) {
+      msg += `\nĐÃ TRẢ: -${pi.toLocaleString('vi-VN')}`;
+    }
+
+    msg += `\nCÒN LẠI: ${remaining.toLocaleString('vi-VN')}
 
 👉 THÔNG TIN CHUYỂN KHOẢN:
 NH: ${config.bankId.toUpperCase()}
@@ -92,6 +99,8 @@ ${qrUrl}
 (Vui lòng chụp màn hình ảnh QR và mở App Ngân hàng chọn "Quét ảnh" để thanh toán nhanh)
 ---
 ${config.globalMessage}`;
+
+    return msg;
   };
 
   const handleSyncCloud = async () => {
