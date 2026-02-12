@@ -71,10 +71,13 @@ const App: React.FC = () => {
     const vol = (ni > 0 && ni >= c.oldIndex) ? (ni - c.oldIndex) : 0;
     const amt = vol * config.waterRate;
     const subtotal = Math.round(amt + c.oldDebt);
-    const remaining = Math.max(0, subtotal - pi); 
+    
+    // LOGIC FIX: Khong dung Math.max(0) de hien thi duoc so am (khach tra du)
+    const remaining = subtotal - pi; 
     const now = new Date();
     
-    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, remaining, c.name);
+    // QR URL van phai dam bao khong am (vi ngan hang khong cho phep thanh toan am)
+    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, Math.max(0, remaining), c.name);
     const cleanName = normalizeString(c.name).toUpperCase();
     
     let msg = `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}
@@ -86,7 +89,9 @@ NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}`;
       msg += `\nĐÃ TRẢ: -${pi.toLocaleString('vi-VN')}`;
     }
 
-    msg += `\nCÒN LẠI: ${remaining.toLocaleString('vi-VN')}
+    // Neu remaining < 0, hien thi la TIEN DU
+    const remainingLabel = remaining < 0 ? "TIỀN DƯ (TRẢ THỪA)" : "CÒN LẠI";
+    msg += `\n${remainingLabel}: ${remaining.toLocaleString('vi-VN')}
 
 👉 THÔNG TIN CHUYỂN KHOẢN:
 NH: ${config.bankId.toUpperCase()}
@@ -137,7 +142,6 @@ ${config.globalMessage}`;
     }, 300);
   };
 
-  // Ham dieu huong chung de xoa search query (Yeu cau auto-clear)
   const navigateTo = (newView: string, resetSearch: boolean = true) => {
     if (resetSearch) setSearchQuery('');
     setView(newView);
@@ -164,7 +168,7 @@ ${config.globalMessage}`;
             customers={filtered} 
             onSelect={(id) => { 
               setSelectedId(id); 
-              navigateTo('detail'); // Xoa search khi vao chi tiet
+              navigateTo('detail'); 
             }}
             onCall={(phone) => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(phone)}`; }}
             onCopyMsg={async (c) => { await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); showToast("Da copy hoa don!"); }}
@@ -175,7 +179,7 @@ ${config.globalMessage}`;
       {view === 'detail' && selectedCustomer && (
         <DetailView 
           customer={selectedCustomer} config={config}
-          onBack={() => { lastScrollId.current = selectedId; navigateTo('list', false); }} // Khong reset khi quay lai list tu detail de giu trang thai neu can (tuy chon)
+          onBack={() => { lastScrollId.current = selectedId; navigateTo('list', false); }} 
           onNavigate={(dir) => {
             const idx = filtered.findIndex(c => c.id === selectedId);
             const target = dir === 'next' ? idx + 1 : idx - 1;
