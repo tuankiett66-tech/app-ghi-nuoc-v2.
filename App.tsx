@@ -27,21 +27,33 @@ const App: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollId = useRef<string | null>(null);
+  const listScrollTop = useRef<number>(0);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
 
-  const selectedCustomer = useMemo(() => customers.find(c => c.id === selectedId), [customers, selectedId]);
+  const handleManualSave = () => {
+    // useWaterData already saves to localStorage on every change due to useEffect
+    // This button provides visual reassurance
+    showToast("Đã lưu dữ liệu thành công!");
+  };
+
+  const selectedCustomer = useMemo(() => customers.find(c => c.id === selectedId) || null, [customers, selectedId]);
   const activeGroup = useMemo(() => groups.find(g => g.id === selectedGroupId), [groups, selectedGroupId]);
 
   useEffect(() => {
-    if (view === 'list' && lastScrollId.current) {
+    if (view === 'list') {
       setTimeout(() => {
-        const el = document.getElementById(`cust-${lastScrollId.current}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const listEl = document.getElementById('main-list-container');
+        if (listEl && listScrollTop.current > 0) {
+          listEl.scrollTop = listScrollTop.current;
+        } else if (lastScrollId.current) {
+          const el = document.getElementById(`cust-${lastScrollId.current}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
           lastScrollId.current = null;
         }
       }, 100);
@@ -76,11 +88,10 @@ const App: React.FC = () => {
     const remaining = subtotal - pi; 
     const now = new Date();
     
-    // QR URL van phai dam bao khong am (vi ngan hang khong cho phep thanh toan am)
-    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, Math.max(0, remaining), c.name);
     const cleanName = normalizeString(c.name).toUpperCase();
     
     let msg = `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}
+STT: ${c.stt}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
 NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}`;
@@ -98,10 +109,6 @@ NH: ${config.bankId.toUpperCase()}
 STK: ${config.accountNo} (Bấm giữ để copy)
 TÊN: ${config.accountName}
 Nội dung: TT NUOC ${cleanName}
-
-👉 HOẶC QUÉT MÃ QR TẠI ĐÂY:
-${qrUrl}
-(Vui lòng chụp màn hình ảnh QR và mở App Ngân hàng chọn "Quét ảnh" để thanh toán nhanh)
 ---
 ${config.globalMessage}`;
 
@@ -125,7 +132,7 @@ ${config.globalMessage}`;
         listType: activeTab, isZalo: !!item.isZalo, note: item.note || ''
       }, config.waterRate));
       setCustomers(prev => [...prev.filter(c => c.listType !== activeTab), ...mapped]);
-      showToast("Dong bo thanh cong!");
+      showToast("Dong bo ve thanh cong!");
     } catch (e) { showToast("Loi ket noi Cloud!"); }
     finally { setIsSyncing(false); }
   };
@@ -143,6 +150,12 @@ ${config.globalMessage}`;
   };
 
   const navigateTo = (newView: string, resetSearch: boolean = true) => {
+    if (view === 'list') {
+      const listEl = document.getElementById('main-list-container');
+      if (listEl) {
+        listScrollTop.current = listEl.scrollTop;
+      }
+    }
     if (resetSearch) setSearchQuery('');
     setView(newView);
   };
@@ -157,6 +170,7 @@ ${config.globalMessage}`;
             title={activeTab === 'list1' ? 'BỘ 01' : 'BỘ 02'}
             searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             isSyncing={isSyncing} onSync={handleSyncCloud}
+            onSave={handleManualSave}
             onShowAdd={() => navigateTo('add_customer')}
             onShowConfig={() => navigateTo('config')}
             onShowMsgTemplate={() => navigateTo('edit_msg', false)}

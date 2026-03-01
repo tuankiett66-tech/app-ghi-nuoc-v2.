@@ -13,7 +13,7 @@ interface ListViewProps {
 
 export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall, onCopyMsg }) => {
   return (
-    <div className="flex-1 overflow-y-auto px-3 space-y-3 pb-40 scroll-smooth bg-slate-50">
+    <div id="main-list-container" className="flex-1 overflow-y-auto px-3 space-y-3 pb-40 scroll-smooth bg-slate-50">
       {customers.map(c => (
         <div key={c.id} id={`cust-${c.id}`} onClick={() => onSelect(c.id)} className={`bg-white p-4 rounded-[1.8rem] shadow-md border-2 transition-all active:scale-[0.98] ${c.isZalo ? 'border-blue-600 bg-blue-50/20' : 'border-white'}`}>
           <div className="flex items-start gap-3">

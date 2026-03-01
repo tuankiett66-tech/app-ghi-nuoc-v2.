@@ -75,7 +75,8 @@ NHÓM: ${group.name.toUpperCase()}
 ---------------------------
 `;
     groupData.forEach((c) => {
-      msg += `KH: ${c.name}
+      msg += `STT: ${c.stt}
+KH: ${c.name}
 SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}
 NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
 
@@ -91,7 +92,6 @@ NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
     const finalTotal = Math.round(totals.total);
     msg += `TỔNG THANH TOÁN: ${finalTotal.toLocaleString('vi-VN')} đ\n`;
     
-    const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, finalTotal, group.name);
     const cleanGroupName = normalizeString(group.name).toUpperCase();
 
     msg += `
@@ -100,10 +100,6 @@ NH: ${config.bankId.toUpperCase()}
 STK: ${config.accountNo}
 TÊN: ${config.accountName}
 Nội dung: TT NUOC ${cleanGroupName}
-
-👉 HOẶC QUÉT MÃ QR TẠI ĐÂY:
-${qrUrl}
-(Chụp màn hình mã QR và mở App Ngân hàng để Quét ảnh)
 ---
 ${config.globalMessage}`;
     

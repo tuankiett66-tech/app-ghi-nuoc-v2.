@@ -57,6 +57,7 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
 
     groupItems.forEach((c) => {
       const houseTotal = c.amount + c.oldDebt;
+      msg += `STT: ${c.stt}\n`;
       msg += `KH: ${c.name}\n`;
       msg += `SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}\n`;
       msg += `NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}\n`;

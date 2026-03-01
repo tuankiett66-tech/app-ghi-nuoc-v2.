@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Plus, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2 } from 'lucide-react';
+import { Search, X, Plus, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2, Save } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -8,6 +8,7 @@ interface HeaderProps {
   setSearchQuery: (val: string) => void;
   isSyncing: boolean;
   onSync: () => void;
+  onSave: () => void;
   onShowAdd: () => void;
   onShowConfig: () => void;
   onShowMsgTemplate: () => void;
@@ -18,10 +19,11 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSyncing, onSync, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onShowVerify
+  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onShowVerify
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Load history from localStorage
@@ -95,73 +97,85 @@ export const Header: React.FC<HeaderProps> = ({
       <header className="p-4 pt-[calc(1rem+var(--sat))] flex justify-between items-center border-b relative z-[120]">
         <h1 className="text-xl font-black text-blue-700 italic uppercase truncate max-w-[150px]">{title}</h1>
         <div className="flex gap-1 items-center">
+          <button 
+            onClick={() => setIsSearchExpanded(!isSearchExpanded)} 
+            title="Tìm kiếm" 
+            className={`p-2 rounded-xl transition-all active:scale-90 touch-manipulation ${isSearchExpanded ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-700'}`}
+          >
+            <Search size={24}/>
+          </button>
           <button onClick={onShowVerify} title="Kiểm tra" className="p-2 text-emerald-600 active:scale-90 touch-manipulation"><ClipboardCheck size={24}/></button>
           <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-2 text-amber-600 active:scale-90 touch-manipulation"><MessageSquareQuote size={24}/></button>
           <button onClick={onShowAdd} title="Thêm mới" className="p-2 text-blue-700 active:scale-90 touch-manipulation"><Plus size={24}/></button>
           <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-2 rounded-xl transition-colors touch-manipulation ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={22}/></button>
-          <button onClick={onSync} title="Đồng bộ" disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation">{isSyncing ? <Loader2 className="animate-spin" size={22}/> : <CloudDownload size={22}/>}</button>
+          <button onClick={onSync} title="Đồng bộ về" disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation">{isSyncing ? <Loader2 className="animate-spin" size={22}/> : <CloudDownload size={22}/>}</button>
+          <button onClick={onSave} title="Lưu dữ liệu" className="p-2 text-emerald-600 active:scale-90 touch-manipulation"><Save size={22}/></button>
           <button onClick={onShowConfig} title="Cấu hình" className="p-2 text-slate-700 active:scale-90 touch-manipulation"><Settings size={22}/></button>
         </div>
       </header>
 
-      <div className="p-3 bg-slate-100/50 relative z-[115]">
-        <div className="relative flex items-center group">
-          <input 
-            className="w-full bg-white rounded-2xl py-3.5 pl-11 pr-24 shadow-md border-2 border-slate-200 focus:border-blue-500 outline-none text-[15px] font-bold text-slate-800 placeholder:text-slate-400" 
-            placeholder="Tìm tên, STT, điện thoại..." 
-            value={searchQuery} 
-            onFocus={() => setShowHistory(true)}
-            onBlur={handleInputBlur}
-            onChange={e => handleInputChange(e.target.value)} 
-          />
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-          <div className="absolute right-3 flex gap-1 items-center">
-            {searchQuery && <button onClick={() => setSearchQuery('')} className="text-rose-500 bg-rose-50 p-1.5 rounded-lg active:scale-90"><X size={18} /></button>}
-            <button onClick={handleVoiceSearch} className="text-blue-600 bg-blue-50 p-2 rounded-xl active:scale-90 border border-blue-100"><Mic size={20} /></button>
-          </div>
-
-          {/* Search History Dropdown */}
-          {showHistory && history.length > 0 && (
-            <div 
-              ref={dropdownRef}
-              className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[130] animate-in fade-in zoom-in-95 duration-150"
-            >
-              <div className="p-3 border-b bg-slate-50 flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <History size={12}/> Tìm kiếm gần đây
-                </span>
-                <button 
-                  onMouseDown={(e) => clearAllHistory(e)}
-                  className="text-[10px] font-bold text-rose-500 uppercase hover:underline"
-                >
-                  Xóa hết
-                </button>
-              </div>
-              <div className="max-h-[250px] overflow-y-auto">
-                {history.map((item, idx) => (
-                  <div 
-                    key={idx}
-                    onMouseDown={() => {
-                      setSearchQuery(item);
-                      setShowHistory(false);
-                    }}
-                    className="flex items-center justify-between p-4 hover:bg-blue-50 active:bg-blue-100 border-b border-slate-50 last:border-0 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <History size={16} className="text-slate-300 shrink-0" />
-                      <span className="text-slate-700 font-bold truncate">{item}</span>
-                    </div>
-                    <button 
-                      onMouseDown={(e) => deleteHistoryItem(e, item)}
-                      className="p-1 text-slate-300 hover:text-rose-500 transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isSearchExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="p-3 bg-slate-100/50 relative z-[115]">
+          <div className="flex flex-col gap-2">
+            <div className="relative flex items-center group">
+              <input 
+                className="w-full bg-white rounded-2xl py-3.5 pl-11 pr-24 shadow-md border-2 border-slate-200 focus:border-blue-500 outline-none text-[15px] font-bold text-slate-800 placeholder:text-slate-400" 
+                placeholder="Tìm tên, STT, điện thoại..." 
+                value={searchQuery} 
+                onFocus={() => setShowHistory(true)}
+                onBlur={handleInputBlur}
+                onChange={e => handleInputChange(e.target.value)} 
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <div className="absolute right-3 flex gap-1 items-center">
+                {searchQuery && <button onClick={() => setSearchQuery('')} className="text-rose-500 bg-rose-50 p-1.5 rounded-lg active:scale-90"><X size={18} /></button>}
+                <button onClick={handleVoiceSearch} className="text-blue-600 bg-blue-50 p-2 rounded-xl active:scale-90 border border-blue-100"><Mic size={20} /></button>
               </div>
             </div>
-          )}
+
+            {/* Search History - Now relative to push content */}
+            {showHistory && history.length > 0 && (
+              <div 
+                ref={dropdownRef}
+                className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden animate-in slide-in-from-top-2 duration-200"
+              >
+                <div className="p-3 border-b bg-slate-50 flex justify-between items-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <History size={12}/> Lịch sử tìm kiếm
+                  </span>
+                  <button 
+                    onMouseDown={(e) => clearAllHistory(e)}
+                    className="text-[10px] font-bold text-rose-500 uppercase hover:underline"
+                  >
+                    Xóa hết
+                  </button>
+                </div>
+                <div className="max-h-[200px] overflow-y-auto">
+                  {history.map((item, idx) => (
+                    <div 
+                      key={idx}
+                      onMouseDown={() => {
+                        setSearchQuery(item);
+                        setShowHistory(false);
+                      }}
+                      className="flex items-center justify-between p-3.5 hover:bg-blue-50 active:bg-blue-100 border-b border-slate-50 last:border-0 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <History size={14} className="text-slate-300 shrink-0" />
+                        <span className="text-slate-700 font-bold truncate text-sm">{item}</span>
+                      </div>
+                      <button 
+                        onMouseDown={(e) => deleteHistoryItem(e, item)}
+                        className="p-1 text-slate-300 hover:text-rose-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
