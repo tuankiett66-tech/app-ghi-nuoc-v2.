@@ -27,7 +27,7 @@ const App: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollId = useRef<string | null>(null);
-  const listScrollTop = useRef<number>(0);
+  const listScrollTop = useRef<Record<string, number>>({ list1: 0, list2: 0 });
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -47,8 +47,9 @@ const App: React.FC = () => {
     if (view === 'list') {
       setTimeout(() => {
         const listEl = document.getElementById('main-list-container');
-        if (listEl && listScrollTop.current > 0) {
-          listEl.scrollTop = listScrollTop.current;
+        const savedScroll = listScrollTop.current[activeTab];
+        if (listEl && savedScroll > 0) {
+          listEl.scrollTop = savedScroll;
         } else if (lastScrollId.current) {
           const el = document.getElementById(`cust-${lastScrollId.current}`);
           if (el) {
@@ -58,7 +59,7 @@ const App: React.FC = () => {
         }
       }, 100);
     }
-  }, [view]);
+  }, [view, activeTab]);
 
   const filtered = useMemo(() => {
     const s = searchQuery.toLowerCase().trim();
@@ -153,7 +154,7 @@ ${config.globalMessage}`;
     if (view === 'list') {
       const listEl = document.getElementById('main-list-container');
       if (listEl) {
-        listScrollTop.current = listEl.scrollTop;
+        listScrollTop.current[activeTab] = listEl.scrollTop;
       }
     }
     if (resetSearch) setSearchQuery('');
@@ -256,7 +257,12 @@ ${config.globalMessage}`;
       {(view === 'list' || view === 'stats' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg' || view === 'group_list' || view === 'group_detail' || view === 'verify') && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border-2 border-slate-100 p-1.5 rounded-[2.2rem] flex gap-1 shadow-2xl z-[200] mb-[var(--sab)] min-w-[340px]">
           <button 
-            onClick={() => { setActiveTab('list1'); navigateTo('list'); }} 
+            onClick={() => { 
+              const listEl = document.getElementById('main-list-container');
+              if (listEl && view === 'list') listScrollTop.current[activeTab] = listEl.scrollTop;
+              setActiveTab('list1'); 
+              navigateTo('list'); 
+            }} 
             className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${activeTab === 'list1' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
           >
             BỘ 01
@@ -274,7 +280,12 @@ ${config.globalMessage}`;
             BÁO CÁO
           </button>
           <button 
-            onClick={() => { setActiveTab('list2'); navigateTo('list'); }} 
+            onClick={() => { 
+              const listEl = document.getElementById('main-list-container');
+              if (listEl && view === 'list') listScrollTop.current[activeTab] = listEl.scrollTop;
+              setActiveTab('list2'); 
+              navigateTo('list'); 
+            }} 
             className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${activeTab === 'list2' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
           >
             BỘ 02

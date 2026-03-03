@@ -41,7 +41,6 @@ export const DetailView: React.FC<DetailViewProps> = ({
     const totalAmount = (vol * config.waterRate) + customer.oldDebt;
     setPi(Math.round(totalAmount).toString());
     onUpdate({ newIndex: parseSafe(ni), paid: Math.round(totalAmount) });
-    setTimeout(() => onBack(), 300);
   };
 
   return (
