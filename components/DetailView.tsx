@@ -96,6 +96,27 @@ export const DetailView: React.FC<DetailViewProps> = ({
           </div>
         </div>
 
+        {showPreview && (
+          <div className="animate-in slide-in-from-top-2 duration-300">
+            <div className="bg-slate-800 text-emerald-400 p-4 rounded-2xl font-mono text-[12px] leading-relaxed shadow-2xl border-2 border-slate-700">
+               <pre className="whitespace-pre-wrap">{generateMsg(customer, ni, pi)}</pre>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-12 gap-3">
+          <div className="col-span-8 bg-emerald-50 rounded-2xl p-4 border-2 border-emerald-200 relative shadow-sm">
+            <p className="text-[11px] font-black text-emerald-700 uppercase ml-1 mb-1">Khách trả tiền</p>
+            <input type="number" className="w-full bg-transparent text-3xl font-black text-emerald-700 outline-none" value={pi} onChange={e => setPi(e.target.value)} />
+            {pi && <button onClick={() => setPi('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-300 active:scale-90 p-1"><X size={20}/></button>}
+          </div>
+          <div className="col-span-4 flex flex-col gap-2">
+            <button onClick={handleThuDu} className="flex-1 bg-emerald-600 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg shadow-emerald-100 active:scale-95 border-b-4 border-emerald-800">Thu đủ</button>
+            <button onClick={onBack} className="flex-1 bg-slate-800 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg active:scale-95 border-b-4 border-slate-950">Lưu & Về</button>
+          </div>
+        </div>
+        <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-5 rounded-[1.8rem] font-black uppercase flex items-center justify-center gap-3 shadow-2xl shadow-blue-200 active:scale-95 border-b-4 border-blue-900"><MessageCircle size={24}/> Gửi Zalo & Chốt số</button>
+
         {/* Meter Replacement Tracking */}
         <div className={`p-5 rounded-[2rem] border-2 shadow-md flex items-center gap-4 ${
           getMeterStatus(customer.installDate).status === 'danger' ? 'bg-rose-50 border-rose-200' :
@@ -129,27 +150,6 @@ export const DetailView: React.FC<DetailViewProps> = ({
             </div>
           </div>
         </div>
-
-        {showPreview && (
-          <div className="animate-in slide-in-from-top-2 duration-300">
-            <div className="bg-slate-800 text-emerald-400 p-4 rounded-2xl font-mono text-[12px] leading-relaxed shadow-2xl border-2 border-slate-700">
-               <pre className="whitespace-pre-wrap">{generateMsg(customer, ni, pi)}</pre>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-12 gap-3">
-          <div className="col-span-8 bg-emerald-50 rounded-2xl p-4 border-2 border-emerald-200 relative shadow-sm">
-            <p className="text-[11px] font-black text-emerald-700 uppercase ml-1 mb-1">Khách trả tiền</p>
-            <input type="number" className="w-full bg-transparent text-3xl font-black text-emerald-700 outline-none" value={pi} onChange={e => setPi(e.target.value)} />
-            {pi && <button onClick={() => setPi('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-300 active:scale-90 p-1"><X size={20}/></button>}
-          </div>
-          <div className="col-span-4 flex flex-col gap-2">
-            <button onClick={handleThuDu} className="flex-1 bg-emerald-600 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg shadow-emerald-100 active:scale-95 border-b-4 border-emerald-800">Thu đủ</button>
-            <button onClick={onBack} className="flex-1 bg-slate-800 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg active:scale-95 border-b-4 border-slate-950">Lưu & Về</button>
-          </div>
-        </div>
-        <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-5 rounded-[1.8rem] font-black uppercase flex items-center justify-center gap-3 shadow-2xl shadow-blue-200 active:scale-95 border-b-4 border-blue-900"><MessageCircle size={24}/> Gửi Zalo & Chốt số</button>
       </div>
     </div>
   );
