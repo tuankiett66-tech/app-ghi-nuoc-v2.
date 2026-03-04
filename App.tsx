@@ -211,7 +211,11 @@ ${config.globalMessage}`;
               navigateTo('detail'); 
             }}
             onCall={(phone) => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(phone)}`; }}
-            onCopyMsg={async (c) => { await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); showToast("Da copy hoa don!"); }}
+            onCopyMsg={async (c) => { 
+              await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); 
+              updateCustomer(c.id, { isZalo: true });
+              showToast("Da copy hoa don & Danh dau!"); 
+            }}
           />
         </>
       )}
