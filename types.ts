@@ -18,6 +18,7 @@ export interface Customer {
   status: 'paid' | 'unpaid';
   isZalo?: boolean;
   note?: string;
+  installDate?: string; // Ngay lap dat (YYYY-MM)
   updatedAt?: number; // Thoi diem cap nhat gan nhat (timestamp)
 }
 

@@ -2,7 +2,8 @@
 import React from 'react';
 import { CheckCheck, Phone, Copy } from 'lucide-react';
 import { Customer } from '../types';
-import { formatCurrency } from '../utils';
+import { formatCurrency, getMeterStatus } from '../utils';
+import { AlertTriangle, Clock } from 'lucide-react';
 
 interface ListViewProps {
   customers: Customer[];
@@ -20,6 +21,13 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
             <div className="flex flex-col items-center gap-1.5 shrink-0">
               <div className={`px-2.5 py-1.5 rounded-xl min-w-[38px] text-center text-white text-[12px] font-black shadow-sm ${c.isZalo ? 'bg-blue-500' : 'bg-slate-800'}`}>{c.stt}</div>
               <div className={`p-2 rounded-full border-2 ${c.isZalo ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'text-slate-300 border-slate-100'}`}><CheckCheck size={16} /></div>
+              {getMeterStatus(c.installDate).status !== 'ok' && getMeterStatus(c.installDate).status !== 'unknown' && (
+                <div className={`p-1.5 rounded-full border-2 mt-1 ${
+                  getMeterStatus(c.installDate).status === 'danger' ? 'bg-rose-600 text-white border-rose-600 shadow-md' : 'bg-amber-500 text-white border-amber-500 shadow-md'
+                }`}>
+                  {getMeterStatus(c.installDate).status === 'danger' ? <AlertTriangle size={12} /> : <Clock size={12} />}
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h3 className={`font-black uppercase text-[16px] truncate ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>

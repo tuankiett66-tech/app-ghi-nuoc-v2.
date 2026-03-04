@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, MessageSquare, Pencil, QrCode, X, Copy, MessageCircle } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
-import { formatCurrency, parseSafe, copyToClipboard } from '../utils';
+import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus } from '../utils';
+import { AlertTriangle, Clock } from 'lucide-react';
 
 interface DetailViewProps {
   customer: Customer;
@@ -92,6 +93,40 @@ export const DetailView: React.FC<DetailViewProps> = ({
           <div className="border-t-2 border-dashed pt-3 mt-1 flex justify-between items-center">
             <span className="text-blue-700 font-black uppercase text-sm italic tracking-tight">Còn lại phải thu:</span>
             <span className="text-3xl font-black text-blue-700 tracking-tighter">{formatCurrency(customer.balance)}</span>
+          </div>
+        </div>
+
+        {/* Meter Replacement Tracking */}
+        <div className={`p-5 rounded-[2rem] border-2 shadow-md flex items-center gap-4 ${
+          getMeterStatus(customer.installDate).status === 'danger' ? 'bg-rose-50 border-rose-200' :
+          getMeterStatus(customer.installDate).status === 'warning' ? 'bg-amber-50 border-amber-200' :
+          'bg-emerald-50 border-emerald-200'
+        }`}>
+          <div className={`p-3 rounded-2xl ${
+            getMeterStatus(customer.installDate).status === 'danger' ? 'bg-rose-100 text-rose-600' :
+            getMeterStatus(customer.installDate).status === 'warning' ? 'bg-amber-100 text-amber-600' :
+            'bg-emerald-100 text-emerald-600'
+          }`}>
+            {getMeterStatus(customer.installDate).status === 'danger' ? <AlertTriangle size={24}/> : <Clock size={24}/>}
+          </div>
+          <div className="flex-1">
+            <p className="text-[10px] font-black uppercase text-slate-500 mb-0.5">Thời hạn thay đồng hồ (60 tháng)</p>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-xl font-black ${
+                getMeterStatus(customer.installDate).status === 'danger' ? 'text-rose-700' :
+                getMeterStatus(customer.installDate).status === 'warning' ? 'text-amber-700' :
+                'text-emerald-700'
+              }`}>
+                {getMeterStatus(customer.installDate).status === 'unknown' ? 'Chưa nhập ngày lắp' : 
+                 getMeterStatus(customer.installDate).monthsLeft <= 0 ? 'Đã quá hạn' : 
+                 `Còn ${getMeterStatus(customer.installDate).monthsLeft} tháng`}
+              </span>
+              {customer.installDate && (
+                <span className="text-[10px] font-bold text-slate-400 uppercase">
+                  (Lắp: {customer.installDate})
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

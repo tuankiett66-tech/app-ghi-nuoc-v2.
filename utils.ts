@@ -190,3 +190,20 @@ export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> =>
     reader.readAsArrayBuffer(file);
   });
 };
+
+export const getMeterStatus = (installDate?: string) => {
+  if (!installDate) return { monthsLeft: 60, status: 'unknown' as const };
+  
+  const [year, month] = installDate.split('-').map(Number);
+  const install = new Date(year, month - 1);
+  const now = new Date();
+  
+  const diffMonths = (now.getFullYear() - install.getFullYear()) * 12 + (now.getMonth() - install.getMonth());
+  const monthsLeft = 60 - diffMonths;
+  
+  let status: 'ok' | 'warning' | 'danger' | 'unknown' = 'ok';
+  if (monthsLeft <= 0) status = 'danger';
+  else if (monthsLeft <= 6) status = 'warning';
+  
+  return { monthsLeft, status };
+};

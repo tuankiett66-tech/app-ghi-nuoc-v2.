@@ -15,7 +15,7 @@ interface ModalsProps {
 
 export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, config, setConfig, selectedCustomer }) => {
   const [formData, setFormData] = useState({ 
-    name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: 1, oldIndex: 0, oldDebt: 0 
+    name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: 1, oldIndex: 0, oldDebt: 0, installDate: ''
   });
 
   useEffect(() => {
@@ -27,10 +27,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
         phoneTenant: selectedCustomer.phoneTenant || selectedCustomer.phone || '',
         stt: selectedCustomer.stt,
         oldIndex: selectedCustomer.oldIndex,
-        oldDebt: selectedCustomer.oldDebt
+        oldDebt: selectedCustomer.oldDebt,
+        installDate: selectedCustomer.installDate || ''
       });
     } else if (view === 'add_customer') {
-      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: 1, oldIndex: 0, oldDebt: 0 });
+      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: 1, oldIndex: 0, oldDebt: 0, installDate: '' });
     }
   }, [view, selectedCustomer]);
 
@@ -84,6 +85,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                 <label className="text-[10px] font-black uppercase text-rose-600 ml-1">Nợ tồn (đ)</label>
                 <input type="number" className="w-full bg-rose-50 p-3.5 rounded-2xl border-2 border-rose-100 font-black text-rose-600" value={formData.oldDebt} onChange={e => setFormData({...formData, oldDebt: parseFloat(e.target.value) || 0})} />
               </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Tháng lắp đặt (Theo dõi 5 năm)</label>
+              <input type="month" className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800" value={formData.installDate} onChange={e => setFormData({...formData, installDate: e.target.value})} />
             </div>
 
             <button 
