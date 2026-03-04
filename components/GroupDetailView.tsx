@@ -11,9 +11,10 @@ interface GroupDetailViewProps {
   onBack: () => void;
   onUpdateGroup: (groupId: string, updates: Partial<WaterGroup>) => void;
   onSendZalo: (msg: string, sdt: string) => void;
+  onMarkGroupPaid: (groupId: string) => void;
 }
 
-export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, customers, config, onBack, onUpdateGroup, onSendZalo }) => {
+export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, customers, config, onBack, onUpdateGroup, onSendZalo, onMarkGroupPaid }) => {
   const [sttInput, setSttInput] = useState('');
   const [sourceInput, setSourceInput] = useState<'list1' | 'list2'>('list1');
 
@@ -181,8 +182,9 @@ ${config.globalMessage}`;
             <p className="text-2xl font-black text-indigo-700 tracking-tighter leading-none">{formatCurrency(totals.total)}</p>
         </div>
         <div className="grid grid-cols-12 gap-2">
-            <button onClick={() => onSendZalo(generateGroupMsg(), group.masterSdt || '')} disabled={groupData.length === 0} className="col-span-8 bg-indigo-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg active:scale-95 border-b-2 border-indigo-900 disabled:opacity-50 text-[12px]"><MessageCircle size={18}/> GUI ZALO</button>
-            <button onClick={async () => { const msg = generateGroupMsg(); await copyToClipboard(msg); alert("Da copy!"); }} className="col-span-4 bg-slate-800 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-slate-950 disabled:opacity-50 text-[12px]"><Copy size={16}/> BILL</button>
+            <button onClick={() => onMarkGroupPaid(group.id)} disabled={groupData.length === 0} className="col-span-3 bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-emerald-900 disabled:opacity-50 text-[10px]"><UserCheck size={18}/></button>
+            <button onClick={() => onSendZalo(generateGroupMsg(), group.masterSdt || '')} disabled={groupData.length === 0} className="col-span-6 bg-indigo-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg active:scale-95 border-b-2 border-indigo-900 disabled:opacity-50 text-[10px]"><MessageCircle size={18}/> GUI ZALO</button>
+            <button onClick={async () => { const msg = generateGroupMsg(); await copyToClipboard(msg); alert("Da copy!"); }} className="col-span-3 bg-slate-800 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-slate-950 disabled:opacity-50 text-[10px]"><Copy size={16}/> BILL</button>
         </div>
       </div>
     </div>

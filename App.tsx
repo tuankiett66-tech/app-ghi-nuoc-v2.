@@ -150,6 +150,31 @@ ${config.globalMessage}`;
     }, 300);
   };
 
+  const handleMarkGroupPaid = (groupId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    
+    const updates: Record<string, Partial<Customer>> = {};
+    group.members.forEach(m => {
+      const cust = customers.find(c => c.stt === m.stt && c.listType === m.source);
+      if (cust) {
+        const totalAmount = Math.round(cust.amount + cust.oldDebt);
+        updates[cust.id] = { paid: totalAmount };
+      }
+    });
+
+    if (Object.keys(updates).length > 0) {
+      setCustomers(prev => prev.map(c => {
+        if (updates[c.id]) {
+          const merged = { ...c, ...updates[c.id], updatedAt: Date.now() };
+          return calculateRow(merged, config.waterRate);
+        }
+        return c;
+      }));
+      showToast(`Da thu tien cho ${Object.keys(updates).length} ho trong nhom!`);
+    }
+  };
+
   const navigateTo = (newView: string, resetSearch: boolean = true) => {
     if (view === 'list') {
       const listEl = document.getElementById('main-list-container');
@@ -226,6 +251,7 @@ ${config.globalMessage}`;
           group={activeGroup} customers={customers} config={config}
           onBack={() => navigateTo('group_list')}
           onUpdateGroup={updateGroup}
+          onMarkGroupPaid={handleMarkGroupPaid}
           onSendZalo={async (msg, sdt) => {
             await copyToClipboard(msg);
             showToast("Da copy Bill Nhom!");
