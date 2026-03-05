@@ -124,11 +124,17 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
         const res: Customer[] = [];
         for (let i = start; i < json.length; i++) {
           const row = json[i];
-          if (!row || !row[colMap.stt] || isNaN(parseInt(row[colMap.stt]))) continue;
+          if (!row) continue;
+          
+          const sttRaw = row[colMap.stt];
+          const stt = parseSafe(sttRaw);
+          
+          // Neu STT khong hop le hoac bang 0 thi bo qua (tranh hang trong hoac hang tong cong)
+          if (stt === 0) continue;
           
           res.push(calculateRow({
-            id: `xl-${row[colMap.stt]}-${listType}`,
-            stt: parseInt(row[colMap.stt]),
+            id: `xl-${stt}-${listType}`,
+            stt: stt,
             name: String(row[colMap.name] || ""),
             address: String(row[colMap.address] || ""),
             phone: String(row[colMap.phone] || ""),
@@ -179,8 +185,8 @@ export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> =>
           if (colL.includes("DB1")) currentDB = 'list1';
           else if (colL.includes("DB2")) currentDB = 'list2';
 
-          const stt = parseInt(colA);
-          if (!isNaN(stt) && !colA.toUpperCase().includes("CỘNG")) {
+          const stt = parseSafe(colA);
+          if (stt !== 0 && !colA.toUpperCase().includes("CỘNG")) {
             members.push({ stt, source: currentDB });
           }
         }
