@@ -12,9 +12,10 @@ interface GroupDetailViewProps {
   onUpdateGroup: (groupId: string, updates: Partial<WaterGroup>) => void;
   onSendZalo: (msg: string, sdt: string) => void;
   onMarkGroupPaid: (groupId: string) => void;
+  onNavigate: (dir: 'next' | 'prev') => void;
 }
 
-export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, customers, config, onBack, onUpdateGroup, onSendZalo, onMarkGroupPaid }) => {
+export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, customers, config, onBack, onUpdateGroup, onSendZalo, onMarkGroupPaid, onNavigate }) => {
   const [sttInput, setSttInput] = useState('');
   const [sourceInput, setSourceInput] = useState<'list1' | 'list2'>('list1');
 
@@ -96,13 +97,13 @@ NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
     const cleanGroupName = normalizeString(group.name).toUpperCase();
 
     msg += `
+${config.globalMessage}
+---
 👉 CHUYỂN KHOẢN:
 NH: ${config.bankId.toUpperCase()}
 STK: ${config.accountNo}
 TÊN: ${config.accountName}
-Nội dung: TT NUOC ${cleanGroupName}
----
-${config.globalMessage}`;
+Nội dung: TT NUOC ${cleanGroupName}`;
     
     return msg;
   };
@@ -112,7 +113,11 @@ ${config.globalMessage}`;
       <header className="px-4 py-1.5 flex items-center justify-between bg-white border-b shadow-sm shrink-0">
         <div className="flex items-center gap-1">
             <button onClick={onBack} className="p-2 -ml-2 text-slate-800 active:scale-90"><ChevronLeft size={24}/></button>
-            <h2 className="text-sm font-black uppercase italic text-indigo-700 truncate w-40">{group.name}</h2>
+            <div className="flex bg-slate-100 rounded-xl p-0.5 border border-slate-200 scale-90">
+              <button onClick={() => onNavigate('prev')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft size={16}/></button>
+              <button onClick={() => onNavigate('next')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft className="rotate-180" size={16}/></button>
+            </div>
+            <h2 className="text-sm font-black uppercase italic text-indigo-700 truncate w-32 ml-1">{group.name}</h2>
         </div>
         <button onClick={() => { const n = prompt("Sua ten nhom:", group.name); if(n) onUpdateGroup(group.id, {name: n.toUpperCase()}); }} className="p-2 text-slate-400 active:scale-90"><Info size={18}/></button>
       </header>

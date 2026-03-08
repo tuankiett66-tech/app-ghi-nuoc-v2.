@@ -105,13 +105,13 @@ NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}`;
     const remainingLabel = remaining < 0 ? "TIỀN DƯ (TRẢ THỪA)" : "CÒN LẠI";
     msg += `\n${remainingLabel}: ${remaining.toLocaleString('vi-VN')}
 
+${config.globalMessage}
+---
 👉 THÔNG TIN CHUYỂN KHOẢN:
 NH: ${config.bankId.toUpperCase()}
 STK: ${config.accountNo} (Bấm giữ để copy)
 TÊN: ${config.accountName}
-Nội dung: TT NUOC ${cleanName}
----
-${config.globalMessage}`;
+Nội dung: TT NUOC ${cleanName}`;
 
     return msg;
   };
@@ -256,6 +256,11 @@ ${config.globalMessage}`;
           onBack={() => navigateTo('group_list')}
           onUpdateGroup={updateGroup}
           onMarkGroupPaid={handleMarkGroupPaid}
+          onNavigate={(dir) => {
+            const idx = groups.findIndex(g => g.id === selectedGroupId);
+            const target = dir === 'next' ? idx + 1 : idx - 1;
+            if (target >= 0 && target < groups.length) setSelectedGroupId(groups[target].id);
+          }}
           onSendZalo={async (msg, sdt) => {
             await copyToClipboard(msg);
             showToast("Da copy Bill Nhom!");
