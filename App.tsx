@@ -39,7 +39,7 @@ const App: React.FC = () => {
   const handleManualSave = () => {
     // useWaterData already saves to localStorage on every change due to useEffect
     showToast("Da luu may");
-    handleBackupCloud(true); // Silent background sync
+    handleBackupCloud(false); // Show status for manual save
   };
 
   const selectedCustomer = useMemo(() => customers.find(c => c.id === selectedId) || null, [customers, selectedId]);
@@ -168,11 +168,10 @@ Nội dung: TT NUOC ${cleanName}`;
     setSyncStatus('syncing');
 
     try {
-      await fetch(url, {
+      const response = await fetch(url, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           listType: activeTab,
@@ -180,12 +179,25 @@ Nội dung: TT NUOC ${cleanName}`;
         })
       });
       
+      if (!response.ok && response.status !== 0) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       setSyncStatus('synced');
       if (!silent) showToast("Da sao luu len Google Sheets thanh cong!");
     } catch (e) {
       console.log("Cloud Backup Error:", e);
       setSyncStatus('error');
-      if (!silent) showToast("Mat ket noi mang!");
+      if (!silent) {
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        if (errorMsg.includes('Failed to fetch')) {
+          showToast("Loi CORS hoac Link Script sai!");
+          alert("Loi Dong Bo Cloud (POST):\n- Co the do Link Script sai.\n- Hoac do Script chua bat CORS.\n- Hay thu dung link /exec cua Google Apps Script.");
+        } else {
+          showToast("Loi ket noi Cloud!");
+          alert("Loi: " + errorMsg);
+        }
+      }
     } finally {
       if (!silent) setIsSyncing(false);
     }
