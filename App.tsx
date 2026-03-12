@@ -134,7 +134,11 @@ Nội dung: TT NUOC ${cleanName}`;
       }, config.waterRate));
       setCustomers(prev => [...prev.filter(c => c.listType !== activeTab), ...mapped]);
       showToast("Dong bo ve thanh cong!");
-    } catch (e) { showToast("Loi ket noi Cloud!"); }
+    } catch (e) { 
+      console.log("Cloud Sync Error:", e);
+      alert("Loi Dong Bo Cloud:\n" + (e instanceof Error ? e.message : String(e)));
+      showToast("Loi ket noi Cloud!"); 
+    }
     finally { setIsSyncing(false); }
   };
 
@@ -170,7 +174,8 @@ Nội dung: TT NUOC ${cleanName}`;
       const result = await response.json();
       showToast(result.message || `Da sao luu ${arrayData.length} ho!`);
     } catch (e) {
-      console.error(e);
+      console.log("Cloud Backup Error:", e);
+      alert("Loi Sao Luu Cloud:\n" + (e instanceof Error ? e.message : String(e)));
       showToast("Loi sao luu Cloud!");
     } finally {
       setIsSyncing(false);
