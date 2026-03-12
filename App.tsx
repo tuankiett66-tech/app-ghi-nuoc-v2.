@@ -37,7 +37,7 @@ const App: React.FC = () => {
   const handleManualSave = () => {
     // useWaterData already saves to localStorage on every change due to useEffect
     // This button provides visual reassurance
-    showToast("Đã lưu dữ liệu thành công!");
+    showToast("Da luu du lieu thanh cong!");
   };
 
   const selectedCustomer = useMemo(() => customers.find(c => c.id === selectedId) || null, [customers, selectedId]);
@@ -136,6 +136,45 @@ Nội dung: TT NUOC ${cleanName}`;
       showToast("Dong bo ve thanh cong!");
     } catch (e) { showToast("Loi ket noi Cloud!"); }
     finally { setIsSyncing(false); }
+  };
+
+  const handleBackupCloud = async () => {
+    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
+    if (!url) return showToast("Chua co Link Script!");
+    
+    const arrayData = customers
+      .filter(c => c.listType === activeTab)
+      .map(c => ({
+        stt: c.stt,
+        newIndex: c.newIndex,
+        consumption: c.volume,
+        amount: c.amount,
+        paid: c.paid,
+        remainingDebt: c.balance,
+        isZalo: c.isZalo
+      }));
+
+    setIsSyncing(true);
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          listType: activeTab,
+          data: arrayData
+        })
+      });
+      
+      const result = await response.json();
+      showToast(result.message || `Da sao luu ${arrayData.length} ho!`);
+    } catch (e) {
+      console.error(e);
+      showToast("Loi sao luu Cloud!");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleSendZalo = async () => {
@@ -275,6 +314,7 @@ Nội dung: TT NUOC ${cleanName}`;
           onBack={() => navigateTo('list')}
           onImport={() => fileInputRef.current?.click()}
           onExport={() => exportToExcel(customers.filter(c => c.listType === activeTab), `Backup_${activeTab}`)}
+          onBackupCloud={handleBackupCloud}
           onClear={() => { if(confirm("Xoa sach du lieu?")) { localStorage.clear(); window.location.reload(); } }}
         />
       )}

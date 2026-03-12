@@ -10,10 +10,11 @@ interface ConfigViewProps {
   onBack: () => void;
   onImport: () => void;
   onExport: () => void;
+  onBackupCloud: () => void;
   onClear: () => void;
 }
 
-export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBack, onImport, onExport, onClear }) => {
+export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBack, onImport, onExport, onBackupCloud, onClear }) => {
   return (
     <div className="h-full bg-slate-50 p-6 pt-[calc(1.5rem+var(--sat))] overflow-y-auto">
       <header className="flex justify-between items-center mb-8 bg-white/80 backdrop-blur-md p-4 rounded-3xl border shadow-sm sticky top-0 z-50">
@@ -49,6 +50,9 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                 <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Link Script Bộ 02</label>
                 <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-[10px] font-mono font-bold text-blue-900" placeholder="https://script.google.com/..." value={config.sheetUrl2} onChange={e => setConfig({...config, sheetUrl2: e.target.value})} />
              </div>
+             <button onClick={onBackupCloud} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 active:scale-95 shadow-md border-b-4 border-blue-900 mt-2">
+                <UploadCloud size={20} /> Sao lưu lên Cloud
+             </button>
           </div>
 
           <div className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-200 space-y-4 shadow-sm">
