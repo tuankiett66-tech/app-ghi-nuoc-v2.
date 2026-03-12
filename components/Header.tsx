@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Plus, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2, Save, Check } from 'lucide-react';
+import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2, Save, Check } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -107,7 +107,6 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <button onClick={onShowVerify} title="Kiểm tra" className="p-2 text-emerald-600 active:scale-90 touch-manipulation"><ClipboardCheck size={24}/></button>
           <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-2 text-amber-600 active:scale-90 touch-manipulation"><MessageSquareQuote size={24}/></button>
-          <button onClick={onShowAdd} title="Thêm mới" className="p-2 text-blue-700 active:scale-90 touch-manipulation"><Plus size={24}/></button>
           <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-2 rounded-xl transition-colors touch-manipulation ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={22}/></button>
           <button onClick={onSync} title="Đồng bộ về" disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation">{isSyncing ? <Loader2 className="animate-spin" size={22}/> : <CloudDownload size={22}/>}</button>
           <button onClick={onSave} title="Lưu dữ liệu" className="p-2 text-emerald-600 active:scale-90 touch-manipulation relative">
@@ -138,7 +137,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative flex items-center group">
               <input 
                 className="w-full bg-white rounded-2xl py-3.5 pl-11 pr-24 shadow-md border-2 border-slate-200 focus:border-blue-500 outline-none text-[15px] font-bold text-slate-800 placeholder:text-slate-400" 
-                placeholder="Tìm tên, STT, điện thoại..." 
+                placeholder="Tìm tên, Mã KH, điện thoại..." 
                 value={searchQuery} 
                 onFocus={() => setShowHistory(true)}
                 onBlur={handleInputBlur}

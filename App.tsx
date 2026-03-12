@@ -36,6 +36,22 @@ const App: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleNormalizeStt = () => {
+    if (!confirm(`Bạn có muốn đánh số lại toàn bộ Mã KH của ${activeTab === 'list1' ? 'BỘ 01' : 'BỘ 02'} bắt đầu từ ${activeTab === 'list1' ? '1001' : '2001'}?`)) return;
+    
+    const startNum = activeTab === 'list1' ? 1001 : 2001;
+    const currentTabCustomers = customers.filter(c => c.listType === activeTab);
+    const otherTabCustomers = customers.filter(c => c.listType !== activeTab);
+    
+    const updated = currentTabCustomers.map((c, idx) => ({
+      ...c,
+      stt: (startNum + idx).toString()
+    }));
+    
+    setCustomers([...otherTabCustomers, ...updated]);
+    showToast("Đã chuẩn hóa Mã KH!");
+  };
+
   const handleManualSave = () => {
     // useWaterData already saves to localStorage on every change due to useEffect
     showToast("Da luu may");
@@ -269,6 +285,11 @@ Nội dung: TT NUOC ${cleanName}`;
               updateCustomer(c.id, { isZalo: true });
               showToast("Da copy hoa don & Danh dau!"); 
             }}
+            onAddAfter={(stt) => { 
+              setAfterStt(stt); 
+              navigateTo('add_customer', false); 
+              showToast(`Đang chèn hộ mới sau mã ${stt}`);
+            }}
           />
         </>
       )}
@@ -285,7 +306,11 @@ Nội dung: TT NUOC ${cleanName}`;
           onUpdate={(upd) => updateCustomer(selectedId!, upd)}
           onShowQr={() => setShowQr(true)}
           onEditInfo={() => navigateTo('edit_customer', false)}
-          onAddAfter={() => { setAfterStt(selectedCustomer.stt); navigateTo('add_customer', false); }}
+          onAddAfter={() => { 
+            setAfterStt(selectedCustomer.stt); 
+            navigateTo('add_customer', false); 
+            showToast(`Đang chèn hộ mới sau mã ${selectedCustomer.stt}`);
+          }}
           onSendZalo={handleSendZalo}
           generateMsg={generateMsg}
         />
@@ -331,6 +356,7 @@ Nội dung: TT NUOC ${cleanName}`;
           onExport={() => exportToExcel(customers.filter(c => c.listType === activeTab), `Backup_${activeTab}`)}
           onBackupCloud={handleBackupCloud}
           onClear={() => { if(confirm("Xoa sach du lieu?")) { localStorage.clear(); window.location.reload(); } }}
+          onNormalizeStt={handleNormalizeStt}
         />
       )}
 

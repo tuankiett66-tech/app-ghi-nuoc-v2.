@@ -57,7 +57,10 @@ export const DetailView: React.FC<DetailViewProps> = ({
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowPreview(!showPreview)} className={`p-3.5 rounded-full border-2 transition-all ${showPreview ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-slate-50 border-slate-200 text-slate-700'}`}><MessageSquare size={22}/></button>
-          <button onClick={onAddAfter} className="p-3.5 bg-blue-50 rounded-full border-2 border-blue-200 text-blue-700 active:scale-90" title="Thêm hộ sau mã này"><Plus size={22}/></button>
+          <button onClick={onAddAfter} className="flex items-center gap-2 px-4 py-3 bg-blue-50 rounded-full border-2 border-blue-200 text-blue-700 active:scale-90" title="Thêm hộ sau mã này">
+            <Plus size={20}/>
+            <span className="text-[10px] font-black uppercase">Thêm hộ sau</span>
+          </button>
           <button onClick={onEditInfo} className="p-3.5 bg-slate-50 rounded-full border-2 border-slate-200 text-slate-700 active:scale-90"><Pencil size={22}/></button>
           <button onClick={onShowQr} className="p-4 bg-blue-600 text-white rounded-full shadow-2xl active:scale-90"><QrCode size={24}/></button>
         </div>
