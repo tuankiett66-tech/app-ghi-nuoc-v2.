@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Plus, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2, Save } from 'lucide-react';
+import { Search, X, Plus, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2, Save, Check } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -9,6 +9,7 @@ interface HeaderProps {
   isSyncing: boolean;
   onSync: () => void;
   onSave: () => void;
+  syncStatus: 'idle' | 'syncing' | 'synced' | 'error';
   onShowAdd: () => void;
   onShowConfig: () => void;
   onShowMsgTemplate: () => void;
@@ -19,7 +20,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onShowVerify
+  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onShowVerify
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -109,7 +110,24 @@ export const Header: React.FC<HeaderProps> = ({
           <button onClick={onShowAdd} title="Thêm mới" className="p-2 text-blue-700 active:scale-90 touch-manipulation"><Plus size={24}/></button>
           <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-2 rounded-xl transition-colors touch-manipulation ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={22}/></button>
           <button onClick={onSync} title="Đồng bộ về" disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation">{isSyncing ? <Loader2 className="animate-spin" size={22}/> : <CloudDownload size={22}/>}</button>
-          <button onClick={onSave} title="Lưu dữ liệu" className="p-2 text-emerald-600 active:scale-90 touch-manipulation"><Save size={22}/></button>
+          <button onClick={onSave} title="Lưu dữ liệu" className="p-2 text-emerald-600 active:scale-90 touch-manipulation relative">
+            <Save size={22}/>
+            {syncStatus === 'syncing' && (
+              <div className="absolute -top-1 -right-1 bg-blue-600 text-white rounded-full p-0.5 animate-spin">
+                <Loader2 size={10} />
+              </div>
+            )}
+            {syncStatus === 'synced' && (
+              <div className="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 shadow-sm">
+                <Check size={10} strokeWidth={4} />
+              </div>
+            )}
+            {syncStatus === 'error' && (
+              <div className="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5 shadow-sm">
+                <X size={10} strokeWidth={4} />
+              </div>
+            )}
+          </button>
           <button onClick={onShowConfig} title="Cấu hình" className="p-2 text-slate-700 active:scale-90 touch-manipulation"><Settings size={22}/></button>
         </div>
       </header>

@@ -16,6 +16,7 @@ export const calculateRow = (cust: any, rate: number) => {
   const oi = parseSafe(cust.oldIndex);
   const od = parseSafe(cust.oldDebt);
   const paid = parseSafe(cust.paid);
+  const stt = String(cust.stt || "");
   
   const vol = (ni > 0 && ni >= oi) ? (ni - oi) : 0;
   const amt = vol * rate;
@@ -23,6 +24,7 @@ export const calculateRow = (cust: any, rate: number) => {
   
   return {
     ...cust,
+    stt,
     newIndex: ni, oldIndex: oi, oldDebt: od, paid: paid,
     volume: vol, amount: amt, balance: bal,
     status: (bal <= 0 && (ni > 0 || od > 0)) ? 'paid' : 'unpaid'
@@ -74,10 +76,12 @@ export const generateVietQrUrl = (bankId: string, accountNo: string, amount: num
 };
 
 export const exportToExcel = (customers: Customer[], fileName: string = 'Bao_Cao') => {
-  const header = ["STT", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI", "ZALO"];
-  const data = customers.sort((a, b) => a.stt - b.stt).map(c => [
-    c.stt, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || "", c.isZalo ? "X" : ""
-  ]);
+  const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI"];
+  const data = customers
+    .sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' }))
+    .map(c => [
+      c.stt, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || ""
+    ]);
   const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Data");
@@ -106,7 +110,7 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
             headerRowIndex = r;
             row.forEach((cell, idx) => {
               const text = String(cell || "").toUpperCase();
-              if (text.includes("STT")) colMap.stt = idx;
+              if (text.includes("STT") || text.includes("MÃ KH")) colMap.stt = idx;
               else if (text.includes("KHÁCH") || text.includes("TÊN")) colMap.name = idx;
               else if (text.includes("ĐỊA CHỈ")) colMap.address = idx;
               else if (text.includes("THOẠI") || text.includes("ĐT")) colMap.phone = idx;
@@ -126,11 +130,10 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
           const row = json[i];
           if (!row) continue;
           
-          const sttRaw = row[colMap.stt];
-          const stt = parseSafe(sttRaw);
+          const stt = String(row[colMap.stt] || "").trim();
           
-          // Neu STT khong hop le hoac bang 0 thi bo qua (tranh hang trong hoac hang tong cong)
-          if (stt === 0) continue;
+          // Neu STT khong hop le thi bo qua
+          if (!stt || stt === "0") continue;
           
           res.push(calculateRow({
             id: `xl-${stt}-${listType}`,
@@ -168,7 +171,8 @@ export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> =>
         let startRow = 0;
 
         for (let r = 0; r < 20; r++) {
-            if (rows[r] && String(rows[r][0] || "").toUpperCase().includes("STT")) {
+            const cellVal = String(rows[r] && rows[r][0] || "").toUpperCase();
+            if (cellVal.includes("STT") || cellVal.includes("MÃ KH")) {
                 startRow = r + 1;
                 break;
             }
@@ -185,8 +189,8 @@ export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> =>
           if (colL.includes("DB1")) currentDB = 'list1';
           else if (colL.includes("DB2")) currentDB = 'list2';
 
-          const stt = parseSafe(colA);
-          if (stt !== 0 && !colA.toUpperCase().includes("CỘNG")) {
+          const stt = colA;
+          if (stt && stt !== "0" && !stt.toUpperCase().includes("CỘNG")) {
             members.push({ stt, source: currentDB });
           }
         }
@@ -212,4 +216,47 @@ export const getMeterStatus = (installDate?: string) => {
   else if (monthsLeft <= 6) status = 'warning';
   
   return { monthsLeft, status };
+};
+
+export const suggestNextStt = (customers: Customer[], listType: 'list1' | 'list2', afterStt?: string) => {
+  const list = customers
+    .filter(c => c.listType === listType)
+    .sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' }));
+  
+  if (!afterStt) {
+    if (list.length === 0) return listType === 'list1' ? '1001' : '2001';
+    
+    // Find absolute max numeric part
+    let maxNum = listType === 'list1' ? 1000 : 2000;
+    list.forEach(c => {
+      const m = c.stt.match(/^(\d+)/);
+      if (m) {
+        const n = parseInt(m[1]);
+        if (n > maxNum) maxNum = n;
+      }
+    });
+    return (maxNum + 1).toString();
+  }
+
+  // Suggesting after a specific STT (insertion logic)
+  const baseMatch = afterStt.match(/^(\d+)([A-Z]*)$/);
+  if (!baseMatch) return afterStt + 'A';
+  
+  const baseNum = baseMatch[1];
+  const existingWithBase = list
+    .filter(c => c.stt.startsWith(baseNum))
+    .map(c => c.stt.substring(baseNum.length))
+    .filter(s => /^[A-Z]*$/.test(s));
+  
+  if (existingWithBase.length === 0 || (existingWithBase.length === 1 && existingWithBase[0] === "")) {
+    return baseNum + 'A';
+  }
+  
+  existingWithBase.sort();
+  const lastSuffix = existingWithBase[existingWithBase.length - 1];
+  if (lastSuffix === "") return baseNum + 'A';
+  
+  const lastCharCode = lastSuffix.charCodeAt(lastSuffix.length - 1);
+  const nextChar = String.fromCharCode(lastCharCode + 1);
+  return baseNum + nextChar;
 };

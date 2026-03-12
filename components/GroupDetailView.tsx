@@ -20,9 +20,8 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
   const [sourceInput, setSourceInput] = useState<'list1' | 'list2'>('list1');
 
   const previewCust = useMemo(() => {
-    const val = parseInt(sttInput);
-    if (isNaN(val)) return null;
-    return customers.find(c => c.stt === val && c.listType === sourceInput);
+    if (!sttInput) return null;
+    return customers.find(c => c.stt === sttInput && c.listType === sourceInput);
   }, [sttInput, sourceInput, customers]);
 
   const groupData = useMemo(() => {
@@ -65,7 +64,7 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
     };
   };
 
-  const removeMember = (stt: number, source: string) => {
+  const removeMember = (stt: string, source: string) => {
     onUpdateGroup(group.id, { members: (group.members || []).filter(m => !(m.stt === stt && m.source === source)) });
   };
 
@@ -134,9 +133,9 @@ Nội dung: TT NUOC ${cleanGroupName}`;
           <div className="relative flex gap-1.5">
             <div className="relative flex-1">
                 <input 
-                  type="number" 
+                  type="text" 
                   className="w-full bg-slate-50 p-2.5 pr-14 rounded-xl font-black text-xl text-indigo-700 outline-none border-2 border-transparent focus:border-indigo-500 shadow-inner" 
-                  placeholder="STT..."
+                  placeholder="Mã KH..."
                   value={sttInput}
                   onChange={e => setSttInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAddMember()}

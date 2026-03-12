@@ -1,7 +1,7 @@
 
 export interface Customer {
   id: string;
-  stt: number;
+  stt: string;
   name: string;
   address: string;
   phoneLandlord: string; // SĐT Chủ nhà
@@ -23,7 +23,7 @@ export interface Customer {
 }
 
 export interface GroupMember {
-  stt: number;
+  stt: string;
   source: 'list1' | 'list2';
 }
 

@@ -11,11 +11,12 @@ interface ModalsProps {
   config: SystemConfig;
   setConfig: (c: SystemConfig) => void;
   selectedCustomer: Customer | null;
+  suggestedStt: string;
 }
 
-export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, config, setConfig, selectedCustomer }) => {
+export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, config, setConfig, selectedCustomer, suggestedStt }) => {
   const [formData, setFormData] = useState({ 
-    name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: 1, oldIndex: 0, oldDebt: 0, installDate: ''
+    name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: '', oldIndex: 0, oldDebt: 0, installDate: ''
   });
 
   useEffect(() => {
@@ -31,9 +32,9 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
         installDate: selectedCustomer.installDate || ''
       });
     } else if (view === 'add_customer') {
-      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: 1, oldIndex: 0, oldDebt: 0, installDate: '' });
+      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: suggestedStt, oldIndex: 0, oldDebt: 0, installDate: '' });
     }
-  }, [view, selectedCustomer]);
+  }, [view, selectedCustomer, suggestedStt]);
 
   if (view === 'add_customer' || view === 'edit_customer') {
     const isEdit = view === 'edit_customer';
@@ -51,8 +52,8 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
           <div className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
             <div className="grid grid-cols-4 gap-3">
                <div className="col-span-1">
-                  <label className="text-[10px] font-black uppercase text-slate-700 ml-1">STT</label>
-                  <input type="number" className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-200 font-black text-center text-blue-700" value={formData.stt} onChange={e => setFormData({...formData, stt: parseInt(e.target.value) || 1})} />
+                  <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Mã KH</label>
+                  <input className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-200 font-black text-center text-blue-700" value={formData.stt} onChange={e => setFormData({...formData, stt: e.target.value})} />
                </div>
                <div className="col-span-3">
                   <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Tên khách hàng</label>

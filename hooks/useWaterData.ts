@@ -6,12 +6,17 @@ import { calculateRow } from '../utils';
 export const useWaterData = () => {
   const [customers, setCustomers] = useState<Customer[]>(() => {
     const saved = localStorage.getItem('water_data_final_v21');
-    return saved ? JSON.parse(saved) : [];
+    const data = saved ? JSON.parse(saved) : [];
+    return data.map((c: any) => ({ ...c, stt: String(c.stt || "") }));
   });
 
   const [groups, setGroups] = useState<WaterGroup[]>(() => {
     const saved = localStorage.getItem('water_groups_v21');
-    return saved ? JSON.parse(saved) : [];
+    const data = saved ? JSON.parse(saved) : [];
+    return data.map((g: any) => ({
+      ...g,
+      members: (g.members || []).map((m: any) => ({ ...m, stt: String(m.stt || "") }))
+    }));
   });
 
   const [config, setConfig] = useState<SystemConfig>(() => {
@@ -50,12 +55,10 @@ export const useWaterData = () => {
   };
 
   const addCustomer = (newFormData: any) => {
-    const targetStt = parseInt(newFormData.stt) || 1;
     const newCust = calculateRow({
       id: `cust-${Date.now()}`,
       ...newFormData,
       phone: newFormData.phoneTenant || '',
-      stt: targetStt,
       listType: activeTab,
       newIndex: newFormData.newIndex || 0,
       paid: newFormData.paid || 0,
@@ -63,11 +66,7 @@ export const useWaterData = () => {
     }, config.waterRate);
 
     setCustomers(prev => {
-      const filtered = prev.map(c => {
-        if (c.listType === activeTab && c.stt >= targetStt) return { ...c, stt: c.stt + 1 };
-        return c;
-      });
-      return [...filtered, newCust].sort((a, b) => a.stt - b.stt);
+      return [...prev, newCust].sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' }));
     });
   };
 
@@ -106,7 +105,7 @@ export const useWaterData = () => {
       }, config.waterRate);
     });
 
-    setCustomers([...otherTabCustomers, ...nextMonthCustomers]);
+    setCustomers([...otherTabCustomers, ...nextMonthCustomers].sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' })));
     return nextMonthCustomers;
   };
 

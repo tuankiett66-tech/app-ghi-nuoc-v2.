@@ -10,7 +10,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextStt } from './utils';
 import { Customer } from './types';
 
 const App: React.FC = () => {
@@ -20,10 +20,12 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [afterStt, setAfterStt] = useState<string | undefined>(undefined);
   const [onlyNonZalo, setOnlyNonZalo] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollId = useRef<string | null>(null);
@@ -36,8 +38,8 @@ const App: React.FC = () => {
 
   const handleManualSave = () => {
     // useWaterData already saves to localStorage on every change due to useEffect
-    // This button provides visual reassurance
-    showToast("Da luu du lieu thanh cong!");
+    showToast("Da luu may");
+    handleBackupCloud(true); // Silent background sync
   };
 
   const selectedCustomer = useMemo(() => customers.find(c => c.id === selectedId) || null, [customers, selectedId]);
@@ -69,13 +71,13 @@ const App: React.FC = () => {
       const balanceStr = Math.round(c.balance).toString();
       
       const match = c.name.toLowerCase().includes(s) || 
-                    c.stt.toString() === s || 
+                    c.stt.toLowerCase().includes(s) || 
                     (c.phoneTenant && c.phoneTenant.includes(s)) || 
                     (c.phoneLandlord && c.phoneLandlord.includes(s)) ||
                     balanceStr.includes(cleanSearchPrice);
       
       return match && (onlyNonZalo ? !c.isZalo : true);
-    }).sort((a, b) => a.stt - b.stt);
+    }).sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' }));
   }, [customers, activeTab, searchQuery, onlyNonZalo]);
 
   const generateMsg = (c: Customer, niStr: string, piStr: string) => {
@@ -92,7 +94,7 @@ const App: React.FC = () => {
     const cleanName = normalizeString(c.name).toUpperCase();
     
     let msg = `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}
-STT: ${c.stt}
+MÃ KH: ${c.stt}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
 NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}`;
@@ -142,9 +144,12 @@ Nội dung: TT NUOC ${cleanName}`;
     finally { setIsSyncing(false); }
   };
 
-  const handleBackupCloud = async () => {
+  const handleBackupCloud = async (silent = false) => {
     const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
-    if (!url) return showToast("Chua co Link Script!");
+    if (!url) {
+      if (!silent) showToast("Chua co Link Script!");
+      return;
+    }
     
     const arrayData = customers
       .filter(c => c.listType === activeTab)
@@ -158,10 +163,13 @@ Nội dung: TT NUOC ${cleanName}`;
         isZalo: c.isZalo
       }));
 
-    setIsSyncing(true);
+    if (!silent) setIsSyncing(true);
+    setSyncStatus('syncing');
+
     try {
-      const response = await fetch(url, {
+      await fetch(url, {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'text/plain;charset=utf-8'
         },
@@ -171,14 +179,14 @@ Nội dung: TT NUOC ${cleanName}`;
         })
       });
       
-      const result = await response.json();
-      showToast(result.message || `Da sao luu ${arrayData.length} ho!`);
+      setSyncStatus('synced');
+      if (!silent) showToast("Da sao luu len Google Sheets thanh cong!");
     } catch (e) {
       console.log("Cloud Backup Error:", e);
-      alert("Loi Sao Luu Cloud:\n" + (e instanceof Error ? e.message : String(e)));
-      showToast("Loi sao luu Cloud!");
+      setSyncStatus('error');
+      if (!silent) showToast("Mat ket noi mang!");
     } finally {
-      setIsSyncing(false);
+      if (!silent) setIsSyncing(false);
     }
   };
 
@@ -241,7 +249,8 @@ Nội dung: TT NUOC ${cleanName}`;
             searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             isSyncing={isSyncing} onSync={handleSyncCloud}
             onSave={handleManualSave}
-            onShowAdd={() => navigateTo('add_customer')}
+            syncStatus={syncStatus}
+            onShowAdd={() => { setAfterStt(undefined); navigateTo('add_customer'); }}
             onShowConfig={() => navigateTo('config')}
             onShowMsgTemplate={() => navigateTo('edit_msg', false)}
             onlyNonZalo={onlyNonZalo} onToggleZaloFilter={() => setOnlyNonZalo(!onlyNonZalo)}
@@ -276,6 +285,7 @@ Nội dung: TT NUOC ${cleanName}`;
           onUpdate={(upd) => updateCustomer(selectedId!, upd)}
           onShowQr={() => setShowQr(true)}
           onEditInfo={() => navigateTo('edit_customer', false)}
+          onAddAfter={() => { setAfterStt(selectedCustomer.stt); navigateTo('add_customer', false); }}
           onSendZalo={handleSendZalo}
           generateMsg={generateMsg}
         />
@@ -401,6 +411,7 @@ Nội dung: TT NUOC ${cleanName}`;
         view={view} setView={setView} addCustomer={addCustomer} 
         updateCustomer={updateCustomer} config={config} setConfig={setConfig} 
         selectedCustomer={selectedCustomer}
+        suggestedStt={suggestNextStt(customers, activeTab, afterStt)}
       />
     </div>
   );

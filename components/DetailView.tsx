@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MessageSquare, Pencil, QrCode, X, Copy, MessageCircle } from 'lucide-react';
+import { ChevronLeft, MessageSquare, Pencil, QrCode, X, Copy, MessageCircle, Plus } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
 import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -13,12 +13,13 @@ interface DetailViewProps {
   onUpdate: (updates: Partial<Customer>) => void;
   onShowQr: () => void;
   onEditInfo: () => void;
+  onAddAfter: () => void;
   onSendZalo: () => void;
   generateMsg: (c: Customer, ni: string, pi: string) => string;
 }
 
 export const DetailView: React.FC<DetailViewProps> = ({ 
-  customer, config, onBack, onNavigate, onUpdate, onShowQr, onEditInfo, onSendZalo, generateMsg 
+  customer, config, onBack, onNavigate, onUpdate, onShowQr, onEditInfo, onAddAfter, onSendZalo, generateMsg 
 }) => {
   // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -56,6 +57,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowPreview(!showPreview)} className={`p-3.5 rounded-full border-2 transition-all ${showPreview ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-slate-50 border-slate-200 text-slate-700'}`}><MessageSquare size={22}/></button>
+          <button onClick={onAddAfter} className="p-3.5 bg-blue-50 rounded-full border-2 border-blue-200 text-blue-700 active:scale-90" title="Thêm hộ sau mã này"><Plus size={22}/></button>
           <button onClick={onEditInfo} className="p-3.5 bg-slate-50 rounded-full border-2 border-slate-200 text-slate-700 active:scale-90"><Pencil size={22}/></button>
           <button onClick={onShowQr} className="p-4 bg-blue-600 text-white rounded-full shadow-2xl active:scale-90"><QrCode size={24}/></button>
         </div>
@@ -63,7 +65,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
 
       <div className="flex-1 space-y-5 overflow-y-auto px-1 pb-10">
         <div className="border-l-[6px] border-blue-700 pl-4 py-1">
-          <span className="bg-blue-700 text-white text-[11px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm">STT: {customer.stt}</span>
+          <span className="bg-blue-700 text-white text-[11px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm">Mã KH: {customer.stt}</span>
           <h2 className="font-black uppercase text-[22px] text-slate-900 leading-tight mt-2">{customer.name}</h2>
           <p className="text-sm text-slate-600 font-bold mt-1">ĐC: {customer.address || '---'}</p>
         </div>
