@@ -11,12 +11,12 @@ interface ModalsProps {
   config: SystemConfig;
   setConfig: (c: SystemConfig) => void;
   selectedCustomer: Customer | null;
-  suggestedStt: string;
+  suggestedMaKH: string;
 }
 
-export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, config, setConfig, selectedCustomer, suggestedStt }) => {
+export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, config, setConfig, selectedCustomer, suggestedMaKH }) => {
   const [formData, setFormData] = useState({ 
-    name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: '', oldIndex: 0, oldDebt: 0, installDate: ''
+    name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: '', oldIndex: 0, oldDebt: 0, installDate: ''
   });
 
   useEffect(() => {
@@ -26,15 +26,15 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
         address: selectedCustomer.address,
         phoneLandlord: selectedCustomer.phoneLandlord || '',
         phoneTenant: selectedCustomer.phoneTenant || selectedCustomer.phone || '',
-        stt: selectedCustomer.stt,
+        maKH: selectedCustomer.maKH || '',
         oldIndex: selectedCustomer.oldIndex,
         oldDebt: selectedCustomer.oldDebt,
         installDate: selectedCustomer.installDate || ''
       });
     } else if (view === 'add_customer') {
-      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', stt: suggestedStt, oldIndex: 0, oldDebt: 0, installDate: '' });
+      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: suggestedMaKH, oldIndex: 0, oldDebt: 0, installDate: '' });
     }
-  }, [view, selectedCustomer, suggestedStt]);
+  }, [view, selectedCustomer, suggestedMaKH]);
 
   if (view === 'add_customer' || view === 'edit_customer') {
     const isEdit = view === 'edit_customer';
@@ -53,7 +53,7 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
             <div className="grid grid-cols-4 gap-3">
                <div className="col-span-1">
                   <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Mã KH</label>
-                  <input className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-200 font-black text-center text-blue-700" value={formData.stt} onChange={e => setFormData({...formData, stt: e.target.value})} />
+                  <input className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-200 font-black text-center text-blue-700" value={formData.maKH} onChange={e => setFormData({...formData, maKH: e.target.value})} />
                </div>
                <div className="col-span-3">
                   <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Tên khách hàng</label>

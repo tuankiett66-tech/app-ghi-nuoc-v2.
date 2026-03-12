@@ -12,16 +12,16 @@ interface GroupBillViewProps {
 }
 
 export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config, onBack, onSendZalo }) => {
-  const [sttInput, setSttInput] = useState('');
+  const [maKHInput, setMaKHInput] = useState('');
   const [groupItems, setGroupItems] = useState<Customer[]>([]);
   const [masterSdt, setMasterSdt] = useState('');
   const [masterName, setMasterName] = useState('');
 
   const handleAdd = () => {
-    const found = customers.find(c => c.stt.toString() === sttInput);
+    const found = customers.find(c => c.maKH === maKHInput);
     if (found) {
       if (groupItems.find(item => item.id === found.id)) {
-        alert("STT này đã có trong nhóm!");
+        alert("Mã KH này đã có trong nhóm!");
       } else {
         setGroupItems([...groupItems, found]);
         if (!masterSdt) setMasterSdt(found.phoneLandlord || found.phoneTenant || '');
@@ -31,9 +31,9 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
         }
       }
     } else {
-      alert("Không tìm thấy khách hàng với STT này!");
+      alert("Không tìm thấy khách hàng với Mã KH này!");
     }
-    setSttInput('');
+    setMaKHInput('');
   };
 
   const removeItem = (id: string) => {
@@ -57,7 +57,7 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
 
     groupItems.forEach((c) => {
       const houseTotal = c.amount + c.oldDebt;
-      msg += `STT: ${c.stt}\n`;
+      msg += `MÃ KH: ${c.maKH}\n`;
       msg += `KH: ${c.name}\n`;
       msg += `SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}\n`;
       msg += `NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}\n`;
@@ -92,15 +92,15 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
 
       <div className="p-3 space-y-3 shrink-0">
         <div className="bg-white p-4 rounded-[2rem] shadow-sm border border-indigo-50">
-          <p className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Nhập STT nhà để thêm vào nhóm</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Nhập Mã KH nhà để thêm vào nhóm</p>
           <div className="flex gap-2">
             <input 
               autoFocus
-              type="number" 
+              type="text" 
               className="flex-1 bg-slate-100 p-4 rounded-2xl font-black text-2xl text-indigo-700 outline-none border-2 border-transparent focus:border-indigo-500" 
-              placeholder="Ví dụ: 83"
-              value={sttInput}
-              onChange={e => setSttInput(e.target.value)}
+              placeholder="Ví dụ: 1001"
+              value={maKHInput}
+              onChange={e => setMaKHInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleAdd()}
             />
             <button onClick={handleAdd} className="bg-indigo-600 text-white px-6 rounded-2xl active:scale-95 shadow-lg shadow-indigo-100"><Plus size={28}/></button>
@@ -124,7 +124,7 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
           <table className="w-full text-left text-[11px]">
             <thead className="bg-slate-50 border-b text-slate-500 font-black uppercase tracking-tighter">
               <tr>
-                <th className="px-3 py-3 w-10">STT</th>
+                <th className="px-3 py-3 w-10">Mã KH</th>
                 <th className="px-2 py-3">Khách hàng</th>
                 <th className="px-2 py-3 text-center">Số</th>
                 <th className="px-2 py-3 text-center">m3</th>
@@ -135,7 +135,7 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
             <tbody className="divide-y divide-slate-100">
               {groupItems.map((c) => (
                 <tr key={c.id} className="font-bold text-slate-700">
-                  <td className="px-3 py-3 font-black text-slate-900">{c.stt}</td>
+                  <td className="px-3 py-3 font-black text-slate-900">{c.maKH}</td>
                   <td className="px-2 py-3">
                     <div className="truncate w-24 uppercase">{c.name}</div>
                     <div className="text-[9px] text-slate-400 font-normal truncate">{c.address}</div>
@@ -154,7 +154,7 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
               ))}
               {groupItems.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-slate-300 italic uppercase font-black text-[10px] tracking-widest">Hãy nhập STT nhà phía trên</td>
+                  <td colSpan={6} className="py-10 text-center text-slate-300 italic uppercase font-black text-[10px] tracking-widest">Hãy nhập Mã KH nhà phía trên</td>
                 </tr>
               )}
             </tbody>

@@ -10,7 +10,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextStt } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH } from './utils';
 import { Customer } from './types';
 
 const App: React.FC = () => {
@@ -20,7 +20,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [afterStt, setAfterStt] = useState<string | undefined>(undefined);
+  const [afterMaKH, setAfterMaKH] = useState<string | undefined>(undefined);
   const [onlyNonZalo, setOnlyNonZalo] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
@@ -34,22 +34,6 @@ const App: React.FC = () => {
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleNormalizeStt = () => {
-    if (!confirm(`Bạn có muốn đánh số lại toàn bộ Mã KH của ${activeTab === 'list1' ? 'BỘ 01' : 'BỘ 02'} bắt đầu từ ${activeTab === 'list1' ? '1001' : '2001'}?`)) return;
-    
-    const startNum = activeTab === 'list1' ? 1001 : 2001;
-    const currentTabCustomers = customers.filter(c => c.listType === activeTab);
-    const otherTabCustomers = customers.filter(c => c.listType !== activeTab);
-    
-    const updated = currentTabCustomers.map((c, idx) => ({
-      ...c,
-      stt: (startNum + idx).toString()
-    }));
-    
-    setCustomers([...otherTabCustomers, ...updated]);
-    showToast("Đã chuẩn hóa Mã KH!");
   };
 
   const handleManualSave = () => {
@@ -86,14 +70,14 @@ const App: React.FC = () => {
       const cleanSearchPrice = s.replace(/\./g, '').replace(/,/g, '');
       const balanceStr = Math.round(c.balance).toString();
       
-      const match = c.name.toLowerCase().includes(s) || 
-                    c.stt.toLowerCase().includes(s) || 
+      const match = (c.name || "").toLowerCase().includes(s) || 
+                    (c.maKH || "").toLowerCase().includes(s) || 
                     (c.phoneTenant && c.phoneTenant.includes(s)) || 
                     (c.phoneLandlord && c.phoneLandlord.includes(s)) ||
                     balanceStr.includes(cleanSearchPrice);
       
       return match && (onlyNonZalo ? !c.isZalo : true);
-    }).sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' }));
+    }).sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
   }, [customers, activeTab, searchQuery, onlyNonZalo]);
 
   const generateMsg = (c: Customer, niStr: string, piStr: string) => {
@@ -110,7 +94,7 @@ const App: React.FC = () => {
     const cleanName = normalizeString(c.name).toUpperCase();
     
     let msg = `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}
-MÃ KH: ${c.stt}
+MÃ KH: ${c.maKH}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
 NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}`;
@@ -142,8 +126,9 @@ Nội dung: TT NUOC ${cleanName}`;
       const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}list=${activeTab}&t=${Date.now()}`);
       const json = await res.json();
       const mapped = json.map((item: any) => calculateRow({
-        id: `cust-${item.stt}-${activeTab}`,
-        stt: parseInt(item.stt), name: item.name || `(STT ${item.stt})`,
+        id: `cust-${item.maKH || item.stt}-${activeTab}`,
+        maKH: String(item.maKH || item.stt || ""), 
+        name: item.name || `(Mã KH ${item.maKH || item.stt})`,
         address: item.address || "", phoneTenant: item.phoneTenant || item.phone || "",
         phoneLandlord: item.phoneLandlord || "",
         newIndex: parseFloat(item.newIndex) || 0, oldIndex: parseFloat(item.oldIndex) || 0,
@@ -170,7 +155,7 @@ Nội dung: TT NUOC ${cleanName}`;
     const arrayData = customers
       .filter(c => c.listType === activeTab)
       .map(c => ({
-        stt: c.stt,
+        maKH: c.maKH,
         newIndex: c.newIndex,
         consumption: c.volume,
         amount: c.amount,
@@ -224,7 +209,7 @@ Nội dung: TT NUOC ${cleanName}`;
     
     const updates: Record<string, Partial<Customer>> = {};
     group.members.forEach(m => {
-      const cust = customers.find(c => c.stt === m.stt && c.listType === m.source);
+      const cust = customers.find(c => c.maKH === m.maKH && c.listType === m.source);
       if (cust) {
         const totalAmount = Math.round(cust.amount + cust.oldDebt);
         updates[cust.id] = { paid: totalAmount };
@@ -266,7 +251,7 @@ Nội dung: TT NUOC ${cleanName}`;
             isSyncing={isSyncing} onSync={handleSyncCloud}
             onSave={handleManualSave}
             syncStatus={syncStatus}
-            onShowAdd={() => { setAfterStt(undefined); navigateTo('add_customer'); }}
+            onShowAdd={() => { setAfterMaKH(undefined); navigateTo('add_customer'); }}
             onShowConfig={() => navigateTo('config')}
             onShowMsgTemplate={() => navigateTo('edit_msg', false)}
             onlyNonZalo={onlyNonZalo} onToggleZaloFilter={() => setOnlyNonZalo(!onlyNonZalo)}
@@ -285,10 +270,10 @@ Nội dung: TT NUOC ${cleanName}`;
               updateCustomer(c.id, { isZalo: true });
               showToast("Da copy hoa don & Danh dau!"); 
             }}
-            onAddAfter={(stt) => { 
-              setAfterStt(stt); 
+            onAddAfter={(maKH) => { 
+              setAfterMaKH(maKH); 
               navigateTo('add_customer', false); 
-              showToast(`Đang chèn hộ mới sau mã ${stt}`);
+              showToast(`Đang chèn hộ mới sau mã ${maKH}`);
             }}
           />
         </>
@@ -307,9 +292,9 @@ Nội dung: TT NUOC ${cleanName}`;
           onShowQr={() => setShowQr(true)}
           onEditInfo={() => navigateTo('edit_customer', false)}
           onAddAfter={() => { 
-            setAfterStt(selectedCustomer.stt); 
+            setAfterMaKH(selectedCustomer.maKH); 
             navigateTo('add_customer', false); 
-            showToast(`Đang chèn hộ mới sau mã ${selectedCustomer.stt}`);
+            showToast(`Đang chèn hộ mới sau mã ${selectedCustomer.maKH}`);
           }}
           onSendZalo={handleSendZalo}
           generateMsg={generateMsg}
@@ -356,7 +341,6 @@ Nội dung: TT NUOC ${cleanName}`;
           onExport={() => exportToExcel(customers.filter(c => c.listType === activeTab), `Backup_${activeTab}`)}
           onBackupCloud={handleBackupCloud}
           onClear={() => { if(confirm("Xoa sach du lieu?")) { localStorage.clear(); window.location.reload(); } }}
-          onNormalizeStt={handleNormalizeStt}
         />
       )}
 
@@ -437,7 +421,7 @@ Nội dung: TT NUOC ${cleanName}`;
         view={view} setView={setView} addCustomer={addCustomer} 
         updateCustomer={updateCustomer} config={config} setConfig={setConfig} 
         selectedCustomer={selectedCustomer}
-        suggestedStt={suggestNextStt(customers, activeTab, afterStt)}
+        suggestedMaKH={suggestNextMaKH(customers, activeTab, afterMaKH)}
       />
     </div>
   );

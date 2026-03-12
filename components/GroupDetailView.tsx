@@ -16,17 +16,17 @@ interface GroupDetailViewProps {
 }
 
 export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, customers, config, onBack, onUpdateGroup, onSendZalo, onMarkGroupPaid, onNavigate }) => {
-  const [sttInput, setSttInput] = useState('');
+  const [maKHInput, setMaKHInput] = useState('');
   const [sourceInput, setSourceInput] = useState<'list1' | 'list2'>('list1');
 
   const previewCust = useMemo(() => {
-    if (!sttInput) return null;
-    return customers.find(c => c.stt === sttInput && c.listType === sourceInput);
-  }, [sttInput, sourceInput, customers]);
+    if (!maKHInput) return null;
+    return customers.find(c => c.maKH === maKHInput && c.listType === sourceInput);
+  }, [maKHInput, sourceInput, customers]);
 
   const groupData = useMemo(() => {
     return (group.members || []).map(m => {
-      return customers.find(c => c.stt === m.stt && c.listType === m.source);
+      return customers.find(c => c.maKH === m.maKH && c.listType === m.source);
     }).filter(Boolean) as Customer[];
   }, [group, customers]);
 
@@ -40,32 +40,32 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
 
   const handleAddMember = () => {
     if (!previewCust) {
-        alert("STT " + sttInput + " khong ton tai!");
+        alert("Mã KH " + maKHInput + " không tồn tại!");
         return;
     }
-    if ((group.members || []).some(m => m.stt === previewCust.stt && m.source === previewCust.listType)) {
-        alert("Ho nay da co trong nhom!");
+    if ((group.members || []).some(m => m.maKH === previewCust.maKH && m.source === previewCust.listType)) {
+        alert("Hộ này đã có trong nhóm!");
         return;
     }
-    onUpdateGroup(group.id, { members: [...(group.members || []), { stt: previewCust.stt, source: previewCust.listType }] });
-    setSttInput('');
+    onUpdateGroup(group.id, { members: [...(group.members || []), { maKH: previewCust.maKH, source: previewCust.listType }] });
+    setMaKHInput('');
   };
 
   const handleVoiceInput = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return alert("Khong ho tro giong noi");
+    if (!SpeechRecognition) return alert("Không hỗ trợ giọng nói");
     const recognition = new SpeechRecognition();
     recognition.lang = 'vi-VN';
     recognition.start();
     recognition.onresult = (event: any) => {
       const text = event.results[0][0].transcript;
-      const stt = text.replace(/[^0-9]/g, '');
-      if (stt) setSttInput(stt);
+      const maKH = text.replace(/[^0-9A-Z]/gi, '');
+      if (maKH) setMaKHInput(maKH);
     };
   };
 
-  const removeMember = (stt: string, source: string) => {
-    onUpdateGroup(group.id, { members: (group.members || []).filter(m => !(m.stt === stt && m.source === source)) });
+  const removeMember = (maKH: string, source: string) => {
+    onUpdateGroup(group.id, { members: (group.members || []).filter(m => !(m.maKH === maKH && m.source === source)) });
   };
 
   const generateGroupMsg = () => {
@@ -76,7 +76,7 @@ NHÓM: ${group.name.toUpperCase()}
 ---------------------------
 `;
     groupData.forEach((c) => {
-      msg += `STT: ${c.stt}
+      msg += `MÃ KH: ${c.maKH}
 KH: ${c.name}
 SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}
 NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
@@ -124,10 +124,10 @@ Nội dung: TT NUOC ${cleanGroupName}`;
       <div className="p-2 space-y-1.5 shrink-0">
         <div className="bg-white p-2.5 rounded-[1.2rem] shadow-md border border-indigo-50">
           <div className="flex justify-between items-center mb-1.5 px-0.5">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest italic">"Nhat" ho dan bang STT</p>
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest italic">"Nhặt" hộ dân bằng Mã KH</p>
               <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 scale-90 origin-right">
-                  <button onClick={() => setSourceInput('list1')} className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase transition-all ${sourceInput === 'list1' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>BO 01</button>
-                  <button onClick={() => setSourceInput('list2')} className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase transition-all ${sourceInput === 'list2' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>BO 02</button>
+                  <button onClick={() => setSourceInput('list1')} className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase transition-all ${sourceInput === 'list1' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>BỘ 01</button>
+                  <button onClick={() => setSourceInput('list2')} className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase transition-all ${sourceInput === 'list2' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>BỘ 02</button>
               </div>
           </div>
           <div className="relative flex gap-1.5">
@@ -136,12 +136,12 @@ Nội dung: TT NUOC ${cleanGroupName}`;
                   type="text" 
                   className="w-full bg-slate-50 p-2.5 pr-14 rounded-xl font-black text-xl text-indigo-700 outline-none border-2 border-transparent focus:border-indigo-500 shadow-inner" 
                   placeholder="Mã KH..."
-                  value={sttInput}
-                  onChange={e => setSttInput(e.target.value)}
+                  value={maKHInput}
+                  onChange={e => setMaKHInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAddMember()}
                 />
                 <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                    {sttInput && <button onClick={() => setSttInput('')} className="p-1 text-rose-400"><X size={14}/></button>}
+                    {maKHInput && <button onClick={() => setMaKHInput('')} className="p-1 text-rose-400"><X size={14}/></button>}
                     <button onClick={handleVoiceInput} className="p-1.5 text-indigo-600 bg-white rounded-lg shadow-sm border border-indigo-50"><Mic size={16}/></button>
                 </div>
             </div>
@@ -163,10 +163,10 @@ Nội dung: TT NUOC ${cleanGroupName}`;
 
       <div className="flex-1 overflow-y-auto px-2 pb-44 space-y-1">
         {groupData.map((c) => (
-          <div key={`${c.stt}-${c.listType}`} className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center active:scale-[0.99] transition-all">
+          <div key={`${c.maKH}-${c.listType}`} className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center active:scale-[0.99] transition-all">
               <div className="flex items-center gap-2 min-w-0">
                   <div className="flex flex-col items-center gap-0 shrink-0">
-                      <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-[10px] shadow-sm">{c.stt}</div>
+                      <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-[10px] shadow-sm">{c.maKH}</div>
                       <span className="text-[6px] font-black text-slate-400 uppercase leading-none mt-0.5">{c.listType === 'list1' ? 'B01' : 'B02'}</span>
                   </div>
                   <div className="min-w-0">
@@ -174,7 +174,7 @@ Nội dung: TT NUOC ${cleanGroupName}`;
                       <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.balance)}</p>
                   </div>
               </div>
-              <button onClick={() => removeMember(c.stt, c.listType)} className="p-1.5 text-rose-300 active:scale-90"><Trash2 size={16}/></button>
+              <button onClick={() => removeMember(c.maKH, c.listType)} className="p-1.5 text-rose-300 active:scale-90"><Trash2 size={16}/></button>
           </div>
         ))}
         {groupData.length === 0 && <div className="py-6 text-center text-slate-300 italic uppercase font-black text-[8px] tracking-widest">Trong</div>}

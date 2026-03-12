@@ -68,7 +68,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
 
       <div className="flex-1 space-y-5 overflow-y-auto px-1 pb-10">
         <div className="border-l-[6px] border-blue-700 pl-4 py-1">
-          <span className="bg-blue-700 text-white text-[11px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm">Mã KH: {customer.stt}</span>
+          <span className="bg-blue-700 text-white text-[11px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm">Mã KH: {customer.maKH}</span>
           <h2 className="font-black uppercase text-[22px] text-slate-900 leading-tight mt-2">{customer.name}</h2>
           <p className="text-sm text-slate-600 font-bold mt-1">ĐC: {customer.address || '---'}</p>
         </div>

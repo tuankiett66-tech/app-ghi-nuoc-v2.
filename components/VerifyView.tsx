@@ -89,7 +89,7 @@ export const VerifyView: React.FC<VerifyViewProps> = ({ customers, activeTab, on
         {filteredData.map(c => (
           <div key={c.id} onClick={() => onSelect(c.id)} className="bg-white p-4 rounded-3xl border-2 border-slate-50 shadow-sm flex justify-between items-center active:scale-[0.98] transition-transform">
             <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center font-black text-slate-400 text-sm border shrink-0">{c.stt}</div>
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center font-black text-slate-400 text-xs border shrink-0 truncate px-1">{c.maKH}</div>
                 <div className="min-w-0">
                     <h3 className="font-black text-slate-900 uppercase truncate text-sm">{c.name}</h3>
                     <div className="flex items-center gap-1.5 mt-0.5">

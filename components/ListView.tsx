@@ -10,7 +10,7 @@ interface ListViewProps {
   onSelect: (id: string) => void;
   onCall: (phone: string) => void;
   onCopyMsg: (cust: Customer) => void;
-  onAddAfter: (stt: string) => void;
+  onAddAfter: (maKH: string) => void;
 }
 
 export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall, onCopyMsg, onAddAfter }) => {
@@ -21,7 +21,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
           <div className="flex items-start gap-3">
             <div className="flex flex-col items-center gap-1.5 shrink-0">
               <div className="text-[7px] font-black text-slate-400 uppercase leading-none">Mã KH</div>
-              <div className={`px-2.5 py-1.5 rounded-xl min-w-[38px] text-center text-white text-[12px] font-black shadow-sm ${c.isZalo ? 'bg-blue-500' : 'bg-slate-800'}`}>{c.stt}</div>
+              <div className={`px-2.5 py-1.5 rounded-xl min-w-[38px] text-center text-white text-[12px] font-black shadow-sm ${c.isZalo ? 'bg-blue-500' : 'bg-slate-800'}`}>{c.maKH}</div>
               <div className={`p-2 rounded-full border-2 ${c.isZalo ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'text-slate-300 border-slate-100'}`}><CheckCheck size={16} /></div>
               {getMeterStatus(c.installDate).status !== 'ok' && getMeterStatus(c.installDate).status !== 'unknown' && (
                 <div className={`p-1.5 rounded-full border-2 mt-1 ${
@@ -50,7 +50,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
           </div>
           <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t-2 border-slate-50">
              <button onClick={(e) => { e.stopPropagation(); onCopyMsg(c); }} className="flex items-center justify-center gap-2 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-[11px] font-black uppercase active:scale-95 shadow-sm border border-slate-200"><Copy size={16}/> Copy Bill</button>
-             <button onClick={(e) => { e.stopPropagation(); onAddAfter(c.stt); }} className="flex items-center justify-center gap-2 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl text-[11px] font-black uppercase active:scale-95 shadow-sm border border-indigo-100"><Plus size={16}/> Chèn sau</button>
+             <button onClick={(e) => { e.stopPropagation(); onAddAfter(c.maKH); }} className="flex items-center justify-center gap-2 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl text-[11px] font-black uppercase active:scale-95 shadow-sm border border-indigo-100"><Plus size={16}/> Chèn sau</button>
           </div>
         </div>
       ))}

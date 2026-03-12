@@ -12,10 +12,9 @@ interface ConfigViewProps {
   onExport: () => void;
   onBackupCloud: () => void;
   onClear: () => void;
-  onNormalizeStt: () => void;
 }
 
-export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBack, onImport, onExport, onBackupCloud, onClear, onNormalizeStt }) => {
+export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBack, onImport, onExport, onBackupCloud, onClear }) => {
   return (
     <div className="h-full bg-slate-50 p-6 pt-[calc(1.5rem+var(--sat))] overflow-y-auto">
       <header className="flex justify-between items-center mb-8 bg-white/80 backdrop-blur-md p-4 rounded-3xl border shadow-sm sticky top-0 z-50">
@@ -67,7 +66,6 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
         </div>
 
         <div className="space-y-3">
-          <button onClick={onNormalizeStt} className="w-full bg-indigo-50 text-indigo-700 py-4.5 rounded-2xl font-black uppercase border-2 border-indigo-100 flex items-center justify-center gap-2 active:scale-95">Chuẩn hóa Mã KH (1001...)</button>
           <button onClick={onClear} className="w-full bg-rose-50 text-rose-700 py-4.5 rounded-2xl font-black uppercase border-2 border-rose-100 flex items-center justify-center gap-2 active:scale-95"><Trash2 size={20}/> Xóa tất cả dữ liệu</button>
           <button onClick={onBack} className="w-full bg-blue-700 text-white py-5 rounded-[1.8rem] font-black uppercase shadow-2xl active:scale-95 border-b-4 border-blue-900 tracking-widest">Lưu & Quay lại</button>
         </div>

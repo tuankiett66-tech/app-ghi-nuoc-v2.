@@ -7,7 +7,10 @@ export const useWaterData = () => {
   const [customers, setCustomers] = useState<Customer[]>(() => {
     const saved = localStorage.getItem('water_data_final_v21');
     const data = saved ? JSON.parse(saved) : [];
-    return data.map((c: any) => ({ ...c, stt: String(c.stt || "") }));
+    return data.map((c: any) => {
+      const maKH = c.maKH || c.stt || "";
+      return { ...c, maKH: String(maKH) };
+    });
   });
 
   const [groups, setGroups] = useState<WaterGroup[]>(() => {
@@ -15,7 +18,10 @@ export const useWaterData = () => {
     const data = saved ? JSON.parse(saved) : [];
     return data.map((g: any) => ({
       ...g,
-      members: (g.members || []).map((m: any) => ({ ...m, stt: String(m.stt || "") }))
+      members: (g.members || []).map((m: any) => {
+        const maKH = m.maKH || m.stt || "";
+        return { ...m, maKH: String(maKH) };
+      })
     }));
   });
 
@@ -66,7 +72,7 @@ export const useWaterData = () => {
     }, config.waterRate);
 
     setCustomers(prev => {
-      return [...prev, newCust].sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' }));
+      return [...prev, newCust].sort((a, b) => String(a.maKH || "").localeCompare(String(b.maKH || ""), undefined, { numeric: true, sensitivity: 'base' }));
     });
   };
 
@@ -105,7 +111,7 @@ export const useWaterData = () => {
       }, config.waterRate);
     });
 
-    setCustomers([...otherTabCustomers, ...nextMonthCustomers].sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' })));
+    setCustomers([...otherTabCustomers, ...nextMonthCustomers].sort((a, b) => String(a.maKH || "").localeCompare(String(b.maKH || ""), undefined, { numeric: true, sensitivity: 'base' })));
     return nextMonthCustomers;
   };
 

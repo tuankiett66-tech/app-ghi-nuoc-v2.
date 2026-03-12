@@ -16,7 +16,7 @@ export const calculateRow = (cust: any, rate: number) => {
   const oi = parseSafe(cust.oldIndex);
   const od = parseSafe(cust.oldDebt);
   const paid = parseSafe(cust.paid);
-  const stt = String(cust.stt || "");
+  const maKH = String(cust.maKH || "");
   
   const vol = (ni > 0 && ni >= oi) ? (ni - oi) : 0;
   const amt = vol * rate;
@@ -24,7 +24,7 @@ export const calculateRow = (cust: any, rate: number) => {
   
   return {
     ...cust,
-    stt,
+    maKH,
     newIndex: ni, oldIndex: oi, oldDebt: od, paid: paid,
     volume: vol, amount: amt, balance: bal,
     status: (bal <= 0 && (ni > 0 || od > 0)) ? 'paid' : 'unpaid'
@@ -78,9 +78,9 @@ export const generateVietQrUrl = (bankId: string, accountNo: string, amount: num
 export const exportToExcel = (customers: Customer[], fileName: string = 'Bao_Cao') => {
   const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI"];
   const data = customers
-    .sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' }))
+    .sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }))
     .map(c => [
-      c.stt, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || ""
+      c.maKH, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || ""
     ]);
   const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
   const wb = XLSX.utils.book_new();
@@ -100,17 +100,20 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
         
         let headerRowIndex = -1;
         let colMap: Record<string, number> = {
-          stt: 0, name: 1, address: 2, phone: 3, newIndex: 4, oldIndex: 5, oldDebt: 8, paid: 9, zalo: 11
+          maKH: 0, name: 1, address: 2, phone: 3, newIndex: 4, oldIndex: 5, oldDebt: 8, paid: 9, zalo: 11
         };
 
         // Tim hang tieu de va tu dong mapping cot theo ten
         for (let r = 0; r < 20; r++) {
           const row = json[r];
-          if (row && row.some(cell => String(cell || "").toUpperCase().includes("STT"))) {
+          if (row && row.some(cell => {
+            const t = String(cell || "").toUpperCase();
+            return t.includes("STT") || t.includes("MÃ KH");
+          })) {
             headerRowIndex = r;
             row.forEach((cell, idx) => {
               const text = String(cell || "").toUpperCase();
-              if (text.includes("STT") || text.includes("MÃ KH")) colMap.stt = idx;
+              if (text.includes("STT") || text.includes("MÃ KH")) colMap.maKH = idx;
               else if (text.includes("KHÁCH") || text.includes("TÊN")) colMap.name = idx;
               else if (text.includes("ĐỊA CHỈ")) colMap.address = idx;
               else if (text.includes("THOẠI") || text.includes("ĐT")) colMap.phone = idx;
@@ -130,14 +133,14 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
           const row = json[i];
           if (!row) continue;
           
-          const stt = String(row[colMap.stt] || "").trim();
+          const maKH = String(row[colMap.maKH] || "").trim();
           
-          // Neu STT khong hop le thi bo qua
-          if (!stt || stt === "0") continue;
+          // Neu Mã KH khong hop le thi bo qua
+          if (!maKH || maKH === "0") continue;
           
           res.push(calculateRow({
-            id: `xl-${stt}-${listType}`,
-            stt: stt,
+            id: `xl-${maKH}-${listType}`,
+            maKH: maKH,
             name: String(row[colMap.name] || ""),
             address: String(row[colMap.address] || ""),
             phone: String(row[colMap.phone] || ""),
@@ -189,9 +192,9 @@ export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> =>
           if (colL.includes("DB1")) currentDB = 'list1';
           else if (colL.includes("DB2")) currentDB = 'list2';
 
-          const stt = colA;
-          if (stt && stt !== "0" && !stt.toUpperCase().includes("CỘNG")) {
-            members.push({ stt, source: currentDB });
+          const maKH = colA;
+          if (maKH && maKH !== "0" && !maKH.toUpperCase().includes("CỘNG")) {
+            members.push({ maKH, source: currentDB });
           }
         }
         resolve(members);
@@ -218,34 +221,36 @@ export const getMeterStatus = (installDate?: string) => {
   return { monthsLeft, status };
 };
 
-export const suggestNextStt = (customers: Customer[], listType: 'list1' | 'list2', afterStt?: string) => {
+export const suggestNextMaKH = (customers: Customer[], listType: 'list1' | 'list2', afterMaKH?: string) => {
   const list = customers
     .filter(c => c.listType === listType)
-    .sort((a, b) => String(a.stt).localeCompare(String(b.stt), undefined, { numeric: true, sensitivity: 'base' }));
+    .sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
   
-  if (!afterStt) {
+  if (!afterMaKH) {
     if (list.length === 0) return listType === 'list1' ? '1001' : '2001';
     
     // Find absolute max numeric part
     let maxNum = listType === 'list1' ? 1000 : 2000;
     list.forEach(c => {
-      const m = c.stt.match(/^(\d+)/);
-      if (m) {
-        const n = parseInt(m[1]);
-        if (n > maxNum) maxNum = n;
+      if (c.maKH) {
+        const m = String(c.maKH).match(/^(\d+)/);
+        if (m) {
+          const n = parseInt(m[1]);
+          if (n > maxNum) maxNum = n;
+        }
       }
     });
     return (maxNum + 1).toString();
   }
 
-  // Suggesting after a specific STT (insertion logic)
-  const baseMatch = afterStt.match(/^(\d+)([A-Z]*)$/);
-  if (!baseMatch) return afterStt + 'A';
+  // Suggesting after a specific Mã KH (insertion logic)
+  const baseMatch = String(afterMaKH).match(/^(\d+)([A-Z]*)$/);
+  if (!baseMatch) return afterMaKH + 'A';
   
   const baseNum = baseMatch[1];
   const existingWithBase = list
-    .filter(c => c.stt.startsWith(baseNum))
-    .map(c => c.stt.substring(baseNum.length))
+    .filter(c => c.maKH.startsWith(baseNum))
+    .map(c => c.maKH.substring(baseNum.length))
     .filter(s => /^[A-Z]*$/.test(s));
   
   if (existingWithBase.length === 0 || (existingWithBase.length === 1 && existingWithBase[0] === "")) {
