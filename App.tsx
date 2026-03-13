@@ -90,6 +90,7 @@ const App: React.FC = () => {
     const now = new Date();
     
     const monthYear = `${now.getMonth() + 1}/${now.getFullYear()}`;
+    const cleanName = normalizeString(c.name).toUpperCase();
     
     let msg = `KỲ NƯỚC THÁNG ${monthYear}
 MÃ KH: ${c.maKH}
@@ -103,7 +104,7 @@ Sau khi thanh toán, Quý khách vui lòng chụp ảnh rồi gửi lên Zalo, c
 NH: ${config.bankId.toUpperCase()}
 STK: ${config.accountNo} (Bấm giữ để sao chép)
 TÊN: ${config.accountName}
-Nội dung: TT Nước ${c.maKH}_${c.name}`;
+Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
 
     return msg;
   };
@@ -299,7 +300,6 @@ Nội dung: TT Nước ${c.maKH}_${c.name}`;
             showToast(`Đang chèn hộ mới sau mã ${selectedCustomer.maKH}`);
           }}
           onSendZalo={handleSendZalo}
-          onShowToast={showToast}
           generateMsg={generateMsg}
         />
       )}

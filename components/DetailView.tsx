@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MessageSquare, Pencil, QrCode, X, Copy, MessageCircle, Plus } from 'lucide-react';
+import { ChevronLeft, MessageSquare, Pencil, QrCode, X, MessageCircle, Plus } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
 import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -15,12 +15,11 @@ interface DetailViewProps {
   onEditInfo: () => void;
   onAddAfter: () => void;
   onSendZalo: () => void;
-  onShowToast: (msg: string) => void;
   generateMsg: (c: Customer, ni: string, pi: string) => string;
 }
 
 export const DetailView: React.FC<DetailViewProps> = ({ 
-  customer, config, onBack, onNavigate, onUpdate, onShowQr, onEditInfo, onAddAfter, onSendZalo, onShowToast, generateMsg 
+  customer, config, onBack, onNavigate, onUpdate, onShowQr, onEditInfo, onAddAfter, onSendZalo, generateMsg 
 }) => {
   // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -100,33 +99,6 @@ export const DetailView: React.FC<DetailViewProps> = ({
             <span className="text-blue-700 font-black uppercase text-sm italic tracking-tight">Còn lại phải thu:</span>
             <span className="text-3xl font-black text-blue-700 tracking-tighter">{formatCurrency(customer.balance)}</span>
           </div>
-        </div>
-
-        {/* Bank Info & Copy Transfer Content */}
-        <div className="bg-indigo-50 border-2 border-indigo-100 rounded-[2rem] p-5 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-indigo-800 font-black uppercase text-[11px] italic">
-            <QrCode size={16} /> Thông tin chuyển khoản
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-white/50 p-3 rounded-xl border border-indigo-100">
-              <p className="text-[9px] font-black text-indigo-400 uppercase">Số tài khoản</p>
-              <p className="font-black text-indigo-900">{config.accountNo}</p>
-            </div>
-            <div className="bg-white/50 p-3 rounded-xl border border-indigo-100">
-              <p className="text-[9px] font-black text-indigo-400 uppercase">Ngân hàng</p>
-              <p className="font-black text-indigo-900 uppercase">{config.bankId}</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => {
-              const content = `TT Nước ${customer.maKH}_${customer.name}`;
-              copyToClipboard(content);
-              onShowToast("Đã sao chép nội dung CK!");
-            }}
-            className="w-full bg-white text-indigo-700 py-3 rounded-xl font-black uppercase text-[11px] border-2 border-indigo-200 flex items-center justify-center gap-2 active:scale-95 shadow-sm"
-          >
-            <Copy size={16}/> Copy Nội dung CK
-          </button>
         </div>
 
         {showPreview && (

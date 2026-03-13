@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Plus, X, MessageCircle, Users, Trash2, Copy } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
-import { formatCurrency, copyToClipboard, normalizePhoneForZalo } from '../utils';
+import { formatCurrency, copyToClipboard, normalizePhoneForZalo, normalizeString } from '../utils';
 
 interface GroupBillViewProps {
   customers: Customer[];
@@ -71,7 +71,7 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
     msg += `NH: ${config.bankId.toUpperCase()}\n`;
     msg += `STK: ${config.accountNo} (Bấm giữ để sao chép)\n`;
     msg += `TÊN: ${config.accountName}\n`;
-    msg += `Nội dung: TT Nước ${masterName}`;
+    msg += `Nội dung: TT NUOC ${normalizeString(masterName).toUpperCase()} (BAM GIU DE SAO CHEP)`;
 
     return msg;
   };
