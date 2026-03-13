@@ -86,34 +86,24 @@ const App: React.FC = () => {
     const vol = (ni > 0 && ni >= c.oldIndex) ? (ni - c.oldIndex) : 0;
     const amt = vol * config.waterRate;
     const subtotal = Math.round(amt + c.oldDebt);
-    
-    // LOGIC FIX: Khong dung Math.max(0) de hien thi duoc so am (khach tra du)
     const remaining = subtotal - pi; 
     const now = new Date();
     
-    const cleanName = normalizeString(c.name).toUpperCase();
+    const monthYear = `${now.getMonth() + 1}/${now.getFullYear()}`;
     
-    let msg = `KỲ NƯỚC THÁNG ${now.getMonth() + 1}/${now.getFullYear()}
+    let msg = `KỲ NƯỚC THÁNG ${monthYear}
 MÃ KH: ${c.maKH}
 KH: ${c.name}
-SỐ: ${ni} - ${c.oldIndex} = ${vol}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
-NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}`;
+SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
+NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}
+CÒN LẠI: ${remaining.toLocaleString('vi-VN')}
 
-    if (pi > 0) {
-      msg += `\nĐÃ TRẢ: -${pi.toLocaleString('vi-VN')}`;
-    }
-
-    // Neu remaining < 0, hien thi la TIEN DU
-    const remainingLabel = remaining < 0 ? "TIỀN DƯ (TRẢ THỪA)" : "CÒN LẠI";
-    msg += `\n${remainingLabel}: ${remaining.toLocaleString('vi-VN')}
-
-${config.globalMessage}
----
+Sau khi thanh toán, Quý khách vui lòng chụp ảnh rồi gửi lên Zalo, cảm ơn..
 👉 THÔNG TIN CHUYỂN KHOẢN:
 NH: ${config.bankId.toUpperCase()}
-STK: ${config.accountNo} (Bấm giữ để copy)
+STK: ${config.accountNo} (Bấm giữ để sao chép)
 TÊN: ${config.accountName}
-Nội dung: TT NUOC ${cleanName}`;
+Nội dung: TT Nước ${c.maKH}_${c.name}`;
 
     return msg;
   };
@@ -309,6 +299,7 @@ Nội dung: TT NUOC ${cleanName}`;
             showToast(`Đang chèn hộ mới sau mã ${selectedCustomer.maKH}`);
           }}
           onSendZalo={handleSendZalo}
+          onShowToast={showToast}
           generateMsg={generateMsg}
         />
       )}

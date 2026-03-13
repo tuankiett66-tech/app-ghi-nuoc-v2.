@@ -59,15 +59,19 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
       const houseTotal = c.amount + c.oldDebt;
       msg += `MÃ KH: ${c.maKH}\n`;
       msg += `KH: ${c.name}\n`;
-      msg += `SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}\n`;
+      msg += `SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume} m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}\n`;
       msg += `NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}\n`;
       msg += `CỘNG: ${Math.round(houseTotal).toLocaleString('vi-VN')}\n`;
       msg += `---------------------------\n`;
     });
 
-    msg += `TỔNG CỘNG THANH TOÁN: ${Math.round(totals.total).toLocaleString('vi-VN')} đ\n`;
-    msg += `--- \n`;
-    msg += config.globalMessage;
+    msg += `TỔNG CỘNG THANH TOÁN: ${Math.round(totals.total).toLocaleString('vi-VN')} đ\n\n`;
+    msg += `Sau khi thanh toán, Quý khách vui lòng chụp ảnh rồi gửi lên Zalo, cảm ơn..\n`;
+    msg += `👉 THÔNG TIN CHUYỂN KHOẢN:\n`;
+    msg += `NH: ${config.bankId.toUpperCase()}\n`;
+    msg += `STK: ${config.accountNo} (Bấm giữ để sao chép)\n`;
+    msg += `TÊN: ${config.accountName}\n`;
+    msg += `Nội dung: TT Nước ${masterName}`;
 
     return msg;
   };
