@@ -13,5 +13,6 @@
 | **Báo Cáo & Chốt Kỳ** | Thống kê doanh thu, nợ tồn, chốt kỳ chuyển nợ sang kỳ mới. | `StatsView.tsx` | Hoàn thành | Chốt kỳ tự chuyển số âm sang nợ cũ âm. |
 | **Dữ Liệu Cloud** | Đồng bộ Google Sheets qua API Script riêng cho từng bộ. | `App.tsx`, `ConfigView.tsx` | Hoàn thành | Hỗ trợ Fetch (GET) và Backup (POST). |
 | **Nhập/Xuất Excel** | Hỗ trợ file 12 cột chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành | **Tối ưu**: Xử lý STT thông minh (Text/Number). |
-| **Theo Dõi Đồng Hồ** | Cảnh báo thời hạn thay đồng hồ 60 tháng. | `DetailView.tsx` | Hoàn thành | Đã dời xuống dưới nút Zalo để thoáng giao diện. |
+| **Theo Dõi Đồng Hồ** | Cảnh báo thời hạn thay đồng hồ 60 tháng. | `DetailView.tsx` | Hoàn thành | **Layout**: Nằm DƯỚI CÙNG của màn hình chi tiết. |
+| **Quản Lý Kết Bạn** | Nút "Kết bạn Zalo" và "Đã kết bạn" thủ công. | `DetailView.tsx` | Hoàn thành | **Layout**: Nằm DƯỚI nút "Gửi Zalo & Chốt số". |
 | **Mẫu Thông Báo** | Sắp xếp lời nhắn nằm trên thông tin chuyển khoản. | `App.tsx`, `GroupDetailView.tsx` | Hoàn thành | Giúp khách hàng dễ đọc lời nhắn trước. |

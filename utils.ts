@@ -17,6 +17,7 @@ export const calculateRow = (cust: any, rate: number) => {
   const od = parseSafe(cust.oldDebt);
   const paid = parseSafe(cust.paid);
   const maKH = String(cust.maKH || "");
+  const phone = String(cust.phone || cust.phoneTenant || "");
   
   const vol = (ni > 0 && ni >= oi) ? (ni - oi) : 0;
   const amt = vol * rate;
@@ -25,6 +26,8 @@ export const calculateRow = (cust: any, rate: number) => {
   return {
     ...cust,
     maKH,
+    phone,
+    phoneTenant: cust.phoneTenant || phone,
     newIndex: ni, oldIndex: oi, oldDebt: od, paid: paid,
     volume: vol, amount: amt, balance: bal,
     status: (bal <= 0 && (ni > 0 || od > 0)) ? 'paid' : 'unpaid'
@@ -138,12 +141,15 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
           // Neu Mã KH khong hop le thi bo qua
           if (!maKH || maKH === "0") continue;
           
+          const phone = String(row[colMap.phone] || "").trim();
+          
           res.push(calculateRow({
             id: `xl-${maKH}-${listType}`,
             maKH: maKH,
             name: String(row[colMap.name] || ""),
             address: String(row[colMap.address] || ""),
-            phone: String(row[colMap.phone] || ""),
+            phone: phone,
+            phoneTenant: phone,
             newIndex: parseSafe(row[colMap.newIndex]),
             oldIndex: parseSafe(row[colMap.oldIndex]),
             oldDebt: parseSafe(row[colMap.oldDebt]),

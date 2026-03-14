@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MessageSquare, Pencil, QrCode, X, MessageCircle, Plus } from 'lucide-react';
+import { ChevronLeft, MessageSquare, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
-import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus } from '../utils';
+import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
 
 interface DetailViewProps {
@@ -47,22 +47,22 @@ export const DetailView: React.FC<DetailViewProps> = ({
 
   return (
     <div className="fixed inset-0 bg-white z-[150] flex flex-col p-4 pt-[calc(1rem+var(--sat))] animate-in slide-in-from-right duration-200">
-      <header className="flex justify-between items-center mb-5 shrink-0">
-        <div className="flex items-center gap-1">
-          <button onClick={onBack} className="p-2 text-slate-800 active:scale-90"><ChevronLeft size={32}/></button>
-          <div className="flex bg-slate-100 rounded-2xl p-1 border-2 border-slate-200">
-            <button onClick={() => onNavigate('prev')} className="p-2.5 text-slate-700 active:scale-90"><ChevronLeft size={20}/></button>
-            <button onClick={() => onNavigate('next')} className="p-2.5 text-slate-700 active:scale-90"><ChevronLeft className="rotate-180" size={20}/></button>
+      <header className="flex justify-between items-center mb-5 shrink-0 gap-1">
+        <div className="flex items-center gap-1 shrink-0">
+          <button onClick={onBack} className="p-1.5 text-slate-800 active:scale-90"><ChevronLeft size={28}/></button>
+          <div className="flex bg-slate-100 rounded-xl p-0.5 border border-slate-200">
+            <button onClick={() => onNavigate('prev')} className="p-2 text-slate-700 active:scale-90"><ChevronLeft size={18}/></button>
+            <button onClick={() => onNavigate('next')} className="p-2 text-slate-700 active:scale-90"><ChevronLeft className="rotate-180" size={18}/></button>
           </div>
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => setShowPreview(!showPreview)} className={`p-3.5 rounded-full border-2 transition-all ${showPreview ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-slate-50 border-slate-200 text-slate-700'}`}><MessageSquare size={22}/></button>
-          <button onClick={onAddAfter} className="flex items-center gap-2 px-4 py-3 bg-blue-50 rounded-full border-2 border-blue-200 text-blue-700 active:scale-90" title="Thêm hộ sau mã này">
-            <Plus size={20}/>
-            <span className="text-[10px] font-black uppercase">Thêm hộ sau</span>
+        <div className="flex gap-1 items-center overflow-x-auto no-scrollbar">
+          <button onClick={() => setShowPreview(!showPreview)} className={`p-2.5 rounded-xl border transition-all shrink-0 ${showPreview ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-slate-50 border-slate-200 text-slate-700'}`}><MessageSquare size={20}/></button>
+          <button onClick={onAddAfter} className="flex flex-col items-center justify-center min-w-[54px] h-[46px] bg-blue-50 rounded-xl border border-blue-200 text-blue-700 active:scale-90 shrink-0" title="Thêm hộ sau mã này">
+            <Plus size={16}/>
+            <span className="text-[8px] font-black uppercase leading-none mt-0.5">Thêm hộ sau</span>
           </button>
-          <button onClick={onEditInfo} className="p-3.5 bg-slate-50 rounded-full border-2 border-slate-200 text-slate-700 active:scale-90"><Pencil size={22}/></button>
-          <button onClick={onShowQr} className="p-4 bg-blue-600 text-white rounded-full shadow-2xl active:scale-90"><QrCode size={24}/></button>
+          <button onClick={onEditInfo} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 active:scale-90 shrink-0"><Pencil size={20}/></button>
+          <button onClick={onShowQr} className="p-3 bg-blue-600 text-white rounded-xl shadow-lg active:scale-90 shrink-0"><QrCode size={22}/></button>
         </div>
       </header>
 
@@ -89,7 +89,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
             <span>Tiêu thụ:</span>
             <span className="text-slate-900 font-black flex items-center gap-1">
                {customer.volume} m³ 
-               <span className="text-[10px] text-slate-400 font-normal">
+               <span className="text-[11px] text-slate-700 font-bold">
                  (x {config.waterRate.toLocaleString('vi-VN')} = {formatCurrency(customer.amount)})
                </span>
             </span>
@@ -120,7 +120,30 @@ export const DetailView: React.FC<DetailViewProps> = ({
             <button onClick={onBack} className="flex-1 bg-slate-800 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg active:scale-95 border-b-4 border-slate-950">Lưu & Về</button>
           </div>
         </div>
+
         <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-5 rounded-[1.8rem] font-black uppercase flex items-center justify-center gap-3 shadow-2xl shadow-blue-200 active:scale-95 border-b-4 border-blue-900"><MessageCircle size={24}/> Gửi Zalo & Chốt số</button>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button 
+            onClick={() => onUpdate({ isZaloFriend: !customer.isZaloFriend })}
+            className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black uppercase text-[10px] border-2 transition-all active:scale-95 ${
+              customer.isZaloFriend 
+                ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                : 'bg-white text-blue-700 border-blue-200 shadow-sm'
+            }`}
+          >
+            <CheckCheck size={16}/> {customer.isZaloFriend ? 'Đã kết bạn' : 'Chưa kết bạn'}
+          </button>
+          <button 
+            onClick={() => {
+              const sdt = normalizePhoneForZalo(customer.phoneTenant || customer.phone);
+              window.location.href = `https://zalo.me/${sdt}`;
+            }}
+            className="flex items-center justify-center gap-2 py-3 bg-white text-indigo-700 rounded-2xl font-black uppercase text-[10px] border-2 border-indigo-200 shadow-sm active:scale-95"
+          >
+            <Plus size={16}/> Kết bạn Zalo
+          </button>
+        </div>
 
         {/* Meter Replacement Tracking */}
         <div className={`p-5 rounded-[2rem] border-2 shadow-md flex items-center gap-4 ${

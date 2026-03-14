@@ -16,7 +16,9 @@ export interface Customer {
   balance: number;
   listType: 'list1' | 'list2';
   status: 'paid' | 'unpaid';
-  isZalo?: boolean;
+  isZalo?: boolean;       // Co tai khoan Zalo (tu Excel)
+  isZaloFriend?: boolean; // Da ket ban Zalo (nguoi dung tu danh dau)
+  isProcessed?: boolean;  // Da gui bill/copy bill trong ky nay
   note?: string;
   installDate?: string; // Ngay lap dat (YYYY-MM)
   updatedAt?: number; // Thoi diem cap nhat gan nhat (timestamp)

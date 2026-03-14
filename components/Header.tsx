@@ -95,39 +95,39 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <div className="shrink-0 z-[110] bg-white shadow-sm">
-      <header className="p-4 pt-[calc(1rem+var(--sat))] flex justify-between items-center border-b relative z-[120]">
-        <h1 className="text-xl font-black text-blue-700 italic uppercase truncate max-w-[150px]">{title}</h1>
-        <div className="flex gap-1 items-center">
+      <header className="p-2 pt-[calc(0.5rem+var(--sat))] flex justify-between items-center border-b relative z-[120] gap-1">
+        <h1 className="text-base font-black text-blue-700 italic uppercase shrink-0 ml-1">{title}</h1>
+        <div className="flex gap-0 items-center overflow-x-auto no-scrollbar pr-1">
           <button 
             onClick={() => setIsSearchExpanded(!isSearchExpanded)} 
             title="Tìm kiếm" 
-            className={`p-2 rounded-xl transition-all active:scale-90 touch-manipulation ${isSearchExpanded ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-700'}`}
+            className={`p-1.5 rounded-lg transition-all active:scale-90 touch-manipulation shrink-0 ${isSearchExpanded ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-700'}`}
           >
-            <Search size={24}/>
+            <Search size={19}/>
           </button>
-          <button onClick={onShowVerify} title="Kiểm tra" className="p-2 text-emerald-600 active:scale-90 touch-manipulation"><ClipboardCheck size={24}/></button>
-          <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-2 text-amber-600 active:scale-90 touch-manipulation"><MessageSquareQuote size={24}/></button>
-          <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-2 rounded-xl transition-colors touch-manipulation ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={22}/></button>
-          <button onClick={onSync} title="Đồng bộ về" disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation">{isSyncing ? <Loader2 className="animate-spin" size={22}/> : <CloudDownload size={22}/>}</button>
-          <button onClick={onSave} title="Lưu dữ liệu" className="p-2 text-emerald-600 active:scale-90 touch-manipulation relative">
-            <Save size={22}/>
+          <button onClick={onShowVerify} title="Kiểm tra" className="p-1.5 text-emerald-600 active:scale-90 touch-manipulation shrink-0"><ClipboardCheck size={19}/></button>
+          <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-1.5 text-amber-600 active:scale-90 touch-manipulation shrink-0"><MessageSquareQuote size={19}/></button>
+          <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-1.5 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={19}/></button>
+          <button onClick={onSync} title="Đồng bộ về" disabled={isSyncing} className="p-1.5 text-blue-700 active:scale-90 touch-manipulation shrink-0">{isSyncing ? <Loader2 className="animate-spin" size={19}/> : <CloudDownload size={19}/>}</button>
+          <button onClick={onSave} title="Lưu dữ liệu" className="p-1.5 text-emerald-600 active:scale-90 touch-manipulation relative shrink-0">
+            <Save size={19}/>
             {syncStatus === 'syncing' && (
-              <div className="absolute -top-1 -right-1 bg-blue-600 text-white rounded-full p-0.5 animate-spin">
-                <Loader2 size={10} />
+              <div className="absolute -top-0.5 -right-0.5 bg-blue-600 text-white rounded-full p-0.5 animate-spin">
+                <Loader2 size={7} />
               </div>
             )}
             {syncStatus === 'synced' && (
-              <div className="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 shadow-sm">
-                <Check size={10} strokeWidth={4} />
+              <div className="absolute -top-0.5 -right-0.5 bg-emerald-500 text-white rounded-full p-0.5 shadow-sm">
+                <Check size={7} strokeWidth={4} />
               </div>
             )}
             {syncStatus === 'error' && (
-              <div className="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5 shadow-sm">
-                <X size={10} strokeWidth={4} />
+              <div className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white rounded-full p-0.5 shadow-sm">
+                <X size={7} strokeWidth={4} />
               </div>
             )}
           </button>
-          <button onClick={onShowConfig} title="Cấu hình" className="p-2 text-slate-700 active:scale-90 touch-manipulation"><Settings size={22}/></button>
+          <button onClick={onShowConfig} title="Cấu hình" className="p-1.5 text-slate-700 active:scale-90 touch-manipulation shrink-0"><Settings size={19}/></button>
         </div>
       </header>
 

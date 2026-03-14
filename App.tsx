@@ -198,7 +198,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
     if (!selectedCustomer) return;
     const msg = generateMsg(selectedCustomer, selectedCustomer.newIndex.toString(), selectedCustomer.paid.toString());
     await copyToClipboard(msg);
-    updateCustomer(selectedCustomer.id, { isZalo: true });
+    updateCustomer(selectedCustomer.id, { isProcessed: true });
     showToast("Da copy & Mo Zalo...");
     setTimeout(() => {
       const sdt = normalizePhoneForZalo(selectedCustomer.phoneTenant || selectedCustomer.phone);
@@ -270,7 +270,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             onCall={(phone) => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(phone)}`; }}
             onCopyMsg={async (c) => { 
               await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); 
-              updateCustomer(c.id, { isZalo: true });
+              updateCustomer(c.id, { isProcessed: true });
               showToast("Da copy hoa don & Danh dau!"); 
             }}
             onAddAfter={(maKH) => { 
