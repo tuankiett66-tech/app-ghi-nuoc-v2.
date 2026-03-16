@@ -178,16 +178,13 @@ const App: React.FC = () => {
     }
   }, [view, activeTab]);
 
-  // Auto-sync on load or tab switch
+  // Auto-sync ONLY on initial load if local data is empty
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
-      if (url) {
-        handleSyncCloud(true); // Silent sync
-      }
-    }, 1000); // 1s delay to ensure app is stable
-    return () => clearTimeout(timer);
-  }, [activeTab]); // Trigger when switching tabs
+    const url = config.sheetUrl?.trim();
+    if (url && customers.length === 0) {
+      handleSyncCloud(true); // Silent sync on first load
+    }
+  }, []); // Only once on mount
 
   // Auto-backup debounced
   useEffect(() => {
