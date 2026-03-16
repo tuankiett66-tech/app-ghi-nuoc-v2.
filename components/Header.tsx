@@ -23,7 +23,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, lastSyncTime, onShowVerify
+  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, lastSyncTime, onShowVerify, onShowGroups
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
       <header className="p-2 pt-[calc(0.5rem+var(--sat))] flex justify-between items-center border-b relative z-[120] gap-1">
         <div className="flex flex-col ml-1">
           <h1 className="text-base font-black text-blue-700 italic uppercase leading-none">{title}</h1>
-          {lastSyncTime && lastSyncTime > 0 && (
+          {typeof lastSyncTime === 'number' && lastSyncTime > 0 && (
             <span className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">
               Cloud: {new Date(lastSyncTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
             </span>

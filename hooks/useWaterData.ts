@@ -27,7 +27,7 @@ export const useWaterData = () => {
 
   const [config, setConfig] = useState<SystemConfig>(() => {
     const saved = localStorage.getItem('water_config_v21');
-    return saved ? JSON.parse(saved) : { 
+    const defaults: SystemConfig = { 
       waterRate: 18000, 
       sheetUrl1: '', 
       sheetUrl2: '', 
@@ -38,6 +38,7 @@ export const useWaterData = () => {
       lastSyncTime1: 0,
       lastSyncTime2: 0
     };
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   });
 
   const [activeTab, setActiveTab] = useState<'list1' | 'list2'>(() => {

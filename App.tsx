@@ -65,13 +65,13 @@ const App: React.FC = () => {
     }
   }, [view, activeTab]);
 
-  // Auto-sync on load
+  // Auto-sync on load or tab switch
   useEffect(() => {
     const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
     if (url) {
-      handleSyncCloud();
+      handleSyncCloud(true); // Silent sync
     }
-  }, []); // Only on mount
+  }, [activeTab]); // Trigger when switching tabs
 
   // Auto-backup debounced
   useEffect(() => {
@@ -146,10 +146,13 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
     return msg;
   };
 
-  const handleSyncCloud = async () => {
+  const handleSyncCloud = async (silent = false) => {
     const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
-    if (!url) return showToast("Chua co Link Script!");
-    setIsSyncing(true);
+    if (!url) {
+      if (!silent) showToast("Chua co Link Script!");
+      return;
+    }
+    if (!silent) setIsSyncing(true);
     try {
       const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}list=${activeTab}&t=${Date.now()}`);
       const json = await res.json();
@@ -172,13 +175,15 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
       }));
       
-      showToast("Dong bo ve thanh cong!");
+      if (!silent) showToast("Dong bo ve thanh cong!");
     } catch (e) { 
       console.log("Cloud Sync Error:", e);
-      alert("Loi Dong Bo Cloud:\n" + (e instanceof Error ? e.message : String(e)));
-      showToast("Loi ket noi Cloud!"); 
+      if (!silent) {
+        alert("Loi Dong Bo Cloud:\n" + (e instanceof Error ? e.message : String(e)));
+        showToast("Loi ket noi Cloud!"); 
+      }
     }
-    finally { setIsSyncing(false); }
+    finally { if (!silent) setIsSyncing(false); }
   };
 
   const handleBackupCloud = async (silent = false) => {
