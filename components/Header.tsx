@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2, Save, Check, Filter, CircleDollarSign } from 'lucide-react';
+import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Save, Check, DollarSign } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -118,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button onClick={onShowVerify} title="Kiểm tra" className="p-1.5 text-emerald-600 active:scale-90 touch-manipulation shrink-0"><ClipboardCheck size={19}/></button>
           <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-1.5 text-amber-600 active:scale-90 touch-manipulation shrink-0"><MessageSquareQuote size={19}/></button>
           <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-1.5 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={19}/></button>
-          <button onClick={onToggleUnpaidFilter} title="Lọc chưa thu" className={`p-1.5 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnpaid ? 'text-rose-600 bg-rose-100' : 'text-slate-600'}`}><CircleDollarSign size={19}/></button>
+          <button onClick={onToggleUnpaidFilter} title="Lọc chưa thu" className={`p-1.5 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnpaid ? 'text-rose-600 bg-rose-100' : 'text-slate-600'}`}><DollarSign size={19}/></button>
           <button onClick={onSync} title="Đồng bộ về" disabled={isSyncing} className="p-1.5 text-blue-700 active:scale-90 touch-manipulation shrink-0">{isSyncing ? <Loader2 className="animate-spin" size={19}/> : <CloudDownload size={19}/>}</button>
           <button onClick={onSave} title="Lưu dữ liệu" className="p-1.5 text-emerald-600 active:scale-90 touch-manipulation relative shrink-0">
             <Save size={19}/>
