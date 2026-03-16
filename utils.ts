@@ -1,6 +1,11 @@
 
-import * as XLSX from 'xlsx';
 import { Customer, GroupMember } from './types';
+
+// Helper to load XLSX dynamically
+const getXLSX = async () => {
+  // @ts-ignore
+  return await import('xlsx');
+};
 
 // Ham xu ly so tu Excel mot cach an toan (Xoa moi dau phay, dau cham phan cach hang ngan)
 export const parseSafe = (val: any): number => {
@@ -81,7 +86,8 @@ export const generateVietQrUrl = (bankId: string, accountNo: string, amount: num
   return `https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png?amount=${amountVnd}&addInfo=${encodeURIComponent(addInfo)}`;
 };
 
-export const exportToExcel = (customers: Customer[], fileName: string = 'Bao_Cao') => {
+export const exportToExcel = async (customers: Customer[], fileName: string = 'Bao_Cao') => {
+  const XLSX = await getXLSX();
   const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI"];
   const data = customers
     .sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }))
@@ -95,6 +101,7 @@ export const exportToExcel = (customers: Customer[], fileName: string = 'Bao_Cao
 };
 
 export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', rate: number): Promise<Customer[]> => {
+  const XLSX = await getXLSX();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -169,6 +176,7 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
 };
 
 export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> => {
+  const XLSX = await getXLSX();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {

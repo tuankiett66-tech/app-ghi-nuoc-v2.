@@ -423,7 +423,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           config={config} setConfig={setConfig}
           onBack={() => navigateTo('list')}
           onImport={() => fileInputRef.current?.click()}
-          onExport={() => exportToExcel(customers.filter(c => c.listType === activeTab), `Backup_${activeTab}`)}
+          onExport={async () => await exportToExcel(customers.filter(c => c.listType === activeTab), `Backup_${activeTab}`)}
           onBackupCloud={handleBackupCloud}
           onClear={() => { if(confirm("Xoa sach du lieu?")) { localStorage.clear(); window.location.reload(); } }}
         />
@@ -433,8 +433,8 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         <StatsView 
           customers={customers} activeTab={activeTab}
           onBack={() => navigateTo('list')}
-          onClosePeriod={() => { if(!confirm("Chot ky?")) return; const res = closePeriod(); exportToExcel(res, 'Ky_Moi'); showToast("Da chot ky!"); navigateTo('list'); }}
-          onExport={() => exportToExcel(customers.filter(c => c.listType === activeTab), 'Bao_Cao')}
+          onClosePeriod={async () => { if(!confirm("Chot ky?")) return; const res = closePeriod(); await exportToExcel(res, 'Ky_Moi'); showToast("Da chot ky!"); navigateTo('list'); }}
+          onExport={async () => await exportToExcel(customers.filter(c => c.listType === activeTab), 'Bao_Cao')}
         />
       )}
 
