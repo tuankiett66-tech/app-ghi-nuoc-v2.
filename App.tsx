@@ -34,6 +34,7 @@ const App: React.FC = () => {
   const listScrollTop = useRef<Record<string, number>>({ list1: 0, list2: 0 });
 
   const handleSyncCloud = async (silent = false) => {
+    console.log("handleSyncCloud called, silent:", silent);
     const url = config.sheetUrl?.trim();
     if (!url) {
       if (!silent) showToast("Chưa có Link Script!");
@@ -321,7 +322,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               setOnlyUnpaid(newVal);
               showToast(newVal ? "Đang hiện KH CHƯA THU" : "Hiện tất cả (Đã thu + Chưa thu)");
             }}
-            lastSyncTime={activeTab === 'list1' ? config.lastSyncTime1 : config.lastSyncTime2}
+            lastSyncTime={config.lastSyncTime}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
           />
