@@ -34,79 +34,84 @@ const App: React.FC = () => {
   const listScrollTop = useRef<Record<string, number>>({ list1: 0, list2: 0 });
 
   const handleSyncCloud = async (silent = false) => {
-    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
+    const url = config.sheetUrl?.trim();
     if (!url) {
-      if (!silent) showToast("Chua co Link Script!");
+      if (!silent) showToast("Chưa có Link Script!");
       return;
     }
     if (!silent) setIsSyncing(true);
     try {
-      const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}list=${activeTab}&t=${Date.now()}`);
-      const json = await res.json();
+      // Đồng bộ cả 2 bộ dữ liệu và Cài đặt trong 1 lần gọi
+      const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}action=get_all&t=${Date.now()}`);
+      const result = await res.json();
       
-      if (!Array.isArray(json)) {
-        console.error("Invalid cloud data format:", json);
-        if (!silent) showToast("Dữ liệu Cloud không đúng định dạng!");
-        return;
+      if (result.config) {
+        setConfig(prev => ({ ...prev, ...result.config, lastSyncTime: Date.now() }));
       }
 
-      const mapped = json
-        .filter(item => item && typeof item === 'object')
-        .map((item: any, idx: number) => calculateRow({
-          id: `cust-${item.maKH || item.stt || idx}-${activeTab}-${idx}`,
-          maKH: String(item.maKH || item.stt || ""), 
-          name: String(item.name || `(Mã KH ${item.maKH || item.stt})`),
+      let allCustomers: Customer[] = [];
+      
+      if (Array.isArray(result.list1)) {
+        const mapped1 = result.list1.map((item: any, idx: number) => calculateRow({
+          id: `cust-${item.maKH}-${idx}-list1`,
+          maKH: String(item.maKH || ""), 
+          name: String(item.name || ""),
           address: String(item.address || ""), 
-          phoneTenant: String(item.phoneTenant || item.phone || ""),
-          phoneLandlord: String(item.phoneLandlord || ""),
-          newIndex: parseFloat(item.newIndex) || 0, oldIndex: parseFloat(item.oldIndex) || 0,
-          oldDebt: parseFloat(item.oldDebt) || 0, paid: parseFloat(item.paid) || 0,
-          listType: activeTab, isZalo: !!item.isZalo, note: item.note || ''
-        }, config.waterRate));
-      setCustomers(prev => [...prev.filter(c => c.listType !== activeTab), ...mapped]);
+          phoneTenant: String(item.phoneTenant || ""),
+          newIndex: parseFloat(item.newIndex) || 0, 
+          oldIndex: parseFloat(item.oldIndex) || 0,
+          oldDebt: parseFloat(item.oldDebt) || 0, 
+          paid: parseFloat(item.paid) || 0,
+          listType: 'list1', isZalo: !!item.isZalo, note: item.note || ''
+        }, result.config?.waterRate || config.waterRate));
+        allCustomers = [...allCustomers, ...mapped1];
+      }
+
+      if (Array.isArray(result.list2)) {
+        const mapped2 = result.list2.map((item: any, idx: number) => calculateRow({
+          id: `cust-${item.maKH}-${idx}-list2`,
+          maKH: String(item.maKH || ""), 
+          name: String(item.name || ""),
+          address: String(item.address || ""), 
+          phoneTenant: String(item.phoneTenant || ""),
+          newIndex: parseFloat(item.newIndex) || 0, 
+          oldIndex: parseFloat(item.oldIndex) || 0,
+          oldDebt: parseFloat(item.oldDebt) || 0, 
+          paid: parseFloat(item.paid) || 0,
+          listType: 'list2', isZalo: !!item.isZalo, note: item.note || ''
+        }, result.config?.waterRate || config.waterRate));
+        allCustomers = [...allCustomers, ...mapped2];
+      }
+
+      setCustomers(allCustomers);
       
-      // Update last sync time
-      const now = Date.now();
-      setConfig(prev => ({
-        ...prev,
-        [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
-      }));
-      
-      if (!silent) showToast("Dong bo ve thanh cong!");
+      if (!silent) showToast("Đã tải dữ liệu & Cài đặt từ Cloud!");
     } catch (e) { 
       console.log("Cloud Sync Error:", e);
-      if (!silent) {
-        alert("Loi Dong Bo Cloud:\n" + (e instanceof Error ? e.message : String(e)));
-        showToast("Loi ket noi Cloud!"); 
-      }
+      if (!silent) alert("Lỗi tải dữ liệu: " + e);
     }
     finally { if (!silent) setIsSyncing(false); }
   };
 
   const handleBackupCloud = async (silent = false) => {
-    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
+    const url = config.sheetUrl?.trim();
     if (!url) {
       if (!silent) showToast("Chưa có Link Script!");
       return;
     }
 
-    // Kiểm tra link hợp lệ
     if (!url.toLowerCase().includes('/exec')) {
-      if (!silent) alert("LỖI: Link Script không đúng định dạng!\n\nLink đúng phải kết thúc bằng '/exec'.\nHãy vào Google Sheets -> Triển khai -> Quản lý bản triển khai để lấy lại link Web App.");
+      if (!silent) alert("Link Script sai định dạng /exec");
       return;
     }
     
-    const arrayData = customers
-      .filter(c => c.listType === activeTab)
-      .map(c => ({
-        maKH: c.maKH,
-        newIndex: c.newIndex,
-        consumption: c.volume,
-        amount: c.amount,
-        paid: c.paid,
-        remainingDebt: c.balance,
-        isZalo: c.isZalo
-      }));
+    const data1 = customers.filter(c => c.listType === 'list1').map(c => ({
+      maKH: c.maKH, newIndex: c.newIndex, consumption: c.volume, amount: c.amount, paid: c.paid, remainingDebt: c.balance, isZalo: c.isZalo
+    }));
+
+    const data2 = customers.filter(c => c.listType === 'list2').map(c => ({
+      maKH: c.maKH, newIndex: c.newIndex, consumption: c.volume, amount: c.amount, paid: c.paid, remainingDebt: c.balance, isZalo: c.isZalo
+    }));
 
     if (!silent) setIsSyncing(true);
     setSyncStatus('syncing');
@@ -116,41 +121,27 @@ const App: React.FC = () => {
         method: 'POST',
         mode: 'cors',
         redirect: 'follow',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-          listType: activeTab,
-          data: arrayData
+          action: 'update_all',
+          config: {
+            waterRate: config.waterRate,
+            bankId: config.bankId,
+            accountNo: config.accountNo,
+            accountName: config.accountName
+          },
+          list1: data1,
+          list2: data2
         })
       });
       
-      // Google Apps Script trả về 200 OK ngay cả khi redirect
-      if (!response.ok && response.status !== 0) {
-        throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
-      }
-
       setSyncStatus('synced');
-      
-      const now = Date.now();
-      setConfig(prev => ({
-        ...prev,
-        [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
-      }));
-      setLastAutoBackup(now);
-
-      if (!silent) showToast("Đã sao lưu lên Google Sheets!");
+      setConfig(prev => ({ ...prev, lastSyncTime: Date.now() }));
+      setLastAutoBackup(Date.now());
+      if (!silent) showToast("Đã lưu máy & Cloud thành công!");
     } catch (e) {
-      console.log("Cloud Backup Error:", e);
       setSyncStatus('error');
-      if (!silent) {
-        const errorMsg = e instanceof Error ? e.message : String(e);
-        if (errorMsg.includes('Failed to fetch')) {
-          alert("LỖI KẾT NỐI (CORS):\n1. Hãy đảm bảo bạn đã chọn 'Anyone' (Bất kỳ ai) khi Triển khai Script.\n2. Kiểm tra lại kết nối mạng.\n3. Thử dán lại link Script mới nhất.");
-        } else {
-          alert("Lỗi không xác định: " + errorMsg);
-        }
-      }
+      if (!silent) alert("Lỗi sao lưu: " + e);
     } finally {
       if (!silent) setIsSyncing(false);
     }
@@ -161,10 +152,9 @@ const App: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleManualSave = () => {
-    // useWaterData already saves to localStorage on every change due to useEffect
-    showToast("Da luu may");
-    handleBackupCloud(false); // Show status for manual save
+  const handleManualSave = async () => {
+    showToast("Đang lưu máy & Cloud...");
+    await handleBackupCloud(false);
   };
 
   const selectedCustomer = useMemo(() => customers.find(c => c.id === selectedId) || null, [customers, selectedId]);

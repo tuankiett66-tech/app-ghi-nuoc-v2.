@@ -38,18 +38,25 @@ export const useWaterData = () => {
   const [config, setConfig] = useState<SystemConfig>(() => {
     const defaults: SystemConfig = { 
       waterRate: 18000, 
-      sheetUrl1: '', 
-      sheetUrl2: '', 
+      sheetUrl: '', 
       bankId: 'agribank', 
       accountNo: '8888942444224', 
       accountName: 'TO TUAN KIET',
       globalMessage: 'Quy khach vui long thanh toan truoc ngay 10 hang thang.',
-      lastSyncTime1: 0,
-      lastSyncTime2: 0
+      lastSyncTime: 0
     };
     try {
       const saved = localStorage.getItem('water_config_v21');
       const parsed = saved ? JSON.parse(saved) : {};
+      
+      // Chuyển đổi từ cấu trúc cũ sang mới nếu cần
+      if (parsed.sheetUrl1 && !parsed.sheetUrl) {
+        parsed.sheetUrl = parsed.sheetUrl1;
+      }
+      if (parsed.lastSyncTime1 && !parsed.lastSyncTime) {
+        parsed.lastSyncTime = parsed.lastSyncTime1;
+      }
+
       const merged = { ...defaults, ...parsed };
       // Ensure waterRate is a valid number
       if (typeof merged.waterRate !== 'number' || isNaN(merged.waterRate)) {

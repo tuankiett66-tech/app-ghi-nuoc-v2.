@@ -43,12 +43,8 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                 <p className="text-[13px] font-black text-blue-800 uppercase tracking-widest">Đồng bộ Cloud (Script)</p>
              </div>
              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Link Script Bộ 01</label>
-                <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-[10px] font-mono font-bold text-blue-900" placeholder="https://script.google.com/..." value={config.sheetUrl1} onChange={e => setConfig({...config, sheetUrl1: e.target.value})} />
-             </div>
-             <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Link Script Bộ 02</label>
-                <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-[10px] font-mono font-bold text-blue-900" placeholder="https://script.google.com/..." value={config.sheetUrl2} onChange={e => setConfig({...config, sheetUrl2: e.target.value})} />
+                <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Link Script Duy Nhất</label>
+                <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-[10px] font-mono font-bold text-blue-900" placeholder="https://script.google.com/..." value={config.sheetUrl} onChange={e => setConfig({...config, sheetUrl: e.target.value})} />
              </div>
              <button onClick={onBackupCloud} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 active:scale-95 shadow-md border-b-4 border-blue-900 mt-2">
                 <UploadCloud size={20} /> Sao lưu lên Cloud
