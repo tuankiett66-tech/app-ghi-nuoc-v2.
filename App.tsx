@@ -51,7 +51,7 @@ const App: React.FC = () => {
 
       let allCustomers: Customer[] = [];
       
-      if (Array.isArray(result.list1)) {
+      if (Array.isArray(result.list1) && result.list1.length > 0) {
         const mapped1 = result.list1.map((item: any, idx: number) => calculateRow({
           id: `cust-${item.maKH}-${idx}-list1`,
           maKH: String(item.maKH || ""), 
@@ -65,9 +65,12 @@ const App: React.FC = () => {
           listType: 'list1', isZalo: !!item.isZalo, note: item.note || ''
         }, result.config?.waterRate || config.waterRate));
         allCustomers = [...allCustomers, ...mapped1];
+      } else {
+        // Giữ lại dữ liệu cũ của bộ 1 nếu cloud trống
+        allCustomers = [...allCustomers, ...customers.filter(c => c.listType === 'list1')];
       }
 
-      if (Array.isArray(result.list2)) {
+      if (Array.isArray(result.list2) && result.list2.length > 0) {
         const mapped2 = result.list2.map((item: any, idx: number) => calculateRow({
           id: `cust-${item.maKH}-${idx}-list2`,
           maKH: String(item.maKH || ""), 
@@ -81,6 +84,9 @@ const App: React.FC = () => {
           listType: 'list2', isZalo: !!item.isZalo, note: item.note || ''
         }, result.config?.waterRate || config.waterRate));
         allCustomers = [...allCustomers, ...mapped2];
+      } else {
+        // Giữ lại dữ liệu cũ của bộ 2 nếu cloud trống
+        allCustomers = [...allCustomers, ...customers.filter(c => c.listType === 'list2')];
       }
 
       setCustomers(allCustomers);
