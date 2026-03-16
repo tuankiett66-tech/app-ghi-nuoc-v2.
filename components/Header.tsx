@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2, Save, Check } from 'lucide-react';
+import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Trash2, Save, Check, Filter, CircleDollarSign } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -15,12 +15,15 @@ interface HeaderProps {
   onShowMsgTemplate: () => void;
   onToggleZaloFilter: () => void;
   onlyNonZalo: boolean;
+  onToggleUnpaidFilter: () => void;
+  onlyUnpaid: boolean;
+  lastSyncTime?: number;
   onShowVerify: () => void;
   onShowGroups: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onShowVerify
+  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, lastSyncTime, onShowVerify
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -96,7 +99,14 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <div className="shrink-0 z-[110] bg-white shadow-sm">
       <header className="p-2 pt-[calc(0.5rem+var(--sat))] flex justify-between items-center border-b relative z-[120] gap-1">
-        <h1 className="text-base font-black text-blue-700 italic uppercase shrink-0 ml-1">{title}</h1>
+        <div className="flex flex-col ml-1">
+          <h1 className="text-base font-black text-blue-700 italic uppercase leading-none">{title}</h1>
+          {lastSyncTime && lastSyncTime > 0 && (
+            <span className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">
+              Cloud: {new Date(lastSyncTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
         <div className="flex gap-0 items-center overflow-x-auto no-scrollbar pr-1">
           <button 
             onClick={() => setIsSearchExpanded(!isSearchExpanded)} 
@@ -108,6 +118,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button onClick={onShowVerify} title="Kiểm tra" className="p-1.5 text-emerald-600 active:scale-90 touch-manipulation shrink-0"><ClipboardCheck size={19}/></button>
           <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-1.5 text-amber-600 active:scale-90 touch-manipulation shrink-0"><MessageSquareQuote size={19}/></button>
           <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-1.5 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={19}/></button>
+          <button onClick={onToggleUnpaidFilter} title="Lọc chưa thu" className={`p-1.5 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnpaid ? 'text-rose-600 bg-rose-100' : 'text-slate-600'}`}><CircleDollarSign size={19}/></button>
           <button onClick={onSync} title="Đồng bộ về" disabled={isSyncing} className="p-1.5 text-blue-700 active:scale-90 touch-manipulation shrink-0">{isSyncing ? <Loader2 className="animate-spin" size={19}/> : <CloudDownload size={19}/>}</button>
           <button onClick={onSave} title="Lưu dữ liệu" className="p-1.5 text-emerald-600 active:scale-90 touch-manipulation relative shrink-0">
             <Save size={19}/>

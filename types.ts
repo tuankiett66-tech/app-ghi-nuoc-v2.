@@ -44,6 +44,8 @@ export interface SystemConfig {
   sheetUrl1: string;
   sheetUrl2: string;
   globalMessage: string;
+  lastSyncTime1?: number;
+  lastSyncTime2?: number;
 }
 
 export type ViewState = 'list' | 'edit' | 'detail' | 'quick_record' | 'config' | 'stats' | 'edit_customer' | 'add_customer' | 'edit_message_template' | 'group_list' | 'group_detail' | 'verify';

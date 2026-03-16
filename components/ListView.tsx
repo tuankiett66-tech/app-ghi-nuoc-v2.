@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CheckCheck, Copy, Plus } from 'lucide-react';
+import { CheckCheck, Copy, Plus, Wallet } from 'lucide-react';
 import { Customer } from '../types';
 import { formatCurrency, getMeterStatus } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -11,9 +11,10 @@ interface ListViewProps {
   onCall: (phone: string) => void;
   onCopyMsg: (cust: Customer) => void;
   onAddAfter: (maKH: string) => void;
+  onCollectFull: (id: string) => void;
 }
 
-export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall, onCopyMsg, onAddAfter }) => {
+export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall, onCopyMsg, onAddAfter, onCollectFull }) => {
   return (
     <div id="main-list-container" className="flex-1 overflow-y-auto px-3 space-y-3 pb-40 scroll-smooth bg-slate-50">
       {customers.map(c => (
@@ -60,9 +61,19 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t-2 border-slate-50">
-             <button onClick={(e) => { e.stopPropagation(); onCopyMsg(c); }} className="flex items-center justify-center gap-2 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-[11px] font-black uppercase active:scale-95 shadow-sm border border-slate-200"><Copy size={16}/> Copy Bill</button>
-             <button onClick={(e) => { e.stopPropagation(); onAddAfter(c.maKH); }} className="flex items-center justify-center gap-2 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl text-[11px] font-black uppercase active:scale-95 shadow-sm border border-indigo-100"><Plus size={16}/> Chèn sau</button>
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t-2 border-slate-50">
+             <button onClick={(e) => { e.stopPropagation(); onCopyMsg(c); }} className="flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black uppercase active:scale-95 shadow-sm border border-slate-200"><Copy size={14}/> Copy Bill</button>
+             <button 
+               onClick={(e) => { e.stopPropagation(); onCollectFull(c.id); }} 
+               className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase active:scale-95 shadow-md border-b-4 transition-all ${
+                 c.status === 'paid' 
+                   ? 'bg-slate-200 text-slate-400 border-slate-300 pointer-events-none shadow-none border-b-0' 
+                   : 'bg-emerald-600 text-white border-emerald-800'
+               }`}
+             >
+               <Wallet size={14}/> Thu đủ
+             </button>
+             <button onClick={(e) => { e.stopPropagation(); onAddAfter(c.maKH); }} className="flex items-center justify-center gap-1.5 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase active:scale-95 shadow-sm border border-indigo-100"><Plus size={14}/> Chèn sau</button>
           </div>
         </div>
       ))}

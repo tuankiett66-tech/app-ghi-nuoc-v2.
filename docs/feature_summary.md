@@ -5,6 +5,9 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **PWA & Offline** | Hỗ trợ chạy không mạng, cài đặt icon màn hình chính. | `sw.js`, `manifest.json` | Hoàn thành | Hoạt động 100% offline. |
 | **Quản Lý Bộ 01/02** | Phân tách danh sách theo tab, chuyển đổi linh hoạt. | `App.tsx` | Hoàn thành | Lưu trữ độc lập qua localStorage. |
+| **Đồng Bộ Đa Thiết Bị** | Tự động tải dữ liệu khi mở App, tự động sao lưu sau khi thay đổi (Debounce). | `App.tsx`, `useWaterData.ts` | Hoàn thành | Hiển thị thời gian đồng bộ cuối trên Header. |
+| **Lọc Thông Minh** | Lọc KH chưa có Zalo, lọc KH CHƯA THU TIỀN (ẩn hộ 0m3/chưa ghi). | `Header.tsx`, `App.tsx` | Hoàn thành | Bấm icon đồng tiền màu đỏ để ẩn các hộ đã thu hoặc không dùng nước. |
+| **Thu Tiền Nhanh** | Nút "Thu đủ" ngay tại danh sách không cần vào chi tiết. | `ListView.tsx`, `App.tsx` | Hoàn thành | Giúp xử lý nhanh khi khách trả đúng số tiền nợ. |
 | **Tìm Kiếm Thông Minh** | Dropdown lịch sử, Voice Search, Auto-clear sau khi chọn KH. | `Header.tsx`, `App.tsx` | Tối ưu | Đã fix lỗi kẹt bộ lọc. |
 | **Ghi Chỉ Số & Thu Tiền** | Ghi số mới, nhập tiền khách trả, tính tiền nợ còn lại. | `DetailView.tsx`, `utils.ts` | Hoàn thành | **Đã fix**: Hỗ trợ số dư âm (khách trả thừa). |
 | **Gửi Zalo & VietQR** | Tự động sinh nội dung bill và QR thanh toán. | `App.tsx`, `utils.ts` | Hoàn thành | Bill Zalo hiện đúng số âm. QR tự về 0 nếu âm. |

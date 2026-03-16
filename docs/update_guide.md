@@ -7,6 +7,10 @@
 - [ ] **Overpayment Check**: Nhập bill 468k -> Nhập khách trả 500k -> Tin nhắn Zalo phải hiện **TIỀN DƯ: -32.000**.
 - [ ] **Zalo Bill Check**: Gửi bill -> Kiểm tra dòng "CÒN LẠI" = (Tiền nước + Nợ cũ) - Đã trả.
 - [ ] **QR Code Check**: Nếu số dư âm -> Mã QR sinh ra phải mặc định là **0đ** (ngân hàng không thu số âm).
+- [ ] **Auto-Sync Check (MỚI)**: Mở App -> App phải tự động hiện "Đang đồng bộ" và tải dữ liệu mới nhất từ Cloud.
+- [ ] **Auto-Backup Check (MỚI)**: Thay đổi số nước -> Đợi 5s -> Icon lưu trên Header phải tự động xoay (Syncing) và báo thành công.
+- [ ] **Unpaid Filter Check (MỚI)**: Bấm icon đồng tiền đỏ -> Danh sách phải ẩn các hộ đã thu, hộ 0m3 và hộ chưa ghi số.
+- [ ] **Collect Full Check (MỚI)**: Bấm nút "Thu đủ" trên card danh sách -> Số dư phải về 0 và hộ đó tự ẩn nếu đang bật lọc.
 - [ ] **Copy Bill Sync Check (MỚI)**: Bấm nút "Copy Bill" trên danh sách -> KH đó phải tự động chuyển sang màu Xanh (isZalo = true).
 - [ ] **Group Navigation Check (MỚI)**: Vào Chi tiết Nhóm -> Bấm nút Tiến/Lùi trên header -> Phải chuyển sang nhóm khác chính xác.
 - [ ] **Excel STT Check (MỚI)**: Nhập file Excel có STT định dạng Văn bản (Text) -> Hệ thống phải nhận diện đúng số thứ tự.
@@ -30,3 +34,6 @@
 | **V3.2** | 2026-03-11 | **Update 2026-03-11**: Thêm điều hướng nhóm, đồng bộ copy bill, tối ưu Excel và hoàn thiện cấu trúc thư mục. | **Stable** |
 | **V3.3** | 2026-03-12 | **Cloud Backup**: Thêm tính năng sao lưu dữ liệu lên Google Sheets qua phương thức POST. | **New Feature** |
 | **V3.4** | 2026-03-14 | **UI Optimization**: Cố định layout Chi tiết KH (Làm việc -> Gửi Zalo -> Kết bạn). Thêm trạng thái màu sắc cho danh sách. | **Layout Fixed** |
+| **V3.5** | 2026-03-16 | **Smart Filter**: Thêm tính năng lọc "Chưa thu tiền" giúp rút gọn danh sách khi làm việc với số lượng KH lớn. | **New Feature** |
+| **V3.6** | 2026-03-16 | **Quick Collect**: Thêm nút "Thu đủ" ngoài danh sách và tối ưu bộ lọc (ẩn hộ không dùng nước). | **Efficiency** |
+| **V3.7** | 2026-03-16 | **Multi-Device Sync**: Tự động Pull khi mở App, tự động Push sau khi sửa dữ liệu. Hiển thị giờ đồng bộ cuối. | **Cloud Ready** |

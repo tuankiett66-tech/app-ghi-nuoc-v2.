@@ -34,7 +34,9 @@ export const useWaterData = () => {
       bankId: 'agribank', 
       accountNo: '8888942444224', 
       accountName: 'TO TUAN KIET',
-      globalMessage: 'Quy khach vui long thanh toan truoc ngay 10 hang thang.'
+      globalMessage: 'Quy khach vui long thanh toan truoc ngay 10 hang thang.',
+      lastSyncTime1: 0,
+      lastSyncTime2: 0
     };
   });
 

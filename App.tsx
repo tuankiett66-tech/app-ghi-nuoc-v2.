@@ -22,10 +22,12 @@ const App: React.FC = () => {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [afterMaKH, setAfterMaKH] = useState<string | undefined>(undefined);
   const [onlyNonZalo, setOnlyNonZalo] = useState(false);
+  const [onlyUnpaid, setOnlyUnpaid] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+  const [lastAutoBackup, setLastAutoBackup] = useState<number>(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastScrollId = useRef<string | null>(null);
@@ -63,6 +65,30 @@ const App: React.FC = () => {
     }
   }, [view, activeTab]);
 
+  // Auto-sync on load
+  useEffect(() => {
+    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
+    if (url) {
+      handleSyncCloud();
+    }
+  }, []); // Only on mount
+
+  // Auto-backup debounced
+  useEffect(() => {
+    if (customers.length === 0) return;
+    
+    const timer = setTimeout(() => {
+      const now = Date.now();
+      // Only auto-backup if there were changes and it's been at least 10s since last backup
+      if (now - lastAutoBackup > 10000) {
+        handleBackupCloud(true);
+        setLastAutoBackup(now);
+      }
+    }, 5000); // 5s debounce
+
+    return () => clearTimeout(timer);
+  }, [customers, groups]);
+
   const filtered = useMemo(() => {
     const s = searchQuery.toLowerCase().trim();
     return customers.filter(c => {
@@ -76,9 +102,20 @@ const App: React.FC = () => {
                     (c.phoneLandlord && c.phoneLandlord.includes(s)) ||
                     balanceStr.includes(cleanSearchPrice);
       
-      return match && (onlyNonZalo ? !c.isZalo : true);
+      const zaloMatch = onlyNonZalo ? !c.isZalo : true;
+      const unpaidMatch = onlyUnpaid ? (c.status === 'unpaid' && c.newIndex > 0 && c.volume > 0) : true;
+      
+      return match && zaloMatch && unpaidMatch;
     }).sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
-  }, [customers, activeTab, searchQuery, onlyNonZalo]);
+  }, [customers, activeTab, searchQuery, onlyNonZalo, onlyUnpaid]);
+
+  const handleCollectFull = (id: string) => {
+    const cust = customers.find(c => c.id === id);
+    if (!cust) return;
+    const totalAmount = Math.round(cust.amount + cust.oldDebt);
+    updateCustomer(id, { paid: totalAmount });
+    showToast(`Đã thu đủ cho ${cust.name}`);
+  };
 
   const generateMsg = (c: Customer, niStr: string, piStr: string) => {
     const ni = parseInt(niStr) || 0;
@@ -127,6 +164,14 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         listType: activeTab, isZalo: !!item.isZalo, note: item.note || ''
       }, config.waterRate));
       setCustomers(prev => [...prev.filter(c => c.listType !== activeTab), ...mapped]);
+      
+      // Update last sync time
+      const now = Date.now();
+      setConfig(prev => ({
+        ...prev,
+        [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
+      }));
+      
       showToast("Dong bo ve thanh cong!");
     } catch (e) { 
       console.log("Cloud Sync Error:", e);
@@ -175,6 +220,15 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
       }
 
       setSyncStatus('synced');
+      
+      // Update last sync time on backup too
+      const now = Date.now();
+      setConfig(prev => ({
+        ...prev,
+        [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
+      }));
+      setLastAutoBackup(now);
+
       if (!silent) showToast("Da sao luu len Google Sheets thanh cong!");
     } catch (e) {
       console.log("Cloud Backup Error:", e);
@@ -257,7 +311,17 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             onShowAdd={() => { setAfterMaKH(undefined); navigateTo('add_customer'); }}
             onShowConfig={() => navigateTo('config')}
             onShowMsgTemplate={() => navigateTo('edit_msg', false)}
-            onlyNonZalo={onlyNonZalo} onToggleZaloFilter={() => setOnlyNonZalo(!onlyNonZalo)}
+            onlyNonZalo={onlyNonZalo} onToggleZaloFilter={() => {
+              const newVal = !onlyNonZalo;
+              setOnlyNonZalo(newVal);
+              showToast(newVal ? "Đang hiện KH chưa có Zalo" : "Hiện tất cả Zalo");
+            }}
+            onlyUnpaid={onlyUnpaid} onToggleUnpaidFilter={() => {
+              const newVal = !onlyUnpaid;
+              setOnlyUnpaid(newVal);
+              showToast(newVal ? "Đang hiện KH CHƯA THU" : "Hiện tất cả (Đã thu + Chưa thu)");
+            }}
+            lastSyncTime={activeTab === 'list1' ? config.lastSyncTime1 : config.lastSyncTime2}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
           />
@@ -278,6 +342,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               navigateTo('add_customer', false); 
               showToast(`Đang chèn hộ mới sau mã ${maKH}`);
             }}
+            onCollectFull={handleCollectFull}
           />
         </>
       )}
