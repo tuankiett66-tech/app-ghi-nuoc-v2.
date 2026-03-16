@@ -91,7 +91,7 @@ const App: React.FC = () => {
 
       setCustomers(allCustomers);
       
-      if (!silent) showToast("Đã tải dữ liệu & Cài đặt từ Cloud!");
+      if (!silent) showToast("Đã tải dữ liệu từ Cloud về máy!");
     } catch (e) { 
       console.log("Cloud Sync Error:", e);
       if (!silent) alert("Lỗi tải dữ liệu: " + e);
@@ -144,7 +144,7 @@ const App: React.FC = () => {
       setSyncStatus('synced');
       setConfig(prev => ({ ...prev, lastSyncTime: Date.now() }));
       setLastAutoBackup(Date.now());
-      if (!silent) showToast("Đã lưu máy & Cloud thành công!");
+      if (!silent) showToast("Đã tải dữ liệu từ máy lên Cloud!");
     } catch (e) {
       setSyncStatus('error');
       if (!silent) alert("Lỗi sao lưu: " + e);
@@ -159,7 +159,7 @@ const App: React.FC = () => {
   };
 
   const handleManualSave = async () => {
-    showToast("Đang lưu máy & Cloud...");
+    showToast("Đang tải dữ liệu lên Cloud...");
     await handleBackupCloud(false);
   };
 
@@ -184,29 +184,9 @@ const App: React.FC = () => {
     }
   }, [view, activeTab]);
 
-  // Auto-sync ONLY on initial load if local data is empty
-  useEffect(() => {
-    const url = config.sheetUrl?.trim();
-    if (url && customers.length === 0) {
-      handleSyncCloud(true); // Silent sync on first load
-    }
-  }, []); // Only once on mount
-
-  // Auto-backup debounced
-  useEffect(() => {
-    if (customers.length === 0) return;
-    
-    const timer = setTimeout(() => {
-      const now = Date.now();
-      // Only auto-backup if there were changes and it's been at least 10s since last backup
-      if (now - lastAutoBackup > 10000) {
-        handleBackupCloud(true);
-        setLastAutoBackup(now);
-      }
-    }, 5000); // 5s debounce
-
-    return () => clearTimeout(timer);
-  }, [customers, groups]);
+  // TỰ ĐỘNG ĐỒNG BỘ ĐÃ BỊ TẮT THEO YÊU CẦU NGƯỜI DÙNG
+  // Dữ liệu chỉ được tải về khi bấm nút "Đồng bộ về" (Mũi tên xuống)
+  // Dữ liệu chỉ được lưu lên Cloud khi bấm nút "Sao lưu" (Đám mây lên)
 
   const filtered = useMemo(() => {
     const s = searchQuery.toLowerCase().trim();
