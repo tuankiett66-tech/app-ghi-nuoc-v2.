@@ -101,9 +101,16 @@ export const Header: React.FC<HeaderProps> = ({
       <header className="p-2 pt-[calc(0.5rem+var(--sat))] flex justify-between items-center border-b relative z-[120] gap-1">
         <div className="flex flex-col ml-1">
           <h1 className="text-base font-black text-blue-700 italic uppercase leading-none">{title}</h1>
-          {typeof lastSyncTime === 'number' && lastSyncTime > 0 && (
+          {typeof lastSyncTime === 'number' && lastSyncTime > 0 && !isNaN(lastSyncTime) && (
             <span className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">
-              Cloud: {new Date(lastSyncTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+              Cloud: {(() => {
+                try {
+                  const d = new Date(lastSyncTime);
+                  return isNaN(d.getTime()) ? '---' : d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                } catch (e) {
+                  return '---';
+                }
+              })()}
             </span>
           )}
         </div>

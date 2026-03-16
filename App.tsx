@@ -33,6 +33,122 @@ const App: React.FC = () => {
   const lastScrollId = useRef<string | null>(null);
   const listScrollTop = useRef<Record<string, number>>({ list1: 0, list2: 0 });
 
+  const handleSyncCloud = async (silent = false) => {
+    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
+    if (!url) {
+      if (!silent) showToast("Chua co Link Script!");
+      return;
+    }
+    if (!silent) setIsSyncing(true);
+    try {
+      const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}list=${activeTab}&t=${Date.now()}`);
+      const json = await res.json();
+      
+      if (!Array.isArray(json)) {
+        console.error("Invalid cloud data format:", json);
+        if (!silent) showToast("Dữ liệu Cloud không đúng định dạng!");
+        return;
+      }
+
+      const mapped = json
+        .filter(item => item && typeof item === 'object')
+        .map((item: any, idx: number) => calculateRow({
+          id: `cust-${item.maKH || item.stt || idx}-${activeTab}-${idx}`,
+          maKH: String(item.maKH || item.stt || ""), 
+          name: item.name || `(Mã KH ${item.maKH || item.stt})`,
+          address: item.address || "", phoneTenant: item.phoneTenant || item.phone || "",
+          phoneLandlord: item.phoneLandlord || "",
+          newIndex: parseFloat(item.newIndex) || 0, oldIndex: parseFloat(item.oldIndex) || 0,
+          oldDebt: parseFloat(item.oldDebt) || 0, paid: parseFloat(item.paid) || 0,
+          listType: activeTab, isZalo: !!item.isZalo, note: item.note || ''
+        }, config.waterRate));
+      setCustomers(prev => [...prev.filter(c => c.listType !== activeTab), ...mapped]);
+      
+      // Update last sync time
+      const now = Date.now();
+      setConfig(prev => ({
+        ...prev,
+        [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
+      }));
+      
+      if (!silent) showToast("Dong bo ve thanh cong!");
+    } catch (e) { 
+      console.log("Cloud Sync Error:", e);
+      if (!silent) {
+        alert("Loi Dong Bo Cloud:\n" + (e instanceof Error ? e.message : String(e)));
+        showToast("Loi ket noi Cloud!"); 
+      }
+    }
+    finally { if (!silent) setIsSyncing(false); }
+  };
+
+  const handleBackupCloud = async (silent = false) => {
+    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
+    if (!url) {
+      if (!silent) showToast("Chua co Link Script!");
+      return;
+    }
+    
+    const arrayData = customers
+      .filter(c => c.listType === activeTab)
+      .map(c => ({
+        maKH: c.maKH,
+        newIndex: c.newIndex,
+        consumption: c.volume,
+        amount: c.amount,
+        paid: c.paid,
+        remainingDebt: c.balance,
+        isZalo: c.isZalo
+      }));
+
+    if (!silent) setIsSyncing(true);
+    setSyncStatus('syncing');
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          listType: activeTab,
+          data: arrayData
+        })
+      });
+      
+      if (!response.ok && response.status !== 0) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      setSyncStatus('synced');
+      
+      // Update last sync time on backup too
+      const now = Date.now();
+      setConfig(prev => ({
+        ...prev,
+        [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
+      }));
+      setLastAutoBackup(now);
+
+      if (!silent) showToast("Da sao luu len Google Sheets thanh cong!");
+    } catch (e) {
+      console.log("Cloud Backup Error:", e);
+      setSyncStatus('error');
+      if (!silent) {
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        if (errorMsg.includes('Failed to fetch')) {
+          showToast("Loi CORS hoac Link Script sai!");
+          alert("Loi Dong Bo Cloud (POST):\n- Co the do Link Script sai.\n- Hoac do Script chua bat CORS.\n- Hay thu dung link /exec cua Google Apps Script.");
+        } else {
+          showToast("Loi ket noi Cloud!");
+          alert("Loi: " + errorMsg);
+        }
+      }
+    } finally {
+      if (!silent) setIsSyncing(false);
+    }
+  };
+
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
@@ -144,113 +260,6 @@ TÊN: ${config.accountName}
 Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
 
     return msg;
-  };
-
-  const handleSyncCloud = async (silent = false) => {
-    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
-    if (!url) {
-      if (!silent) showToast("Chua co Link Script!");
-      return;
-    }
-    if (!silent) setIsSyncing(true);
-    try {
-      const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}list=${activeTab}&t=${Date.now()}`);
-      const json = await res.json();
-      const mapped = json.map((item: any) => calculateRow({
-        id: `cust-${item.maKH || item.stt}-${activeTab}`,
-        maKH: String(item.maKH || item.stt || ""), 
-        name: item.name || `(Mã KH ${item.maKH || item.stt})`,
-        address: item.address || "", phoneTenant: item.phoneTenant || item.phone || "",
-        phoneLandlord: item.phoneLandlord || "",
-        newIndex: parseFloat(item.newIndex) || 0, oldIndex: parseFloat(item.oldIndex) || 0,
-        oldDebt: parseFloat(item.oldDebt) || 0, paid: parseFloat(item.paid) || 0,
-        listType: activeTab, isZalo: !!item.isZalo, note: item.note || ''
-      }, config.waterRate));
-      setCustomers(prev => [...prev.filter(c => c.listType !== activeTab), ...mapped]);
-      
-      // Update last sync time
-      const now = Date.now();
-      setConfig(prev => ({
-        ...prev,
-        [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
-      }));
-      
-      if (!silent) showToast("Dong bo ve thanh cong!");
-    } catch (e) { 
-      console.log("Cloud Sync Error:", e);
-      if (!silent) {
-        alert("Loi Dong Bo Cloud:\n" + (e instanceof Error ? e.message : String(e)));
-        showToast("Loi ket noi Cloud!"); 
-      }
-    }
-    finally { if (!silent) setIsSyncing(false); }
-  };
-
-  const handleBackupCloud = async (silent = false) => {
-    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
-    if (!url) {
-      if (!silent) showToast("Chua co Link Script!");
-      return;
-    }
-    
-    const arrayData = customers
-      .filter(c => c.listType === activeTab)
-      .map(c => ({
-        maKH: c.maKH,
-        newIndex: c.newIndex,
-        consumption: c.volume,
-        amount: c.amount,
-        paid: c.paid,
-        remainingDebt: c.balance,
-        isZalo: c.isZalo
-      }));
-
-    if (!silent) setIsSyncing(true);
-    setSyncStatus('syncing');
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          listType: activeTab,
-          data: arrayData
-        })
-      });
-      
-      if (!response.ok && response.status !== 0) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      setSyncStatus('synced');
-      
-      // Update last sync time on backup too
-      const now = Date.now();
-      setConfig(prev => ({
-        ...prev,
-        [activeTab === 'list1' ? 'lastSyncTime1' : 'lastSyncTime2']: now
-      }));
-      setLastAutoBackup(now);
-
-      if (!silent) showToast("Da sao luu len Google Sheets thanh cong!");
-    } catch (e) {
-      console.log("Cloud Backup Error:", e);
-      setSyncStatus('error');
-      if (!silent) {
-        const errorMsg = e instanceof Error ? e.message : String(e);
-        if (errorMsg.includes('Failed to fetch')) {
-          showToast("Loi CORS hoac Link Script sai!");
-          alert("Loi Dong Bo Cloud (POST):\n- Co the do Link Script sai.\n- Hoac do Script chua bat CORS.\n- Hay thu dung link /exec cua Google Apps Script.");
-        } else {
-          showToast("Loi ket noi Cloud!");
-          alert("Loi: " + errorMsg);
-        }
-      }
-    } finally {
-      if (!silent) setIsSyncing(false);
-    }
   };
 
   const handleSendZalo = async () => {
