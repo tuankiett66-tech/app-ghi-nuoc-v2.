@@ -86,7 +86,13 @@ const App: React.FC = () => {
   const handleBackupCloud = async (silent = false) => {
     const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
     if (!url) {
-      if (!silent) showToast("Chua co Link Script!");
+      if (!silent) showToast("Chưa có Link Script!");
+      return;
+    }
+
+    // Kiểm tra link hợp lệ
+    if (!url.toLowerCase().includes('/exec')) {
+      if (!silent) alert("LỖI: Link Script không đúng định dạng!\n\nLink đúng phải kết thúc bằng '/exec'.\nHãy vào Google Sheets -> Triển khai -> Quản lý bản triển khai để lấy lại link Web App.");
       return;
     }
     
@@ -108,8 +114,10 @@ const App: React.FC = () => {
     try {
       const response = await fetch(url, {
         method: 'POST',
+        mode: 'cors',
+        redirect: 'follow',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'text/plain;charset=utf-8'
         },
         body: JSON.stringify({
           listType: activeTab,
@@ -117,13 +125,13 @@ const App: React.FC = () => {
         })
       });
       
+      // Google Apps Script trả về 200 OK ngay cả khi redirect
       if (!response.ok && response.status !== 0) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
       }
 
       setSyncStatus('synced');
       
-      // Update last sync time on backup too
       const now = Date.now();
       setConfig(prev => ({
         ...prev,
@@ -131,18 +139,16 @@ const App: React.FC = () => {
       }));
       setLastAutoBackup(now);
 
-      if (!silent) showToast("Da sao luu len Google Sheets thanh cong!");
+      if (!silent) showToast("Đã sao lưu lên Google Sheets!");
     } catch (e) {
       console.log("Cloud Backup Error:", e);
       setSyncStatus('error');
       if (!silent) {
         const errorMsg = e instanceof Error ? e.message : String(e);
         if (errorMsg.includes('Failed to fetch')) {
-          showToast("Loi CORS hoac Link Script sai!");
-          alert("Loi Dong Bo Cloud (POST):\n- Co the do Link Script sai.\n- Hoac do Script chua bat CORS.\n- Hay thu dung link /exec cua Google Apps Script.");
+          alert("LỖI KẾT NỐI (CORS):\n1. Hãy đảm bảo bạn đã chọn 'Anyone' (Bất kỳ ai) khi Triển khai Script.\n2. Kiểm tra lại kết nối mạng.\n3. Thử dán lại link Script mới nhất.");
         } else {
-          showToast("Loi ket noi Cloud!");
-          alert("Loi: " + errorMsg);
+          alert("Lỗi không xác định: " + errorMsg);
         }
       }
     } finally {
