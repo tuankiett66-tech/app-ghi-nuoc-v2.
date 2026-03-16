@@ -183,10 +183,13 @@ const App: React.FC = () => {
 
   // Auto-sync on load or tab switch
   useEffect(() => {
-    const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
-    if (url) {
-      handleSyncCloud(true); // Silent sync
-    }
+    const timer = setTimeout(() => {
+      const url = activeTab === 'list1' ? config.sheetUrl1?.trim() : config.sheetUrl2?.trim();
+      if (url) {
+        handleSyncCloud(true); // Silent sync
+      }
+    }, 1000); // 1s delay to ensure app is stable
+    return () => clearTimeout(timer);
   }, [activeTab]); // Trigger when switching tabs
 
   // Auto-backup debounced

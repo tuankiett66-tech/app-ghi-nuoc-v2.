@@ -5,28 +5,37 @@ import { calculateRow } from '../utils';
 
 export const useWaterData = () => {
   const [customers, setCustomers] = useState<Customer[]>(() => {
-    const saved = localStorage.getItem('water_data_final_v21');
-    const data = saved ? JSON.parse(saved) : [];
-    return data.map((c: any) => {
-      const maKH = c.maKH || c.stt || "";
-      return { ...c, maKH: String(maKH) };
-    });
+    try {
+      const saved = localStorage.getItem('water_data_final_v21');
+      const data = saved ? JSON.parse(saved) : [];
+      return (Array.isArray(data) ? data : []).map((c: any) => {
+        const maKH = c.maKH || c.stt || "";
+        return { ...c, maKH: String(maKH) };
+      });
+    } catch (e) {
+      console.error("Error loading customers:", e);
+      return [];
+    }
   });
 
   const [groups, setGroups] = useState<WaterGroup[]>(() => {
-    const saved = localStorage.getItem('water_groups_v21');
-    const data = saved ? JSON.parse(saved) : [];
-    return data.map((g: any) => ({
-      ...g,
-      members: (g.members || []).map((m: any) => {
-        const maKH = m.maKH || m.stt || "";
-        return { ...m, maKH: String(maKH) };
-      })
-    }));
+    try {
+      const saved = localStorage.getItem('water_groups_v21');
+      const data = saved ? JSON.parse(saved) : [];
+      return (Array.isArray(data) ? data : []).map((g: any) => ({
+        ...g,
+        members: (g.members || []).map((m: any) => {
+          const maKH = m.maKH || m.stt || "";
+          return { ...m, maKH: String(maKH) };
+        })
+      }));
+    } catch (e) {
+      console.error("Error loading groups:", e);
+      return [];
+    }
   });
 
   const [config, setConfig] = useState<SystemConfig>(() => {
-    const saved = localStorage.getItem('water_config_v21');
     const defaults: SystemConfig = { 
       waterRate: 18000, 
       sheetUrl1: '', 
@@ -38,7 +47,19 @@ export const useWaterData = () => {
       lastSyncTime1: 0,
       lastSyncTime2: 0
     };
-    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+    try {
+      const saved = localStorage.getItem('water_config_v21');
+      const parsed = saved ? JSON.parse(saved) : {};
+      const merged = { ...defaults, ...parsed };
+      // Ensure waterRate is a valid number
+      if (typeof merged.waterRate !== 'number' || isNaN(merged.waterRate)) {
+        merged.waterRate = defaults.waterRate;
+      }
+      return merged;
+    } catch (e) {
+      console.error("Error loading config:", e);
+      return defaults;
+    }
   });
 
   const [activeTab, setActiveTab] = useState<'list1' | 'list2'>(() => {

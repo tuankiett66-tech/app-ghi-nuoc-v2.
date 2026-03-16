@@ -19,8 +19,11 @@ export const calculateRow = (cust: any, rate: number) => {
   const maKH = String(cust.maKH || "");
   const phone = String(cust.phone || cust.phoneTenant || "");
   
+  // Ensure rate is a valid number
+  const validRate = (typeof rate === 'number' && !isNaN(rate)) ? rate : 18000;
+  
   const vol = (ni > 0 && ni >= oi) ? (ni - oi) : 0;
-  const amt = vol * rate;
+  const amt = vol * validRate;
   const bal = (amt + od) - paid;
   
   return {
