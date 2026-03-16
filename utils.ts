@@ -66,8 +66,8 @@ export const copyToClipboard = async (text: string) => {
   }
 };
 
-export const normalizeString = (str: string): string => {
-  if (!str) return "";
+export const normalizeString = (val: any): string => {
+  const str = String(val || "");
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9 ]/g, "").trim();
 };
 

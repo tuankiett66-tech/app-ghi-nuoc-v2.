@@ -55,9 +55,10 @@ const App: React.FC = () => {
         .map((item: any, idx: number) => calculateRow({
           id: `cust-${item.maKH || item.stt || idx}-${activeTab}-${idx}`,
           maKH: String(item.maKH || item.stt || ""), 
-          name: item.name || `(Mã KH ${item.maKH || item.stt})`,
-          address: item.address || "", phoneTenant: item.phoneTenant || item.phone || "",
-          phoneLandlord: item.phoneLandlord || "",
+          name: String(item.name || `(Mã KH ${item.maKH || item.stt})`),
+          address: String(item.address || ""), 
+          phoneTenant: String(item.phoneTenant || item.phone || ""),
+          phoneLandlord: String(item.phoneLandlord || ""),
           newIndex: parseFloat(item.newIndex) || 0, oldIndex: parseFloat(item.oldIndex) || 0,
           oldDebt: parseFloat(item.oldDebt) || 0, paid: parseFloat(item.paid) || 0,
           listType: activeTab, isZalo: !!item.isZalo, note: item.note || ''
@@ -212,13 +213,16 @@ const App: React.FC = () => {
     const s = searchQuery.toLowerCase().trim();
     return customers.filter(c => {
       if (c.listType !== activeTab) return false;
+      const s = searchQuery.toLowerCase().trim();
       const cleanSearchPrice = s.replace(/\./g, '').replace(/,/g, '');
+      const nameStr = String(c.name || "");
+      const maKHStr = String(c.maKH || "");
       const balanceStr = Math.round(c.balance).toString();
       
-      const match = (c.name || "").toLowerCase().includes(s) || 
-                    (c.maKH || "").toLowerCase().includes(s) || 
-                    (c.phoneTenant && c.phoneTenant.includes(s)) || 
-                    (c.phoneLandlord && c.phoneLandlord.includes(s)) ||
+      const match = nameStr.toLowerCase().includes(s) || 
+                    maKHStr.toLowerCase().includes(s) || 
+                    (c.phoneTenant && String(c.phoneTenant).includes(s)) || 
+                    (c.phoneLandlord && String(c.phoneLandlord).includes(s)) ||
                     balanceStr.includes(cleanSearchPrice);
       
       const zaloMatch = onlyNonZalo ? !c.isZalo : true;
