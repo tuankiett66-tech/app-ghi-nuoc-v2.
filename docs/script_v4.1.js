@@ -105,12 +105,18 @@ function updateOrInsertData(sheet, dataToUpdate) {
 }
 
 function writeRow(sheet, rowNum, item) {
+  if (item.name !== undefined) sheet.getRange(rowNum, 2).setValue(item.name);
+  if (item.address !== undefined) sheet.getRange(rowNum, 3).setValue(item.address);
+  if (item.phoneTenant !== undefined) sheet.getRange(rowNum, 4).setValue(item.phoneTenant);
   if (item.newIndex !== undefined) sheet.getRange(rowNum, 5).setValue(item.newIndex);
+  if (item.oldIndex !== undefined) sheet.getRange(rowNum, 6).setValue(item.oldIndex);
   if (item.consumption !== undefined) sheet.getRange(rowNum, 7).setValue(item.consumption);
   if (item.amount !== undefined) sheet.getRange(rowNum, 8).setValue(item.amount);
+  if (item.oldDebt !== undefined) sheet.getRange(rowNum, 9).setValue(item.oldDebt);
   if (item.paid !== undefined) sheet.getRange(rowNum, 10).setValue(item.paid);
   if (item.remainingDebt !== undefined) sheet.getRange(rowNum, 11).setValue(item.remainingDebt);
-  if (item.isZalo === true) sheet.getRange(rowNum, 12).setValue("X");
+  if (item.isZalo !== undefined) sheet.getRange(rowNum, 12).setValue(item.isZalo === true ? "X" : "");
+  if (item.note !== undefined) sheet.getRange(rowNum, 13).setValue(item.note);
 }
 
 function getConfigData(sheet) {

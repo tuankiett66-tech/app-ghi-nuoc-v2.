@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'ghi-nuoc-v4.1';
+const CACHE_NAME = 'ghi-nuoc-v4.2';
 const ASSETS = [
   './',
   './index.html',

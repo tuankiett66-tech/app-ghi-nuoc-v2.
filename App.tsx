@@ -113,11 +113,35 @@ const App: React.FC = () => {
     }
     
     const data1 = customers.filter(c => c.listType === 'list1').map(c => ({
-      maKH: c.maKH, newIndex: c.newIndex, consumption: c.volume, amount: c.amount, paid: c.paid, remainingDebt: c.balance, isZalo: c.isZalo
+      maKH: c.maKH, 
+      name: c.name,
+      address: c.address,
+      phoneTenant: c.phoneTenant || c.phone,
+      newIndex: c.newIndex, 
+      oldIndex: c.oldIndex,
+      consumption: c.volume, 
+      amount: c.amount, 
+      oldDebt: c.oldDebt,
+      paid: c.paid, 
+      remainingDebt: c.balance, 
+      isZalo: c.isZalo,
+      note: c.note
     }));
 
     const data2 = customers.filter(c => c.listType === 'list2').map(c => ({
-      maKH: c.maKH, newIndex: c.newIndex, consumption: c.volume, amount: c.amount, paid: c.paid, remainingDebt: c.balance, isZalo: c.isZalo
+      maKH: c.maKH, 
+      name: c.name,
+      address: c.address,
+      phoneTenant: c.phoneTenant || c.phone,
+      newIndex: c.newIndex, 
+      oldIndex: c.oldIndex,
+      consumption: c.volume, 
+      amount: c.amount, 
+      oldDebt: c.oldDebt,
+      paid: c.paid, 
+      remainingDebt: c.balance, 
+      isZalo: c.isZalo,
+      note: c.note
     }));
 
     if (!silent) setIsSyncing(true);
