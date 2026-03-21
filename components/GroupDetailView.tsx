@@ -116,7 +116,7 @@ Nội dung: TT NUOC ${cleanGroupName}`;
               <button onClick={() => onNavigate('prev')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft size={16}/></button>
               <button onClick={() => onNavigate('next')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft className="rotate-180" size={16}/></button>
             </div>
-            <h2 className="text-sm font-black uppercase italic text-indigo-700 truncate w-32 ml-1">{group.name}</h2>
+            <h2 className="text-sm font-black uppercase italic text-indigo-700 ml-1">{group.name}</h2>
         </div>
         <button onClick={() => { const n = prompt("Sua ten nhom:", group.name); if(n) onUpdateGroup(group.id, {name: n.toUpperCase()}); }} className="p-2 text-slate-400 active:scale-90"><Info size={18}/></button>
       </header>
@@ -149,7 +149,7 @@ Nội dung: TT NUOC ${cleanGroupName}`;
           </div>
           {previewCust && (
             <div className="mt-1.5 p-1.5 bg-indigo-50 rounded-lg border border-indigo-100 flex items-center justify-between animate-in slide-in-from-top-1">
-               <p className="font-black text-indigo-700 uppercase text-[10px] truncate">{previewCust.name}</p>
+               <p className="font-black text-indigo-700 uppercase text-[10px]">{previewCust.name}</p>
                <UserCheck className="text-indigo-500 shrink-0" size={14} />
             </div>
           )}
@@ -170,7 +170,7 @@ Nội dung: TT NUOC ${cleanGroupName}`;
                       <span className="text-[6px] font-black text-slate-400 uppercase leading-none mt-0.5">{c.listType === 'list1' ? 'B01' : 'B02'}</span>
                   </div>
                   <div className="min-w-0">
-                      <p className="font-black text-slate-900 uppercase text-[11px] truncate leading-none mb-0.5">{c.name}</p>
+                      <p className="font-black text-slate-900 uppercase text-[11px] leading-tight mb-0.5">{c.name}</p>
                       <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.balance)}</p>
                   </div>
               </div>

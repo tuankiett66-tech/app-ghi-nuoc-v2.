@@ -45,8 +45,8 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className={`font-black uppercase text-[16px] truncate ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
-              <p className="text-[11px] text-slate-600 font-bold truncate leading-tight mt-0.5">ĐC: {c.address || '---'}</p>
+              <h3 className={`font-black uppercase text-[16px] leading-tight ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
+              <p className="text-[11px] text-slate-600 font-bold leading-tight mt-0.5">ĐC: {c.address || '---'}</p>
               <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
                 <p className="text-[10px] text-blue-700 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Khách:</span> {c.phoneTenant || c.phone || '---'}</p>
                 {c.phoneLandlord && <p className="text-[10px] text-slate-500 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Chủ:</span> {c.phoneLandlord}</p>}

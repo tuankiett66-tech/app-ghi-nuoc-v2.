@@ -94,7 +94,22 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
     .map(c => [
       c.maKH, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || ""
     ]);
+  
   const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+  
+  // Force specific columns to be text type to prevent Excel auto-formatting (like dates for addresses)
+  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+  for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+    // Mã KH (Col 0), Địa chỉ (Col 2), Điện thoại (Col 3)
+    [0, 2, 3].forEach(C => {
+      const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+      if (ws[cellRef]) {
+        ws[cellRef].t = 's'; // Force string type
+        ws[cellRef].z = '@'; // Force text format
+      }
+    });
+  }
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Data");
   XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
@@ -109,7 +124,8 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         const ws = workbook.Sheets[workbook.SheetNames[0]];
-        const json: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+        // Use raw: false to get formatted strings (prevents Excel date serial numbers for addresses)
+        const json: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
         
         let headerRowIndex = -1;
         let colMap: Record<string, number> = {
@@ -184,7 +200,8 @@ export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> =>
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         const ws = workbook.Sheets[workbook.SheetNames[0]];
-        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+        // Use raw: false to get formatted strings
+        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
         
         const members: GroupMember[] = [];
         let currentDB: 'list1' | 'list2' = 'list1';
