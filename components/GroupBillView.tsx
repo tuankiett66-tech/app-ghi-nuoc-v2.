@@ -66,7 +66,7 @@ export const GroupBillView: React.FC<GroupBillViewProps> = ({ customers, config,
     });
 
     msg += `TỔNG CỘNG THANH TOÁN: ${Math.round(totals.total).toLocaleString('vi-VN')} đ\n\n`;
-    msg += `Sau khi thanh toán, Quý khách vui lòng chụp ảnh rồi gửi lên Zalo, cảm ơn..\n`;
+    msg += `${config.globalMessage}\n`;
     msg += `👉 THÔNG TIN CHUYỂN KHOẢN:\n`;
     msg += `NH: ${config.bankId.toUpperCase()}\n`;
     msg += `STK: ${config.accountNo} (Bấm giữ để sao chép)\n`;

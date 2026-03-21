@@ -263,7 +263,7 @@ SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-
 NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}
 CÒN LẠI: ${remaining.toLocaleString('vi-VN')}
 
-Sau khi thanh toán, Quý khách vui lòng chụp ảnh rồi gửi lên Zalo, cảm ơn..
+${config.globalMessage}
 👉 THÔNG TIN CHUYỂN KHOẢN:
 NH: ${config.bankId.toUpperCase()}
 STK: ${config.accountNo} (Bấm giữ để sao chép)
