@@ -125,7 +125,13 @@ export const DetailView: React.FC<DetailViewProps> = ({
 
         <div className="grid grid-cols-2 gap-3">
           <button 
-            onClick={() => onUpdate({ isZaloFriend: !customer.isZaloFriend })}
+            onClick={() => {
+              const newFriendStatus = !customer.isZaloFriend;
+              onUpdate({ 
+                isZaloFriend: newFriendStatus,
+                isZalo: newFriendStatus ? true : customer.isZalo 
+              });
+            }}
             className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black uppercase text-[10px] border-2 transition-all active:scale-95 ${
               customer.isZaloFriend 
                 ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 

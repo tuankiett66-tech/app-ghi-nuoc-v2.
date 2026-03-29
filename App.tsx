@@ -63,7 +63,10 @@ const App: React.FC = () => {
           oldIndex: parseFloat(item.oldIndex) || 0,
           oldDebt: parseFloat(item.oldDebt) || 0, 
           paid: parseFloat(item.paid) || 0,
-          listType: 'list1', isZalo: !!item.isZalo, note: item.note || ''
+          listType: 'list1', 
+          isZalo: !!item.isZalo, 
+          isZaloFriend: !!item.isZaloFriend,
+          note: item.note || ''
         }, result.config?.waterRate || config.waterRate));
         allCustomers = [...allCustomers, ...mapped1];
       } else {
@@ -82,7 +85,10 @@ const App: React.FC = () => {
           oldIndex: parseFloat(item.oldIndex) || 0,
           oldDebt: parseFloat(item.oldDebt) || 0, 
           paid: parseFloat(item.paid) || 0,
-          listType: 'list2', isZalo: !!item.isZalo, note: item.note || ''
+          listType: 'list2', 
+          isZalo: !!item.isZalo, 
+          isZaloFriend: !!item.isZaloFriend,
+          note: item.note || ''
         }, result.config?.waterRate || config.waterRate));
         allCustomers = [...allCustomers, ...mapped2];
       } else {
@@ -124,8 +130,9 @@ const App: React.FC = () => {
       oldDebt: c.oldDebt,
       paid: c.paid, 
       remainingDebt: c.balance, 
-      isZalo: c.isZalo,
-      note: c.note
+      isZalo: !!c.isZalo,
+      isZaloFriend: !!c.isZaloFriend,
+      note: c.note || ""
     }));
 
     const data2 = customers.filter(c => c.listType === 'list2').map(c => ({
@@ -140,15 +147,16 @@ const App: React.FC = () => {
       oldDebt: c.oldDebt,
       paid: c.paid, 
       remainingDebt: c.balance, 
-      isZalo: c.isZalo,
-      note: c.note
+      isZalo: !!c.isZalo,
+      isZaloFriend: !!c.isZaloFriend,
+      note: c.note || ""
     }));
 
     if (!silent) setIsSyncing(true);
     setSyncStatus('syncing');
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`, {
         method: 'POST',
         mode: 'cors',
         redirect: 'follow',

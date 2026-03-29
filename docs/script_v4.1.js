@@ -61,10 +61,14 @@ function getSheetData(sheet) {
     var row = data[i];
     var maKH = String(row[0] || "").trim();
     if (!maKH || maKH === "0" || maKH.toUpperCase().includes("CỘNG")) continue;
+    var rawZalo = row[11];
+    var zaloVal = String(rawZalo || "").toUpperCase();
     rows.push({
       maKH: maKH, name: String(row[1] || ""), address: String(row[2] || ""),
       phoneTenant: String(row[3] || ""), newIndex: row[4], oldIndex: row[5],
-      oldDebt: row[8], paid: row[9], isZalo: String(row[11] || "").toUpperCase() === "X",
+      oldDebt: row[8], paid: row[9], 
+      isZalo: zaloVal === "X" || zaloVal === "F" || rawZalo === true || zaloVal === "TRUE",
+      isZaloFriend: zaloVal === "F",
       note: row[12] || ""
     });
   }
@@ -115,7 +119,24 @@ function writeRow(sheet, rowNum, item) {
   if (item.oldDebt !== undefined) sheet.getRange(rowNum, 9).setValue(item.oldDebt);
   if (item.paid !== undefined) sheet.getRange(rowNum, 10).setValue(item.paid);
   if (item.remainingDebt !== undefined) sheet.getRange(rowNum, 11).setValue(item.remainingDebt);
-  if (item.isZalo !== undefined) sheet.getRange(rowNum, 12).setValue(item.isZalo === true ? "X" : "");
+  if (item.isZaloFriend !== undefined || item.isZalo !== undefined) {
+    var range = sheet.getRange(rowNum, 12);
+    var val = "";
+    if (item.isZaloFriend === true) val = "F";
+    else if (item.isZalo === true) val = "X";
+    
+    // Kiểm tra nếu ô là checkbox thì set true/false, nếu không thì set chuỗi
+    try {
+      var rule = range.getDataValidation();
+      if (rule && rule.getCriteriaType() == SpreadsheetApp.DataValidationCriteria.CHECKBOX) {
+        range.setValue(item.isZalo === true);
+      } else {
+        range.setValue(val);
+      }
+    } catch(e) {
+      range.setValue(val);
+    }
+  }
   if (item.note !== undefined) sheet.getRange(rowNum, 13).setValue(item.note);
 }
 
