@@ -77,35 +77,48 @@ function getSheetData(sheet) {
 
 function updateOrInsertData(sheet, dataToUpdate) {
   if (!sheet || !dataToUpdate) return 0;
-  let sheetData = sheet.getDataRange().getValues();
-  let updatedCount = 0;
   
-  dataToUpdate.forEach(function(item) {
-    const targetMaKH = String(item.maKH).trim();
-    let found = false;
+  // 1. Lấy toàn bộ dữ liệu hiện tại để xóa (từ dòng 5 trở đi)
+  var lastRow = sheet.getLastRow();
+  if (lastRow >= 5) {
+    // Xóa nội dung từ cột A đến M (13 cột) để đảm bảo sạch sẽ trước khi ghi mới
+    sheet.getRange(5, 1, lastRow - 4, 13).clearContent();
+  }
+  
+  if (dataToUpdate.length === 0) return 0;
+  
+  // 2. Chuẩn bị mảng 2 chiều để ghi một lần (setValues) - Nhanh hơn gấp nhiều lần setValue từng ô
+  // Dữ liệu gửi từ App đã được sắp xếp đúng thứ tự Mã KH
+  var values = dataToUpdate.map(function(item) {
+    var zaloVal = "";
+    if (item.isZaloFriend === true) zaloVal = "F";
+    else if (item.isZalo === true) zaloVal = "X";
     
-    // Tìm dòng cũ để cập nhật
-    for (var i = 4; i < sheetData.length; i++) {
-      if (String(sheetData[i][0]).trim() === targetMaKH) {
-        var rowNum = i + 1;
-        writeRow(sheet, rowNum, item);
-        found = true;
-        updatedCount++;
-        break;
-      }
-    }
-    
-    // Nếu không thấy thì chèn dòng mới vào cuối
-    if (!found) {
-      var currentLastRow = sheet.getLastRow();
-      if (currentLastRow < 4) currentLastRow = 4;
-      var newRowNum = currentLastRow + 1;
-      sheet.getRange(newRowNum, 1).setValue(targetMaKH); // Cột A: Mã KH
-      writeRow(sheet, newRowNum, item);
-      updatedCount++;
-    }
+    return [
+      String(item.maKH || ""),      // Cột A: Mã KH
+      String(item.name || ""),      // Cột B: Tên
+      String(item.address || ""),   // Cột C: Địa chỉ
+      String(item.phoneTenant || ""), // Cột D: SĐT
+      item.newIndex || 0,           // Cột E: Chỉ số mới
+      item.oldIndex || 0,           // Cột F: Chỉ số cũ
+      item.consumption || 0,        // Cột G: Tiêu thụ
+      item.amount || 0,             // Cột H: Thành tiền
+      item.oldDebt || 0,            // Cột I: Nợ cũ
+      item.paid || 0,               // Cột J: Đã trả
+      item.remainingDebt || 0,      // Cột K: Còn nợ
+      zaloVal,                      // Cột L: Zalo (X/F)
+      item.note || ""               // Cột M: Ghi chú
+    ];
   });
-  return updatedCount;
+  
+  // 3. Ghi toàn bộ dữ liệu xuống Sheet từ dòng 5
+  sheet.getRange(5, 1, values.length, 13).setValues(values);
+  
+  // 4. Xử lý riêng cho cột Zalo nếu người dùng dùng Checkbox
+  // (Tùy chọn: Nếu muốn hỗ trợ Checkbox thì cần quét range và setValue true/false, 
+  // nhưng setValues chuỗi "X"/"F" là cách phổ biến và an toàn nhất)
+  
+  return dataToUpdate.length;
 }
 
 function writeRow(sheet, rowNum, item) {

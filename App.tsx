@@ -118,7 +118,12 @@ const App: React.FC = () => {
       return;
     }
     
-    const data1 = customers.filter(c => c.listType === 'list1').map(c => ({
+    // Sắp xếp dữ liệu trước khi gửi để đảm bảo thứ tự trên Sheet khớp với App
+    const sortedCustomers = [...customers].sort((a, b) => 
+      String(a.maKH || "").localeCompare(String(b.maKH || ""), undefined, { numeric: true, sensitivity: 'base' })
+    );
+
+    const data1 = sortedCustomers.filter(c => c.listType === 'list1').map(c => ({
       maKH: c.maKH, 
       name: c.name,
       address: c.address,
@@ -135,7 +140,7 @@ const App: React.FC = () => {
       note: c.note || ""
     }));
 
-    const data2 = customers.filter(c => c.listType === 'list2').map(c => ({
+    const data2 = sortedCustomers.filter(c => c.listType === 'list2').map(c => ({
       maKH: c.maKH, 
       name: c.name,
       address: c.address,
@@ -167,20 +172,31 @@ const App: React.FC = () => {
             waterRate: config.waterRate,
             bankId: config.bankId,
             accountNo: config.accountNo,
-            accountName: config.accountName
+            accountName: config.accountName,
+            globalMessage: config.globalMessage
           },
           list1: data1,
           list2: data2
         })
       });
       
-      setSyncStatus('synced');
-      setConfig(prev => ({ ...prev, lastSyncTime: Date.now() }));
-      setLastAutoBackup(Date.now());
-      if (!silent) showToast("Đã tải dữ liệu từ máy lên Cloud!");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setSyncStatus('synced');
+        setConfig(prev => ({ ...prev, lastSyncTime: Date.now() }));
+        setLastAutoBackup(Date.now());
+        if (!silent) showToast("Đã tải dữ liệu từ máy lên Cloud!");
+      } else {
+        throw new Error(result.message || "Lỗi không xác định từ server");
+      }
     } catch (e) {
+      console.error("Backup error:", e);
       setSyncStatus('error');
-      if (!silent) alert("Lỗi sao lưu: " + e);
+      if (!silent) alert("Lỗi sao lưu: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       if (!silent) setIsSyncing(false);
     }
@@ -386,8 +402,18 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onBack={() => { lastScrollId.current = selectedId; navigateTo('list', false); }} 
           onNavigate={(dir) => {
             const idx = filtered.findIndex(c => c.id === selectedId);
-            const target = dir === 'next' ? idx + 1 : idx - 1;
-            if (target >= 0 && target < filtered.length) setSelectedId(filtered[target].id);
+            let target = idx;
+            if (dir === 'next') target = idx + 1;
+            else if (dir === 'prev') target = idx - 1;
+            else if (dir === 'next10') target = idx + 10;
+            else if (dir === 'prev10') target = idx - 10;
+            
+            if (target < 0) target = 0;
+            if (target >= filtered.length) target = filtered.length - 1;
+            
+            if (target >= 0 && target < filtered.length) {
+              setSelectedId(filtered[target].id);
+            }
           }}
           onUpdate={(upd) => updateCustomer(selectedId!, upd)}
           onShowQr={() => setShowQr(true)}

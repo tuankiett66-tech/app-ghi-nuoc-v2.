@@ -9,7 +9,7 @@ interface DetailViewProps {
   customer: Customer;
   config: SystemConfig;
   onBack: () => void;
-  onNavigate: (dir: 'next' | 'prev') => void;
+  onNavigate: (dir: 'next' | 'prev' | 'next10' | 'prev10') => void;
   onUpdate: (updates: Partial<Customer>) => void;
   onShowQr: () => void;
   onEditInfo: () => void;
@@ -51,8 +51,10 @@ export const DetailView: React.FC<DetailViewProps> = ({
         <div className="flex items-center gap-1 shrink-0">
           <button onClick={onBack} className="p-1.5 text-slate-800 active:scale-90"><ChevronLeft size={28}/></button>
           <div className="flex bg-slate-100 rounded-xl p-0.5 border border-slate-200">
-            <button onClick={() => onNavigate('prev')} className="p-2 text-slate-700 active:scale-90"><ChevronLeft size={18}/></button>
-            <button onClick={() => onNavigate('next')} className="p-2 text-slate-700 active:scale-90"><ChevronLeft className="rotate-180" size={18}/></button>
+            <button onClick={() => onNavigate('prev10')} className="px-2 py-2 text-slate-400 font-black text-[10px] active:scale-90 border-r border-slate-200">« 10</button>
+            <button onClick={() => onNavigate('prev')} className="px-2 py-2 text-slate-700 active:scale-90 border-r border-slate-200"><ChevronLeft size={18}/></button>
+            <button onClick={() => onNavigate('next')} className="px-2 py-2 text-slate-700 active:scale-90 border-r border-slate-200"><ChevronLeft className="rotate-180" size={18}/></button>
+            <button onClick={() => onNavigate('next10')} className="px-2 py-2 text-slate-400 font-black text-[10px] active:scale-90">10 »</button>
           </div>
         </div>
         <div className="flex gap-1 items-center overflow-x-auto no-scrollbar">
