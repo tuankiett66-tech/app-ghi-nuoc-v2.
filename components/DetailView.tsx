@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MessageSquare, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck } from 'lucide-react';
+import { ChevronLeft, MessageSquare, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
-import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo } from '../utils';
+import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo, generateVietQrUrl } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
 
 interface DetailViewProps {
@@ -25,12 +25,14 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
   const [pi, setPi] = useState(customer.paid > 0 ? Math.round(customer.paid).toString() : "");
   const [showPreview, setShowPreview] = useState(false);
+  const [showQrInline, setShowQrInline] = useState(false);
 
   // QUAN TRONG: Reset o nhap lieu moi khi chuyen sang khach hang khac (customer.id thay doi)
   useEffect(() => {
     setNi(customer.newIndex > 0 ? customer.newIndex.toString() : "");
     setPi(customer.paid > 0 ? Math.round(customer.paid).toString() : "");
     setShowPreview(false);
+    setShowQrInline(false);
   }, [customer.id]);
 
   // Cap nhat du lieu len store khi nguoi dung nhap lieu
@@ -45,35 +47,61 @@ export const DetailView: React.FC<DetailViewProps> = ({
     onUpdate({ newIndex: parseSafe(ni), paid: Math.round(totalAmount) });
   };
 
+  const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, customer.balance, customer.name);
+
   return (
     <div className="fixed inset-0 bg-white z-[150] flex flex-col p-4 pt-[calc(1rem+var(--sat))] animate-in slide-in-from-right duration-200">
       <header className="flex justify-between items-center mb-5 shrink-0 gap-1">
         <div className="flex items-center gap-1 shrink-0">
           <button onClick={onBack} className="p-1.5 text-slate-800 active:scale-90"><ChevronLeft size={28}/></button>
           <div className="flex bg-slate-100 rounded-xl p-0.5 border border-slate-200">
-            <button onClick={() => onNavigate('prev10')} className="px-2 py-2 text-slate-400 font-black text-[10px] active:scale-90 border-r border-slate-200">« 10</button>
-            <button onClick={() => onNavigate('prev')} className="px-2 py-2 text-slate-700 active:scale-90 border-r border-slate-200"><ChevronLeft size={18}/></button>
-            <button onClick={() => onNavigate('next')} className="px-2 py-2 text-slate-700 active:scale-90 border-r border-slate-200"><ChevronLeft className="rotate-180" size={18}/></button>
-            <button onClick={() => onNavigate('next10')} className="px-2 py-2 text-slate-400 font-black text-[10px] active:scale-90">10 »</button>
+            <button onClick={() => onNavigate('prev10')} className="px-1.5 py-2 text-slate-400 font-black text-[10px] active:scale-90 border-r border-slate-200">«10</button>
+            <button onClick={() => onNavigate('prev')} className="px-1.5 py-2 text-slate-700 active:scale-90 border-r border-slate-200"><ChevronLeft size={18}/></button>
+            <button onClick={() => onNavigate('next')} className="px-1.5 py-2 text-slate-700 active:scale-90 border-r border-slate-200"><ChevronLeft className="rotate-180" size={18}/></button>
+            <button onClick={() => onNavigate('next10')} className="px-1.5 py-2 text-slate-400 font-black text-[10px] active:scale-90">10»</button>
           </div>
         </div>
-        <div className="flex gap-1 items-center overflow-x-auto no-scrollbar">
+        <div className="flex gap-1 items-center">
+          <button onClick={() => setShowQrInline(!showQrInline)} className={`p-2.5 rounded-xl shadow-lg active:scale-90 shrink-0 transition-all ${showQrInline ? 'bg-rose-600 text-white' : 'bg-blue-600 text-white'}`}><QrCode size={20}/></button>
           <button onClick={() => setShowPreview(!showPreview)} className={`p-2.5 rounded-xl border transition-all shrink-0 ${showPreview ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-slate-50 border-slate-200 text-slate-700'}`}><MessageSquare size={20}/></button>
-          <button onClick={onAddAfter} className="flex flex-col items-center justify-center min-w-[54px] h-[46px] bg-blue-50 rounded-xl border border-blue-200 text-blue-700 active:scale-90 shrink-0" title="Thêm hộ sau mã này">
-            <Plus size={16}/>
-            <span className="text-[8px] font-black uppercase leading-none mt-0.5">Thêm hộ sau</span>
-          </button>
+          <button onClick={onAddAfter} className="p-2.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-700 active:scale-90 shrink-0" title="Thêm hộ sau"><Plus size={20}/></button>
           <button onClick={onEditInfo} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 active:scale-90 shrink-0"><Pencil size={20}/></button>
-          <button onClick={onShowQr} className="p-3 bg-blue-600 text-white rounded-xl shadow-lg active:scale-90 shrink-0"><QrCode size={22}/></button>
         </div>
       </header>
 
       <div className="flex-1 space-y-5 overflow-y-auto px-1 pb-10">
-        <div className="border-l-[6px] border-blue-700 pl-4 py-1">
+        <div className="border-l-[6px] border-blue-700 pl-4 py-1 relative">
           <span className="bg-blue-700 text-white text-[11px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm">Mã KH: {customer.maKH}</span>
-          <h2 className="font-black uppercase text-[22px] text-slate-900 leading-tight mt-2">{customer.name}</h2>
+          <div className="flex items-center gap-2 mt-2">
+            <h2 className="font-black uppercase text-[22px] text-slate-900 leading-tight">{customer.name}</h2>
+            <button 
+              onClick={() => {
+                copyToClipboard(customer.name);
+                alert("Đã copy tên khách hàng!");
+              }}
+              className="p-1.5 bg-slate-100 rounded-lg text-slate-500 active:scale-90"
+            >
+              <Copy size={16}/>
+            </button>
+          </div>
           <p className="text-sm text-slate-600 font-bold mt-1">ĐC: {customer.address || '---'}</p>
         </div>
+
+        {showQrInline && (
+          <div className="bg-white border-2 border-slate-200 rounded-[2rem] p-4 shadow-xl animate-in zoom-in-95 duration-200 flex flex-col items-center">
+            <div className="w-full flex justify-between items-center mb-2 px-2">
+              <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mã QR Thanh toán</span>
+              <button onClick={() => setShowQrInline(false)} className="text-slate-400"><X size={18}/></button>
+            </div>
+            <img 
+              src={qrUrl} 
+              alt="QR Thanh Toan" 
+              className="w-full max-w-[240px] aspect-square rounded-xl shadow-inner border-4 border-slate-50"
+              referrerPolicy="no-referrer"
+            />
+            <p className="mt-3 text-[11px] font-black text-blue-700 uppercase tracking-tighter">Quét để thanh toán {formatCurrency(customer.balance)}</p>
+          </div>
+        )}
 
         <div className="bg-slate-100 rounded-[2rem] p-5 border-2 border-slate-200 shadow-inner grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
