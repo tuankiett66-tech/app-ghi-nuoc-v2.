@@ -46,11 +46,11 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <h3 className={`font-black uppercase text-[16px] leading-tight truncate ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
+              <div className="flex items-start justify-between gap-2 mb-0.5">
+                <h3 className={`font-black uppercase text-[16px] leading-tight flex-1 ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onCopyName(c.name); }}
-                  className="p-1.5 bg-slate-100 text-slate-400 rounded-lg active:scale-90 shrink-0"
+                  className="p-1.5 bg-slate-100 text-slate-400 rounded-lg active:scale-90 shrink-0 mt-0.5"
                   title="Copy tên"
                 >
                   <Copy size={12} />
