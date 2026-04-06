@@ -4,7 +4,7 @@ import { Customer, GroupMember } from './types';
 // Helper to load XLSX dynamically
 const getXLSX = async () => {
   // @ts-ignore
-  return await import('xlsx');
+  return await import('xlsx-js-style');
 };
 
 // Ham xu ly so tu Excel mot cach an toan (Xoa moi dau phay, dau cham phan cach hang ngan)
@@ -90,17 +90,29 @@ export const generateVietQrUrl = (bankId: string, accountNo: string, amount: num
 export const exportToExcel = async (customers: Customer[], fileName: string = 'Bao_Cao') => {
   const XLSX = await getXLSX();
   const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI"];
-  const data = customers
-    .sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }))
-    .map(c => [
-      c.maKH, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || ""
-    ]);
+  
+  const sorted = [...customers].sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
+  
+  const data = sorted.map(c => [
+    c.maKH, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || ""
+  ]);
   
   const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
   
-  // Force specific columns to be text type to prevent Excel auto-formatting (like dates for addresses)
+  // Force specific columns to be text type and add styling
   const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
   for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+    const customer = sorted[R - 1];
+    const isZalo = customer.isZalo || customer.isZaloFriend;
+    
+    // Style the "KHÁCH HÀNG" column (Col 1)
+    const nameCellRef = XLSX.utils.encode_cell({r: R, c: 1});
+    if (ws[nameCellRef] && isZalo) {
+      ws[nameCellRef].s = {
+        font: { bold: true }
+      };
+    }
+
     // Mã KH (Col 0), Địa chỉ (Col 2), Điện thoại (Col 3)
     [0, 2, 3].forEach(C => {
       const cellRef = XLSX.utils.encode_cell({r: R, c: C});

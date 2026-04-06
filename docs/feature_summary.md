@@ -15,7 +15,7 @@
 | **Quản Lý Nhóm** | Gom nhiều hộ vào 1 bill tổng, gửi Zalo cho chủ nhóm. | `GroupDetailView.tsx` | Hoàn thành | **Mới**: Thêm nút Tiến/Lùi để duyệt nhóm nhanh. |
 | **Báo Cáo & Chốt Kỳ** | Thống kê doanh thu, nợ tồn, chốt kỳ chuyển nợ sang kỳ mới. | `StatsView.tsx` | Hoàn thành | Chốt kỳ tự chuyển số âm sang nợ cũ âm. |
 | **Dữ Liệu Cloud** | Đồng bộ Google Sheets qua API Script riêng cho từng bộ. | `App.tsx`, `ConfigView.tsx` | Hoàn thành | Hỗ trợ Fetch (GET) và Backup (POST). |
-| **Nhập/Xuất Excel** | Hỗ trợ file 12 cột chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành | **Tối ưu**: Phân biệt chính xác "Chỉ số cũ" và "Nợ cũ". |
+| **Nhập/Xuất Excel** | Hỗ trợ file 12 cột chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành | **Tối ưu**: Tên KH được **TÔ ĐẬM** nếu đã kết bạn Zalo. |
 | **Quản lý KH** | Sửa thông tin, xóa SĐT, theo dõi thời hạn đồng hồ. | `Modals.tsx`, `useWaterData.ts` | Hoàn thành | **Đã fix**: Cho phép xóa trắng SĐT và lưu thành công. |
 | **Giao diện Chi tiết** | Hiện QR trực tiếp, nút Copy tên, tối ưu nút bấm mobile. | `DetailView.tsx` | Hoàn thành | **Mới**: Nút QR ưu tiên, QR hiện inline không cần Modal. |
 | **Giao diện Danh sách** | Nút "Thu đủ", "Copy Bill", "Copy Tên KH". | `ListView.tsx` | Hoàn thành | **Mới**: Thêm icon Copy nhỏ cạnh tên KH để tìm Zalo nhanh. |
