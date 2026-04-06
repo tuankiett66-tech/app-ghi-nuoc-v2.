@@ -147,9 +147,9 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
               else if (text.includes("ĐỊA CHỈ")) colMap.address = idx;
               else if (text.includes("THOẠI") || text.includes("ĐT")) colMap.phone = idx;
               else if (text.includes("MỚI")) colMap.newIndex = idx;
+              else if (text.includes("NỢ")) colMap.oldDebt = idx; // Kiểm tra NỢ trước để tránh nhầm với CŨ
               else if (text.includes("CŨ")) colMap.oldIndex = idx;
-              else if (text.includes("NỢ KỲ") || text.includes("NỢ CŨ")) colMap.oldDebt = idx;
-              else if (text.includes("THANH TOÁN") || text.includes("ĐÃ TRẢ")) colMap.paid = idx;
+              else if (text.includes("THANH TOÁN") || text.includes("ĐÃ TRẢ") || text.includes("THU")) colMap.paid = idx;
               else if (text.includes("ZALO")) colMap.zalo = idx;
             });
             break;
