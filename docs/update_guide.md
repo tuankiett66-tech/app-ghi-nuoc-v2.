@@ -20,12 +20,14 @@
 - [ ] **Excel Mapping Check (MỚI)**: Nhập file Excel -> Cột "CHỈ SỐ CŨ" và "NỢ CŨ" phải được nhận diện đúng (không bị đè lên nhau).
 - [ ] **Phone Deletion Check (MỚI)**: Vào Sửa KH -> Xóa trắng SĐT -> Bấm Lưu -> Xem lại KH, SĐT phải trống (không tự khôi phục).
 - [ ] **QR Mobile Check (MỚI)**: Mở App trên điện thoại -> Nút QR phải hiện rõ trên Header -> Bấm QR, mã phải hiện inline trong trang chi tiết.
+- [ ] **Copy Name List Check (MỚI)**: Tại danh sách -> Bấm icon Copy nhỏ cạnh tên KH -> App phải báo "Đã copy tên" để dán vào Zalo.
 
 ## 2. Hướng Dẫn Kỹ Thuật
 - **Logic Bill**: Tại `App.tsx`, hàm `generateMsg` chịu trách nhiệm render văn bản. Biến `remaining` không bị chặn bởi `Math.max(0)` để giữ nguyên giá trị âm.
 - **Navigation**: Logic điều hướng Tiến/Lùi được xử lý tại `App.tsx` (truyền qua prop `onNavigate`) cho cả `DetailView` và `GroupDetailView`.
 - **Excel Parsing**: Hàm `parseExcelFile` trong `utils.ts` sử dụng logic mapping ưu tiên "NỢ" trước "CŨ" để tránh nhầm lẫn cột.
 - **Phone Handling**: Hàm `calculateRow` và `updateCustomer` đã được tối ưu để cho phép giá trị chuỗi trống (empty string) cho số điện thoại.
+- **Copy Name**: Sử dụng hàm `copyToClipboard` để hỗ trợ sao chép tên KH nhanh từ danh sách.
 
 ## 3. Nhật Ký Phiên Bản (Version Log)
 | Phiên bản | Ngày | Nội dung | Ghi chú |
@@ -33,3 +35,4 @@
 | **V3.7** | 2026-03-16 | **Multi-Device Sync**: Tự động Pull khi mở App, tự động Push sau khi sửa dữ liệu. | **Cloud Ready** |
 | **V3.8** | 2026-04-03 | **UI & QR Fix**: Nút QR ưu tiên trên mobile, QR hiện inline, thêm nút Copy tên KH. | **UI Improved** |
 | **V3.9** | 2026-04-06 | **Data Fix**: Sửa lỗi nhận diện cột Excel (Chỉ số cũ vs Nợ cũ) và lỗi không xóa được SĐT. | **Bug Fixed** |
+| **V4.0** | 2026-04-06 | **UX Update**: Thêm nút Copy tên KH ngay tại danh sách để tìm Zalo nhanh hơn. | **UX Improved** |

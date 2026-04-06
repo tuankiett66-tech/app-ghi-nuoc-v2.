@@ -386,6 +386,10 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               updateCustomer(c.id, { isProcessed: true });
               showToast("Da copy hoa don & Danh dau!"); 
             }}
+            onCopyName={async (name) => {
+              await copyToClipboard(name);
+              showToast(`Đã copy tên: ${name}`);
+            }}
             onAddAfter={(maKH) => { 
               setAfterMaKH(maKH); 
               navigateTo('add_customer', false); 

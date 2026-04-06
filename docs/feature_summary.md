@@ -18,5 +18,6 @@
 | **Nhập/Xuất Excel** | Hỗ trợ file 12 cột chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành | **Tối ưu**: Phân biệt chính xác "Chỉ số cũ" và "Nợ cũ". |
 | **Quản lý KH** | Sửa thông tin, xóa SĐT, theo dõi thời hạn đồng hồ. | `Modals.tsx`, `useWaterData.ts` | Hoàn thành | **Đã fix**: Cho phép xóa trắng SĐT và lưu thành công. |
 | **Giao diện Chi tiết** | Hiện QR trực tiếp, nút Copy tên, tối ưu nút bấm mobile. | `DetailView.tsx` | Hoàn thành | **Mới**: Nút QR ưu tiên, QR hiện inline không cần Modal. |
+| **Giao diện Danh sách** | Nút "Thu đủ", "Copy Bill", "Copy Tên KH". | `ListView.tsx` | Hoàn thành | **Mới**: Thêm icon Copy nhỏ cạnh tên KH để tìm Zalo nhanh. |
 | **Quản Lý Kết Bạn** | Nút "Kết bạn Zalo" và "Đã kết bạn" thủ công. | `DetailView.tsx` | Hoàn thành | **Layout**: Nằm DƯỚI nút "Gửi Zalo & Chốt số". |
 | **Mẫu Thông Báo** | Sắp xếp lời nhắn nằm trên thông tin chuyển khoản. | `App.tsx`, `GroupDetailView.tsx` | Hoàn thành | Giúp khách hàng dễ đọc lời nhắn trước. |

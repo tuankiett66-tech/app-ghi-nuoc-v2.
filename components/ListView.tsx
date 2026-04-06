@@ -10,11 +10,12 @@ interface ListViewProps {
   onSelect: (id: string) => void;
   onCall: (phone: string) => void;
   onCopyMsg: (cust: Customer) => void;
+  onCopyName: (name: string) => void;
   onAddAfter: (maKH: string) => void;
   onCollectFull: (id: string) => void;
 }
 
-export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall, onCopyMsg, onAddAfter, onCollectFull }) => {
+export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall, onCopyMsg, onCopyName, onAddAfter, onCollectFull }) => {
   return (
     <div id="main-list-container" className="flex-1 overflow-y-auto px-3 space-y-3 pb-40 scroll-smooth bg-slate-50">
       {customers.map(c => (
@@ -45,8 +46,17 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className={`font-black uppercase text-[16px] leading-tight ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
-              <p className="text-[11px] text-slate-600 font-bold leading-tight mt-0.5">ĐC: {c.address || '---'}</p>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className={`font-black uppercase text-[16px] leading-tight truncate ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onCopyName(c.name); }}
+                  className="p-1.5 bg-slate-100 text-slate-400 rounded-lg active:scale-90 shrink-0"
+                  title="Copy tên"
+                >
+                  <Copy size={12} />
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-600 font-bold leading-tight">ĐC: {c.address || '---'}</p>
               <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
                 <p className="text-[10px] text-blue-700 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Khách:</span> {c.phoneTenant || c.phone || '---'}</p>
                 {c.phoneLandlord && <p className="text-[10px] text-slate-500 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Chủ:</span> {c.phoneLandlord}</p>}
