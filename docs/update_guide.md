@@ -17,23 +17,19 @@
 - [ ] **Message Order Check (MỚI)**: Xem trước tin nhắn -> Lời nhắn (globalMessage) phải nằm TRÊN phần thông tin Ngân hàng.
 - [ ] **Meter Tracking Check (MỚI)**: Vào Chi tiết KH -> Phần "Thời hạn thay đồng hồ" phải nằm DƯỚI CÙNG (dưới cả các nút kết bạn).
 - [ ] **Detail Layout Check (QUAN TRỌNG)**: Thứ tự từ trên xuống: Khu vực làm việc chính (Số mới/Tiền trả) -> Nút "Gửi Zalo & Chốt số" -> Các nút "Kết bạn Zalo".
-- [ ] **Cloud Backup Check (MỚI)**: Vào Cấu hình -> Bấm "Sao lưu lên Cloud" -> Script phải trả về thông báo thành công.
+- [ ] **Excel Mapping Check (MỚI)**: Nhập file Excel -> Cột "CHỈ SỐ CŨ" và "NỢ CŨ" phải được nhận diện đúng (không bị đè lên nhau).
+- [ ] **Phone Deletion Check (MỚI)**: Vào Sửa KH -> Xóa trắng SĐT -> Bấm Lưu -> Xem lại KH, SĐT phải trống (không tự khôi phục).
+- [ ] **QR Mobile Check (MỚI)**: Mở App trên điện thoại -> Nút QR phải hiện rõ trên Header -> Bấm QR, mã phải hiện inline trong trang chi tiết.
 
 ## 2. Hướng Dẫn Kỹ Thuật
 - **Logic Bill**: Tại `App.tsx`, hàm `generateMsg` chịu trách nhiệm render văn bản. Biến `remaining` không bị chặn bởi `Math.max(0)` để giữ nguyên giá trị âm.
 - **Navigation**: Logic điều hướng Tiến/Lùi được xử lý tại `App.tsx` (truyền qua prop `onNavigate`) cho cả `DetailView` và `GroupDetailView`.
-- **Excel Parsing**: Hàm `parseSafe` trong `utils.ts` được dùng để làm sạch dữ liệu STT trước khi đưa vào store.
+- **Excel Parsing**: Hàm `parseExcelFile` trong `utils.ts` sử dụng logic mapping ưu tiên "NỢ" trước "CŨ" để tránh nhầm lẫn cột.
+- **Phone Handling**: Hàm `calculateRow` và `updateCustomer` đã được tối ưu để cho phép giá trị chuỗi trống (empty string) cho số điện thoại.
 
 ## 3. Nhật Ký Phiên Bản (Version Log)
 | Phiên bản | Ngày | Nội dung | Ghi chú |
 | :--- | :--- | :--- | :--- |
-| **V1.0** | 2024 | Khởi tạo quản lý ghi nước cơ bản. | Stable |
-| **V2.0** | 2026-02-10 | Thêm VietQR động và trừ tiền khách trả. | Improved |
-| **V3.0** | 2026-02-11 | Nâng cấp PWA, Auto-clear search. | PWA Ready |
-| **V3.1** | 2026-02-11 | **Sửa lỗi tính toán bill**: Hiển thị chính xác số dư âm khi khách trả thừa. | **Fixed Bug** |
-| **V3.2** | 2026-03-11 | **Update 2026-03-11**: Thêm điều hướng nhóm, đồng bộ copy bill, tối ưu Excel và hoàn thiện cấu trúc thư mục. | **Stable** |
-| **V3.3** | 2026-03-12 | **Cloud Backup**: Thêm tính năng sao lưu dữ liệu lên Google Sheets qua phương thức POST. | **New Feature** |
-| **V3.4** | 2026-03-14 | **UI Optimization**: Cố định layout Chi tiết KH (Làm việc -> Gửi Zalo -> Kết bạn). Thêm trạng thái màu sắc cho danh sách. | **Layout Fixed** |
-| **V3.5** | 2026-03-16 | **Smart Filter**: Thêm tính năng lọc "Chưa thu tiền" giúp rút gọn danh sách khi làm việc với số lượng KH lớn. | **New Feature** |
-| **V3.6** | 2026-03-16 | **Quick Collect**: Thêm nút "Thu đủ" ngoài danh sách và tối ưu bộ lọc (ẩn hộ không dùng nước). | **Efficiency** |
-| **V3.7** | 2026-03-16 | **Multi-Device Sync**: Tự động Pull khi mở App, tự động Push sau khi sửa dữ liệu. Hiển thị giờ đồng bộ cuối. | **Cloud Ready** |
+| **V3.7** | 2026-03-16 | **Multi-Device Sync**: Tự động Pull khi mở App, tự động Push sau khi sửa dữ liệu. | **Cloud Ready** |
+| **V3.8** | 2026-04-03 | **UI & QR Fix**: Nút QR ưu tiên trên mobile, QR hiện inline, thêm nút Copy tên KH. | **UI Improved** |
+| **V3.9** | 2026-04-06 | **Data Fix**: Sửa lỗi nhận diện cột Excel (Chỉ số cũ vs Nợ cũ) và lỗi không xóa được SĐT. | **Bug Fixed** |

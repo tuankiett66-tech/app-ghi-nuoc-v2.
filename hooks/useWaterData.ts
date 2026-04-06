@@ -84,7 +84,7 @@ export const useWaterData = () => {
     setCustomers(prev => prev.map(c => {
       if (c.id === id) {
         const merged = { ...c, ...updates, updatedAt: Date.now() };
-        if (updates.phoneTenant) merged.phone = updates.phoneTenant;
+        if (updates.phoneTenant !== undefined) merged.phone = updates.phoneTenant;
         return calculateRow(merged, config.waterRate);
       }
       return c;

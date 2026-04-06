@@ -22,7 +22,8 @@ export const calculateRow = (cust: any, rate: number) => {
   const od = parseSafe(cust.oldDebt);
   const paid = parseSafe(cust.paid);
   const maKH = String(cust.maKH || "");
-  const phone = String(cust.phone || cust.phoneTenant || "");
+  const phone = String(cust.phone || "");
+  const phoneTenant = String(cust.phoneTenant || "");
   
   // Ensure rate is a valid number
   const validRate = (typeof rate === 'number' && !isNaN(rate)) ? rate : 18000;
@@ -35,7 +36,7 @@ export const calculateRow = (cust: any, rate: number) => {
     ...cust,
     maKH,
     phone,
-    phoneTenant: cust.phoneTenant || phone,
+    phoneTenant,
     newIndex: ni, oldIndex: oi, oldDebt: od, paid: paid,
     volume: vol, amount: amt, balance: bal,
     status: (bal <= 0 && (ni > 0 || od > 0)) ? 'paid' : 'unpaid'
