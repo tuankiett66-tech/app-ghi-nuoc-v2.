@@ -1,6 +1,6 @@
 
-import React, { useMemo } from 'react';
-import { ChevronLeft, RefreshCcw, Download } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ChevronLeft, RefreshCcw, Download, Droplets, Calculator } from 'lucide-react';
 import { Customer } from '../types';
 import { formatCurrency, getMeterStatus } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -14,6 +14,8 @@ interface StatsViewProps {
 }
 
 export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBack, onClosePeriod, onExport }) => {
+  const [masterMeter, setMasterMeter] = useState<string>('');
+
   const stats = useMemo(() => {
     const list = customers.filter(c => c.listType === activeTab);
     return {
@@ -23,16 +25,20 @@ export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBa
       debt: list.reduce((sum, c) => sum + (c.oldDebt || 0), 0),
       paid: list.reduce((sum, c) => sum + (c.paid || 0), 0),
       balance: list.reduce((sum, c) => sum + (c.balance || 0), 0),
+      totalVolume: list.reduce((sum, c) => sum + (c.volume || 0), 0),
       expiredMeters: list.filter(c => getMeterStatus(c.installDate).status === 'danger').length,
       warningMeters: list.filter(c => getMeterStatus(c.installDate).status === 'warning').length
     };
   }, [customers, activeTab]);
 
+  const lossValue = masterMeter ? parseFloat(masterMeter) - stats.totalVolume : 0;
+  const lossPercent = masterMeter && parseFloat(masterMeter) > 0 ? (lossValue / parseFloat(masterMeter)) * 100 : 0;
+
   return (
     <div className="h-full bg-slate-50 flex flex-col p-3 pt-[calc(0.5rem+var(--sat))] animate-in slide-in-from-bottom duration-200 overflow-y-auto pb-32">
       <header className="flex items-center gap-2 mb-3 bg-white p-2.5 rounded-xl border shadow-sm sticky top-0 z-50">
         <button onClick={onBack} className="p-2 bg-slate-100 rounded-full text-slate-800 active:scale-90"><ChevronLeft size={22}/></button>
-        <h1 className="text-base font-black uppercase italic text-slate-900 tracking-tight">Báo cáo tài chính</h1>
+        <h1 className="text-base font-black uppercase italic text-slate-900 tracking-tight">Báo cáo {activeTab === 'list1' ? 'Bộ 01' : 'Bộ 02'}</h1>
       </header>
 
       <div className="grid grid-cols-2 gap-2 mb-3">
@@ -43,6 +49,19 @@ export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBa
         <div className="bg-emerald-600 p-3 rounded-2xl text-center shadow-md border-b-4 border-emerald-800">
           <p className="text-[8px] uppercase font-black text-emerald-100 mb-0.5 tracking-widest">Đã ghi số</p>
           <p className="text-2xl font-black text-white">{stats.done}</p>
+        </div>
+      </div>
+
+      {/* Water Consumption Summary */}
+      <div className="bg-indigo-600 p-4 rounded-[2rem] shadow-lg mb-3 border-b-4 border-indigo-800 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-white/20 rounded-2xl text-white">
+            <Droplets size={24} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest">Tổng tiêu thụ (M3)</p>
+            <p className="text-2xl font-black text-white leading-none">{stats.totalVolume.toLocaleString()} <span className="text-xs font-bold">m³</span></p>
+          </div>
         </div>
       </div>
 
@@ -63,6 +82,49 @@ export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBa
         <div className="flex justify-between items-center text-rose-700">
           <span className="text-[11px] font-black uppercase tracking-widest italic">Còn phải thu:</span>
           <span className="text-lg font-black tracking-tighter">{formatCurrency(stats.balance)}</span>
+        </div>
+      </div>
+
+      {/* Water Loss Assessment */}
+      <div className="bg-white border-2 border-slate-200 p-4 rounded-[2rem] shadow-sm mb-3">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="p-1.5 bg-slate-100 text-slate-600 rounded-lg"><Calculator size={16}/></div>
+          <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Đánh giá thất thoát nước</p>
+        </div>
+        
+        <div className="space-y-3">
+          <div>
+            <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chỉ số đồng hồ tổng (m³)</label>
+            <input 
+              type="number" 
+              value={masterMeter}
+              onChange={(e) => setMasterMeter(e.target.value)}
+              placeholder="Nhập số m³ trên đồng hồ tổng..."
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-black focus:border-blue-500 outline-none transition-all"
+            />
+          </div>
+
+          {masterMeter && (
+            <div className={`p-4 rounded-2xl border-2 animate-in fade-in zoom-in duration-300 ${lossValue > 0 ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100'}`}>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] font-black text-slate-500 uppercase">Lượng nước thất thoát:</span>
+                <span className={`font-black text-base ${lossValue > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                  {lossValue.toLocaleString()} m³
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-black text-slate-500 uppercase">Tỷ lệ thất thoát:</span>
+                <span className={`font-black text-base ${lossValue > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                  {lossPercent.toFixed(1)}%
+                </span>
+              </div>
+              <p className="text-[9px] text-slate-400 italic mt-2 text-center font-bold">
+                {lossValue > 0 
+                  ? "Hệ thống đang bị thất thoát nước. Cần kiểm tra rò rỉ." 
+                  : "Lượng nước tiêu thụ khớp hoặc cao hơn đồng hồ tổng."}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

@@ -96,12 +96,37 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   const data = sorted.map(c => [
     c.maKH, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || ""
   ]);
+
+  // Add summary row
+  const totalVolume = sorted.reduce((sum, c) => sum + (c.volume || 0), 0);
+  const totalAmount = sorted.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const totalOldDebt = sorted.reduce((sum, c) => sum + (c.oldDebt || 0), 0);
+  const totalPaid = sorted.reduce((sum, c) => sum + (c.paid || 0), 0);
+  const totalBalance = sorted.reduce((sum, c) => sum + (c.balance || 0), 0);
+
+  data.push([
+    "TỔNG CỘNG", "", "", "", "", "", totalVolume, Math.round(totalAmount), Math.round(totalOldDebt), Math.round(totalPaid), Math.round(totalBalance)
+  ]);
   
   const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
   
   // Force specific columns to be text type and add styling
   const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
   for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+    // Check if it's the summary row (last row)
+    const isSummaryRow = R === range.e.r;
+
+    if (isSummaryRow) {
+      // Bold the entire summary row
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+        if (ws[cellRef]) {
+          ws[cellRef].s = { font: { bold: true }, fill: { fgColor: { rgb: "F1F5F9" } } };
+        }
+      }
+      continue;
+    }
+
     const customer = sorted[R - 1];
     const isZalo = customer.isZalo || customer.isZaloFriend;
     

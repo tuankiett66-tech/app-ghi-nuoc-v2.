@@ -20,17 +20,18 @@
 - [ ] **Excel Mapping Check (MỚI)**: Nhập file Excel -> Cột "CHỈ SỐ CŨ" và "NỢ CŨ" phải được nhận diện đúng (không bị đè lên nhau).
 - [ ] **Phone Deletion Check (MỚI)**: Vào Sửa KH -> Xóa trắng SĐT -> Bấm Lưu -> Xem lại KH, SĐT phải trống (không tự khôi phục).
 - [ ] **QR Mobile Check (MỚI)**: Mở App trên điện thoại -> Nút QR phải hiện rõ trên Header -> Bấm QR, mã phải hiện inline trong trang chi tiết.
-- [ ] **Excel Bold Check (MỚI)**: Xuất file Excel -> Những KH đã có Zalo (isZalo hoặc isZaloFriend) phải được **TÔ ĐẬM** tên.
+- [ ] **Water Loss Check (MỚI)**: Vào Báo Cáo -> Phải thấy "Tổng tiêu thụ (M3)" -> Nhập số đồng hồ tổng -> Phải tính ra % thất thoát chính xác.
+- [ ] **Excel Summary Check (MỚI)**: Xuất file Excel Báo cáo -> Dòng cuối cùng phải là dòng **TỔNG CỘNG** (In đậm, nền xám) cộng dồn tất cả các cột số liệu.
 
 ## 2. Hướng Dẫn Kỹ Thuật
 - **Logic Bill**: Tại `App.tsx`, hàm `generateMsg` chịu trách nhiệm render văn bản. Biến `remaining` không bị chặn bởi `Math.max(0)` để giữ nguyên giá trị âm.
 - **Navigation**: Logic điều hướng Tiến/Lùi được xử lý tại `App.tsx` (truyền qua prop `onNavigate`) cho cả `DetailView` và `GroupDetailView`.
 - **Excel Parsing**: Hàm `parseExcelFile` trong `utils.ts` sử dụng logic mapping ưu tiên "NỢ" trước "CŨ" để tránh nhầm lẫn cột.
-- **Excel Export**: Sử dụng thư viện `xlsx-js-style` thay cho `xlsx` để hỗ trợ định dạng **BOLD** cho tên khách hàng.
-- **Phone Handling**: Hàm `calculateRow` và `updateCustomer` đã được tối ưu để cho phép giá trị chuỗi trống (empty string) cho số điện thoại.
+- **Excel Export**: Sử dụng thư viện `xlsx-js-style` để hỗ trợ định dạng **BOLD** cho tên khách hàng và dòng **TỔNG CỘNG**.
+- **Water Loss**: Tính toán dựa trên hiệu số giữa (Chỉ số đồng hồ tổng) và (Tổng M3 của các hộ trong bộ).
 
 ## 3. Nhật Ký Phiên Bản (Version Log)
 | Phiên bản | Ngày | Nội dung | Ghi chú |
 | :--- | :--- | :--- | :--- |
-| **V4.0** | 2026-04-06 | **UX Update**: Thêm nút Copy tên KH ngay tại danh sách. Đã fix lỗi tên bị cắt dòng. | **UX Improved** |
 | **V4.1** | 2026-04-06 | **Excel Styling**: Tự động **TÔ ĐẬM** tên khách hàng đã có Zalo khi xuất file Excel. | **New Feature** |
+| **V4.2** | 2026-04-07 | **Water Loss Report**: Thêm tổng M3 tiêu thụ và công cụ tính thất thoát nước vào Báo cáo. | **New Feature** |
