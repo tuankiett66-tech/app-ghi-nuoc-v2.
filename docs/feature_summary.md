@@ -13,7 +13,7 @@
 | **Gửi Zalo & VietQR** | Tự động sinh nội dung bill và QR thanh toán. | `App.tsx`, `utils.ts` | Hoàn thành | Bill Zalo hiện đúng số âm. QR tự về 0 nếu âm. |
 | **Đồng Bộ Copy Bill** | Tự động đánh dấu "Xanh" (isZalo: true) khi bấm Copy Bill. | `App.tsx` | Hoàn thành | Giúp nhận biết hộ đã xử lý thủ công. |
 | **Quản Lý Nhóm** | Gom nhiều hộ vào 1 bill tổng, gửi Zalo cho chủ nhóm. | `GroupDetailView.tsx` | Hoàn thành | **Mới**: Thêm nút Tiến/Lùi để duyệt nhóm nhanh. |
-| **Báo Cáo & Chốt Kỳ** | Thống kê doanh thu, nợ tồn, chốt kỳ chuyển nợ sang kỳ mới. | `StatsView.tsx` | Hoàn thành | **Mới**: Thêm tổng tiêu thụ (M3) và công cụ tính thất thoát nước. |
+| **Báo Cáo & Chốt Kỳ** | Thống kê doanh thu, nợ tồn, chốt kỳ chuyển nợ sang kỳ mới. | `StatsView.tsx` | Hoàn thành | **Mới**: Đánh giá thất thoát linh hoạt (Toàn hệ thống hoặc từng Bộ). |
 | **Dữ Liệu Cloud** | Đồng bộ Google Sheets qua API Script riêng cho từng bộ. | `App.tsx`, `ConfigView.tsx` | Hoàn thành | Hỗ trợ Fetch (GET) và Backup (POST). |
 | **Nhập/Xuất Excel** | Hỗ trợ file 12 cột chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành | **Mới**: Thêm dòng **TỔNG CỘNG** cuối file Excel báo cáo. |
 | **Quản lý KH** | Sửa thông tin, xóa SĐT, theo dõi thời hạn đồng hồ. | `Modals.tsx`, `useWaterData.ts` | Hoàn thành | **Đã fix**: Cho phép xóa trắng SĐT và lưu thành công. |
