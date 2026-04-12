@@ -6,6 +6,7 @@ import { ListView } from './components/ListView';
 import { DetailView } from './components/DetailView';
 import { ConfigView } from './components/ConfigView';
 import { StatsView } from './components/StatsView';
+import { LossView } from './components/LossView';
 import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
@@ -14,7 +15,14 @@ import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurren
 import { Customer } from './types';
 
 const App: React.FC = () => {
-  const { customers, setCustomers, groups, addGroup, updateGroup, deleteGroup, config, setConfig, activeTab, setActiveTab, updateCustomer, addCustomer, closePeriod } = useWaterData();
+  const { 
+    customers, setCustomers, 
+    groups, addGroup, updateGroup, deleteGroup, 
+    config, setConfig, 
+    activeTab, setActiveTab, 
+    lossRecords, setLossRecords, addLossRecord, deleteLossRecord,
+    updateCustomer, addCustomer, closePeriod, resetBankInfo
+  } = useWaterData();
   
   const [view, setView] = useState<string>('list');
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,12 +50,27 @@ const App: React.FC = () => {
     }
     if (!silent) setIsSyncing(true);
     try {
-      // Đồng bộ cả 2 bộ dữ liệu và Cài đặt trong 1 lần gọi
+      // Đồng bộ cả 2 bộ dữ liệu, Cài đặt và Bản ghi thất thoát trong 1 lần gọi
       const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}action=get_all&t=${Date.now()}`);
       const result = await res.json();
       
       if (result.config) {
         setConfig(prev => ({ ...prev, ...result.config, lastSyncTime: Date.now() }));
+      }
+
+      if (Array.isArray(result.lossRecords)) {
+        const sanitizedLoss = result.lossRecords.map((r: any, idx: number) => ({
+          ...r,
+          id: r.id || `loss-sync-${Date.now()}-${idx}`,
+          createdAt: parseFloat(r.createdAt) || Date.now(),
+          master1New: parseFloat(r.master1New) || 0,
+          master1Old: parseFloat(r.master1Old) || 0,
+          master2New: parseFloat(r.master2New) || 0,
+          master2Old: parseFloat(r.master2Old) || 0,
+          list1Volume: parseFloat(r.list1Volume) || 0,
+          list2Volume: parseFloat(r.list2Volume) || 0
+        }));
+        setLossRecords(sanitizedLoss);
       }
 
       let allCustomers: Customer[] = [];
@@ -173,10 +196,14 @@ const App: React.FC = () => {
             bankId: config.bankId,
             accountNo: config.accountNo,
             accountName: config.accountName,
+            groupBankId: config.groupBankId || "",
+            groupAccountNo: config.groupAccountNo || "",
+            groupAccountName: config.groupAccountName || "",
             globalMessage: config.globalMessage
           },
           list1: data1,
-          list2: data2
+          list2: data2,
+          lossRecords: lossRecords
         })
       });
       
@@ -268,7 +295,7 @@ const App: React.FC = () => {
     showToast(`Đã thu đủ cho ${cust.name}`);
   };
 
-  const generateMsg = (c: Customer, niStr: string, piStr: string) => {
+  const generateMsg = (c: Customer, niStr: string, piStr: string, isGroup: boolean = false) => {
     const ni = parseInt(niStr) || 0;
     const pi = parseInt(piStr) || 0; 
     const vol = (ni > 0 && ni >= c.oldIndex) ? (ni - c.oldIndex) : 0;
@@ -279,6 +306,10 @@ const App: React.FC = () => {
     
     const monthYear = `${now.getMonth() + 1}/${now.getFullYear()}`;
     const cleanName = normalizeString(c.name).toUpperCase();
+
+    const bankId = isGroup ? (config.groupBankId || config.bankId) : config.bankId;
+    const accountNo = isGroup ? (config.groupAccountNo || config.accountNo) : config.accountNo;
+    const accountName = isGroup ? (config.groupAccountName || config.accountName) : config.accountName;
     
     let msg = `KỲ NƯỚC THÁNG ${monthYear}
 MÃ KH: ${c.maKH}
@@ -289,9 +320,9 @@ CÒN LẠI: ${remaining.toLocaleString('vi-VN')}
 
 ${config.globalMessage}
 👉 THÔNG TIN CHUYỂN KHOẢN:
-NH: ${config.bankId.toUpperCase()}
-STK: ${config.accountNo} (Bấm giữ để sao chép)
-TÊN: ${config.accountName}
+NH: ${bankId.toUpperCase()}
+STK: ${accountNo} (Bấm giữ để sao chép)
+TÊN: ${accountName}
 Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
 
     return msg;
@@ -333,6 +364,8 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
       showToast(`Da thu tien cho ${Object.keys(updates).length} ho trong nhom!`);
     }
   };
+
+  const [groupQrData, setGroupQrData] = useState<{bankId: string, accountNo: string, amount: number, name: string} | null>(null);
 
   const navigateTo = (newView: string, resetSearch: boolean = true) => {
     if (view === 'list') {
@@ -461,7 +494,22 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             showToast("Da copy Bill Nhom!");
             if(sdt) setTimeout(() => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(sdt)}`; }, 300);
           }}
+          onShowQr={(bankId, accountNo, amount, name) => setGroupQrData({bankId, accountNo, amount, name})}
         />
+      )}
+
+      {groupQrData && (
+        <div className="fixed inset-0 bg-slate-900/95 z-[300] flex items-center justify-center p-6" onClick={() => setGroupQrData(null)}>
+          <div className="bg-white rounded-[3rem] p-6 w-full max-w-[360px] text-center" onClick={e => e.stopPropagation()}>
+            <h3 className="font-black text-indigo-600 mb-4 uppercase italic">QR Thanh toán Nhóm</h3>
+            <img src={generateVietQrUrl(groupQrData.bankId, groupQrData.accountNo, groupQrData.amount, groupQrData.name)} className="w-full h-auto mb-4 border-4 border-slate-50 rounded-3xl" alt="QR" />
+            <div className="bg-indigo-50 p-5 rounded-[2rem] mb-6">
+              <p className="text-[11px] font-black text-indigo-400 uppercase mb-1">Tổng tiền nhóm</p>
+              <p className="text-3xl font-black text-indigo-700">{formatCurrency(groupQrData.amount)}</p>
+            </div>
+            <button onClick={() => setGroupQrData(null)} className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase shadow-xl">Đóng</button>
+          </div>
+        </div>
       )}
 
       {view === 'config' && (
@@ -472,6 +520,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onExport={async () => await exportToExcel(customers.filter(c => c.listType === activeTab), `Backup_${activeTab}`)}
           onBackupCloud={handleBackupCloud}
           onClear={() => { if(confirm("Xoa sach du lieu?")) { localStorage.clear(); window.location.reload(); } }}
+          onResetBank={resetBankInfo}
         />
       )}
 
@@ -484,9 +533,19 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         />
       )}
 
+      {view === 'loss_management' && (
+        <LossView 
+          records={lossRecords}
+          customers={customers}
+          onBack={() => navigateTo('list')}
+          onAdd={addLossRecord}
+          onDelete={deleteLossRecord}
+        />
+      )}
+
       {/* Navigation Tab Bar */}
-      {(view === 'list' || view === 'stats' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg' || view === 'group_list' || view === 'group_detail' || view === 'verify') && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border-2 border-slate-100 p-1.5 rounded-[2.2rem] flex gap-1 shadow-2xl z-[200] mb-[var(--sab)] min-w-[340px]">
+      {(view === 'list' || view === 'stats' || view === 'loss_management' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg' || view === 'group_list' || view === 'group_detail' || view === 'verify') && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border-2 border-slate-100 p-1.5 rounded-[2.2rem] flex gap-1 shadow-2xl z-[200] mb-[var(--sab)] min-w-[360px]">
           <button 
             onClick={() => { 
               const listEl = document.getElementById('main-list-container');
@@ -494,19 +553,25 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               setActiveTab('list1'); 
               navigateTo('list'); 
             }} 
-            className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${activeTab === 'list1' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
+            className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${activeTab === 'list1' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
           >
             BỘ 01
           </button>
           <button 
             onClick={() => navigateTo('group_list')} 
-            className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${view.startsWith('group') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-400'}`}
+            className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${view.startsWith('group') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-400'}`}
           >
             NHÓM
           </button>
           <button 
+            onClick={() => navigateTo('loss_management')} 
+            className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${view === 'loss_management' ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'text-slate-400'}`}
+          >
+            HAO HỤT
+          </button>
+          <button 
             onClick={() => navigateTo('stats')} 
-            className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${view === 'stats' ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'text-slate-400'}`}
+            className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${view === 'stats' ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'text-slate-400'}`}
           >
             BÁO CÁO
           </button>
@@ -517,7 +582,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               setActiveTab('list2'); 
               navigateTo('list'); 
             }} 
-            className={`flex-1 px-3 py-3 rounded-[1.8rem] text-[9px] font-black uppercase transition-all ${activeTab === 'list2' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
+            className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${activeTab === 'list2' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
           >
             BỘ 02
           </button>

@@ -41,9 +41,26 @@ export interface SystemConfig {
   bankId: string;
   accountNo: string;
   accountName: string;
+  // Group Bank Account
+  groupBankId?: string;
+  groupAccountNo?: string;
+  groupAccountName?: string;
   sheetUrl: string;
   globalMessage: string;
   lastSyncTime?: number;
 }
 
-export type ViewState = 'list' | 'edit' | 'detail' | 'quick_record' | 'config' | 'stats' | 'edit_customer' | 'add_customer' | 'edit_message_template' | 'group_list' | 'group_detail' | 'verify';
+export interface LossRecord {
+  id: string;
+  period: string; // e.g., "11"
+  month: string;  // e.g., "Nov-25"
+  master1New: number;
+  master1Old: number;
+  master2New: number;
+  master2Old: number;
+  list1Volume: number;
+  list2Volume: number;
+  createdAt: number;
+}
+
+export type ViewState = 'list' | 'edit' | 'detail' | 'quick_record' | 'config' | 'stats' | 'edit_customer' | 'add_customer' | 'edit_message_template' | 'group_list' | 'group_detail' | 'verify' | 'loss_management';

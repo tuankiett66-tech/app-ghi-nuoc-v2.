@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic } from 'lucide-react';
+import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode } from 'lucide-react';
 import { Customer, SystemConfig, WaterGroup } from '../types';
 import { formatCurrency, copyToClipboard, generateVietQrUrl, normalizeString } from '../utils';
 
@@ -13,9 +13,10 @@ interface GroupDetailViewProps {
   onSendZalo: (msg: string, sdt: string) => void;
   onMarkGroupPaid: (groupId: string) => void;
   onNavigate: (dir: 'next' | 'prev') => void;
+  onShowQr: (bankId: string, accountNo: string, amount: number, name: string) => void;
 }
 
-export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, customers, config, onBack, onUpdateGroup, onSendZalo, onMarkGroupPaid, onNavigate }) => {
+export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, customers, config, onBack, onUpdateGroup, onSendZalo, onMarkGroupPaid, onNavigate, onShowQr }) => {
   const [maKHInput, setMaKHInput] = useState('');
   const [sourceInput, setSourceInput] = useState<'list1' | 'list2'>('list1');
 
@@ -95,13 +96,17 @@ NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
     
     const cleanGroupName = normalizeString(group.name).toUpperCase();
 
+    const bankId = config.groupBankId || config.bankId;
+    const accountNo = config.groupAccountNo || config.accountNo;
+    const accountName = config.groupAccountName || config.accountName;
+
     msg += `
 ${config.globalMessage}
 ---
 👉 CHUYỂN KHOẢN:
-NH: ${config.bankId.toUpperCase()}
-STK: ${config.accountNo}
-TÊN: ${config.accountName}
+NH: ${bankId.toUpperCase()}
+STK: ${accountNo}
+TÊN: ${accountName}
 Nội dung: TT NUOC ${cleanGroupName}`;
     
     return msg;
@@ -186,8 +191,20 @@ Nội dung: TT NUOC ${cleanGroupName}`;
             <p className="text-2xl font-black text-indigo-700 tracking-tighter leading-none">{formatCurrency(totals.total)}</p>
         </div>
         <div className="grid grid-cols-12 gap-2">
-            <button onClick={() => onMarkGroupPaid(group.id)} disabled={groupData.length === 0} className="col-span-3 bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-emerald-900 disabled:opacity-50 text-[10px]"><UserCheck size={18}/></button>
-            <button onClick={() => onSendZalo(generateGroupMsg(), group.masterSdt || '')} disabled={groupData.length === 0} className="col-span-6 bg-indigo-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg active:scale-95 border-b-2 border-indigo-900 disabled:opacity-50 text-[10px]"><MessageCircle size={18}/> GUI ZALO</button>
+            <button onClick={() => onMarkGroupPaid(group.id)} disabled={groupData.length === 0} className="col-span-2 bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-emerald-900 disabled:opacity-50 text-[10px]"><UserCheck size={18}/></button>
+            <button onClick={() => onSendZalo(generateGroupMsg(), group.masterSdt || '')} disabled={groupData.length === 0} className="col-span-5 bg-indigo-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg active:scale-95 border-b-2 border-indigo-900 disabled:opacity-50 text-[10px]"><MessageCircle size={18}/> GUI ZALO</button>
+            <button 
+              onClick={() => {
+                const bankId = config.groupBankId || config.bankId;
+                const accountNo = config.groupAccountNo || config.accountNo;
+                const accountName = config.groupAccountName || config.accountName;
+                onShowQr(bankId, accountNo, totals.total, group.name);
+              }} 
+              disabled={groupData.length === 0} 
+              className="col-span-2 bg-rose-600 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-rose-900 disabled:opacity-50 text-[10px]"
+            >
+              <QrCode size={18}/>
+            </button>
             <button onClick={async () => { const msg = generateGroupMsg(); await copyToClipboard(msg); alert("Da copy!"); }} className="col-span-3 bg-slate-800 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-slate-950 disabled:opacity-50 text-[10px]"><Copy size={16}/> BILL</button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Customer, SystemConfig, WaterGroup, GroupMember } from '../types';
+import { Customer, SystemConfig, WaterGroup, GroupMember, LossRecord } from '../types';
 import { calculateRow } from '../utils';
 
 export const useWaterData = () => {
@@ -14,6 +14,17 @@ export const useWaterData = () => {
       });
     } catch (e) {
       console.error("Error loading customers:", e);
+      return [];
+    }
+  });
+
+  const [lossRecords, setLossRecords] = useState<LossRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('water_loss_records_v21');
+      const data = saved ? JSON.parse(saved) : [];
+      return Array.isArray(data) ? data : [];
+    } catch (e) {
+      console.error("Error loading loss records:", e);
       return [];
     }
   });
@@ -39,9 +50,12 @@ export const useWaterData = () => {
     const defaults: SystemConfig = { 
       waterRate: 18000, 
       sheetUrl: '', 
-      bankId: 'agribank', 
-      accountNo: '8888942444224', 
-      accountName: 'TO TUAN KIET',
+      bankId: 'vcb', 
+      accountNo: '1066386342', 
+      accountName: 'HKD TRAN NGOC TONG (CS CAP NUOC SINH HOA)',
+      groupBankId: 'agribank',
+      groupAccountNo: '8888942444224',
+      groupAccountName: 'TO TUAN KIET',
       globalMessage: 'Quy khach vui long thanh toan truoc ngay 10 hang thang.',
       lastSyncTime: 0
     };
@@ -78,7 +92,8 @@ export const useWaterData = () => {
     localStorage.setItem('water_groups_v21', JSON.stringify(groups));
     localStorage.setItem('water_config_v21', JSON.stringify(config));
     localStorage.setItem('water_active_tab', activeTab);
-  }, [customers, groups, config, activeTab]);
+    localStorage.setItem('water_loss_records_v21', JSON.stringify(lossRecords));
+  }, [customers, groups, config, activeTab, lossRecords]);
 
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
     setCustomers(prev => prev.map(c => {
@@ -146,14 +161,45 @@ export const useWaterData = () => {
     return nextMonthCustomers;
   };
 
+  const addLossRecord = (record: Omit<LossRecord, 'id' | 'createdAt'>) => {
+    const newRecord: LossRecord = {
+      ...record,
+      id: `loss-${Date.now()}`,
+      createdAt: Date.now()
+    };
+    setLossRecords(prev => [newRecord, ...prev]);
+  };
+
+  const deleteLossRecord = (id: string) => {
+    if (confirm("Ban co chac muon xoa ban ghi nay?")) {
+      setLossRecords(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
+  const resetBankInfo = () => {
+    const defaults = { 
+      bankId: 'vcb', 
+      accountNo: '1066386342', 
+      accountName: 'HKD TRAN NGOC TONG (CS CAP NUOC SINH HOA)',
+      groupBankId: 'agribank',
+      groupAccountNo: '8888942444224',
+      groupAccountName: 'TO TUAN KIET'
+    };
+    setConfig(prev => ({ ...prev, ...defaults }));
+    alert("Đã cài lại thông tin Ngân hàng mặc định!");
+  };
+
   return {
     customers, setCustomers,
     groups, setGroups,
     config, setConfig,
     activeTab, setActiveTab,
+    lossRecords, setLossRecords,
     updateCustomer,
     addCustomer,
     addGroup, updateGroup, deleteGroup,
-    closePeriod
+    closePeriod,
+    addLossRecord, deleteLossRecord,
+    resetBankInfo
   };
 };

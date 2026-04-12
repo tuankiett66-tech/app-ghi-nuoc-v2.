@@ -12,9 +12,10 @@ interface ConfigViewProps {
   onExport: () => void;
   onBackupCloud: () => void;
   onClear: () => void;
+  onResetBank: () => void;
 }
 
-export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBack, onImport, onExport, onBackupCloud, onClear }) => {
+export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBack, onImport, onExport, onBackupCloud, onClear, onResetBank }) => {
   return (
     <div className="h-full bg-slate-50 p-6 pt-[calc(1.5rem+var(--sat))] overflow-y-auto">
       <header className="flex justify-between items-center mb-8 bg-white/80 backdrop-blur-md p-4 rounded-3xl border shadow-sm sticky top-0 z-50">
@@ -52,13 +53,26 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
           </div>
 
           <div className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-200 space-y-4 shadow-sm">
-             <p className="text-[13px] font-black text-slate-900 uppercase text-center tracking-widest mb-2 italic">Ngân hàng (VietQR Pay)</p>
+             <p className="text-[13px] font-black text-slate-900 uppercase text-center tracking-widest mb-2 italic">Tài khoản 1 (Thu chung)</p>
              <div className="space-y-3">
-               <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" placeholder="Mã Ngân Hàng (agribank...)" value={config.bankId} onChange={e => setConfig({...config, bankId: e.target.value})} />
+               <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" placeholder="Mã Ngân Hàng (vcb, bidv...)" value={config.bankId} onChange={e => setConfig({...config, bankId: e.target.value})} />
                <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" placeholder="Số Tài Khoản" value={config.accountNo} onChange={e => setConfig({...config, accountNo: e.target.value})} />
                <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" placeholder="Tên Tài Khoản (KHONG DAU)" value={config.accountName} onChange={e => setConfig({...config, accountName: e.target.value})} />
              </div>
           </div>
+
+          <div className="bg-white p-6 rounded-[2.5rem] border-2 border-indigo-100 space-y-4 shadow-sm">
+             <p className="text-[13px] font-black text-indigo-900 uppercase text-center tracking-widest mb-2 italic">Tài khoản 2 (Thu Nhóm - TK Cũ)</p>
+             <div className="space-y-3">
+               <input className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" placeholder="Mã Ngân Hàng (agribank...)" value={config.groupBankId || ''} onChange={e => setConfig({...config, groupBankId: e.target.value})} />
+               <input className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" placeholder="Số Tài Khoản Nhóm" value={config.groupAccountNo || ''} onChange={e => setConfig({...config, groupAccountNo: e.target.value})} />
+               <input className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" placeholder="Tên Tài Khoản Nhóm (KHONG DAU)" value={config.groupAccountName || ''} onChange={e => setConfig({...config, groupAccountName: e.target.value})} />
+             </div>
+          </div>
+          
+          <button onClick={onResetBank} className="w-full py-3 text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 rounded-xl border border-indigo-100 active:scale-95">
+            Cài lại thông tin Ngân hàng mặc định
+          </button>
         </div>
 
         <div className="space-y-3">

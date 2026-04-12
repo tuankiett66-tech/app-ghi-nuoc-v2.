@@ -20,19 +20,20 @@
 - [ ] **Excel Mapping Check (MỚI)**: Nhập file Excel -> Cột "CHỈ SỐ CŨ" và "NỢ CŨ" phải được nhận diện đúng (không bị đè lên nhau).
 - [ ] **Phone Deletion Check (MỚI)**: Vào Sửa KH -> Xóa trắng SĐT -> Bấm Lưu -> Xem lại KH, SĐT phải trống (không tự khôi phục).
 - [ ] **QR Mobile Check (MỚI)**: Mở App trên điện thoại -> Nút QR phải hiện rõ trên Header -> Bấm QR, mã phải hiện inline trong trang chi tiết.
-- [ ] **Water Loss Check (MỚI)**: Vào Báo Cáo -> Phải thấy "Sản lượng tiêu thụ (M3)" của cả Bộ hiện tại và Toàn hệ thống -> Có nút chuyển đổi giữa "Toàn bộ" và "Bộ 01/02" trong phần Đánh giá thất thoát.
-- [ ] **Excel Summary Check (MỚI)**: Xuất file Excel Báo cáo -> Dòng cuối cùng phải là dòng **TỔNG CỘNG** (In đậm, nền xám) cộng dồn tất cả các cột số liệu.
+- [ ] **Loss Management Check (MỚI)**: Bấm tab "HAO HỤT" -> Phải thấy danh sách lịch sử -> Thêm bản ghi mới -> Biểu đồ phải cập nhật xu hướng.
+- [ ] **Dual Bank Check (MỚI)**: Vào Cài đặt -> Nhập 2 tài khoản khác nhau -> Gửi Bill lẻ (phải hiện TK 1) -> Gửi Bill Nhóm (phải hiện TK 2).
 
 ## 2. Hướng Dẫn Kỹ Thuật
 - **Logic Bill**: Tại `App.tsx`, hàm `generateMsg` chịu trách nhiệm render văn bản. Biến `remaining` không bị chặn bởi `Math.max(0)` để giữ nguyên giá trị âm.
+- **Dual Bank**: Hệ thống sử dụng `groupBankId`, `groupAccountNo`, `groupAccountName` cho các giao dịch nhóm. Nếu để trống, sẽ tự động dùng Tài khoản 1 làm dự phòng.
 - **Navigation**: Logic điều hướng Tiến/Lùi được xử lý tại `App.tsx` (truyền qua prop `onNavigate`) cho cả `DetailView` và `GroupDetailView`.
 - **Excel Parsing**: Hàm `parseExcelFile` trong `utils.ts` sử dụng logic mapping ưu tiên "NỢ" trước "CŨ" để tránh nhầm lẫn cột.
 - **Excel Export**: Sử dụng thư viện `xlsx-js-style` để hỗ trợ định dạng **BOLD** cho tên khách hàng và dòng **TỔNG CỘNG**.
-- **Water Loss**: Hỗ trợ 2 chế độ so sánh: (Đồng hồ tổng vs Toàn hệ thống) hoặc (Đồng hồ tổng vs Từng bộ riêng biệt).
+- **Water Loss**: Hỗ trợ 2 chế độ so sánh: (Đồng hồ tổng vs Toàn hệ thống) hoặc (Đồng hồ tổng vs Từng bộ riêng biệt). Lịch sử thất thoát được lưu trữ riêng biệt và hiển thị qua biểu đồ `recharts`.
 
 ## 3. Nhật Ký Phiên Bản (Version Log)
 | Phiên bản | Ngày | Nội dung | Ghi chú |
 | :--- | :--- | :--- | :--- |
-| **V4.1** | 2026-04-06 | **Excel Styling**: Tự động **TÔ ĐẬM** tên khách hàng đã có Zalo khi xuất file Excel. | **New Feature** |
-| **V4.2** | 2026-04-07 | **Water Loss Report**: Thêm tổng M3 tiêu thụ và công cụ tính thất thoát nước vào Báo cáo. | **New Feature** |
 | **V4.3** | 2026-04-08 | **Flexible Loss Assessment**: Hỗ trợ nhập 1 đồng hồ tổng cho cả 2 danh bộ hoặc từng bộ riêng. | **UX Improved** |
+| **V4.4** | 2026-04-11 | **Loss Management Tab**: Thêm tab quản lý thất thoát chuyên sâu với biểu đồ xu hướng và lịch sử. | **Major Update** |
+| **V4.5** | 2026-04-11 | **Dual Bank Accounts**: Hỗ trợ 2 tài khoản thu riêng biệt cho khách lẻ và khách nhóm. | **New Feature** |
