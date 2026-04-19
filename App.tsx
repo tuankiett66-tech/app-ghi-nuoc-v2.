@@ -77,14 +77,35 @@ const App: React.FC = () => {
       
       if (Array.isArray(result.list1) && result.list1.length > 0) {
         const mapped1 = result.list1.map((item: any, idx: number) => {
+          // Làm sạch Mã KH
+          const maKH = String(item.maKH || "").replace(/^'/, "");
+
+          // Sửa lỗi Số điện thoại mất số 0
           const rawPhone = String(item.phoneTenant || "").replace(/^'/, "");
           const phoneWithZero = (rawPhone && /^[1-9]\d{8,9}$/.test(rawPhone)) ? '0' + rawPhone : rawPhone;
           
+          // Sửa lỗi Địa chỉ biến thành Ngày tháng (ISO String)
+          let addr = String(item.address || "").replace(/^'/, "");
+          if (addr.includes('T') && addr.includes('Z') && addr.length > 15) {
+            try {
+              const d = new Date(addr);
+              if (!isNaN(d.getTime())) {
+                // Chuyển ngược từ Date sang dạng ngày/tháng (thường là số nhà bị nhận nhầm)
+                // Nếu là 304/11, đôi khi Sheets hiểu là 11 tháng 3 năm 304 hoặc 2024...
+                const day = d.getDate();
+                const month = d.getMonth() + 1;
+                const year = d.getFullYear();
+                // Nếu năm quá nhỏ hoặc quá lớn, có thể là do số nhà đặc biệt, ta lấy ngày/tháng
+                addr = `${day}/${month}${year > 2100 || year < 1900 ? '/' + year : ''}`;
+              }
+            } catch (e) { /* ignore */ }
+          }
+
           return calculateRow({
-            id: `cust-${item.maKH}-${idx}-list1`,
-            maKH: String(item.maKH || "").replace(/^'/, ""), 
+            id: `cust-${maKH}-${idx}-list1`,
+            maKH: maKH, 
             name: String(item.name || ""),
-            address: String(item.address || "").replace(/^'/, ""), 
+            address: addr, 
             phoneTenant: phoneWithZero,
             newIndex: parseFloat(item.newIndex) || 0, 
             oldIndex: parseFloat(item.oldIndex) || 0,
@@ -104,14 +125,32 @@ const App: React.FC = () => {
 
       if (Array.isArray(result.list2) && result.list2.length > 0) {
         const mapped2 = result.list2.map((item: any, idx: number) => {
+          // Làm sạch Mã KH
+          const maKH = String(item.maKH || "").replace(/^'/, "");
+
+          // Sửa lỗi Số điện thoại mất số 0
           const rawPhone = String(item.phoneTenant || "").replace(/^'/, "");
           const phoneWithZero = (rawPhone && /^[1-9]\d{8,9}$/.test(rawPhone)) ? '0' + rawPhone : rawPhone;
+          
+          // Sửa lỗi Địa chỉ biến thành Ngày tháng (ISO String)
+          let addr = String(item.address || "").replace(/^'/, "");
+          if (addr.includes('T') && addr.includes('Z') && addr.length > 15) {
+            try {
+              const d = new Date(addr);
+              if (!isNaN(d.getTime())) {
+                const day = d.getDate();
+                const month = d.getMonth() + 1;
+                const year = d.getFullYear();
+                addr = `${day}/${month}${year > 2100 || year < 1900 ? '/' + year : ''}`;
+              }
+            } catch (e) { /* ignore */ }
+          }
 
           return calculateRow({
-            id: `cust-${item.maKH}-${idx}-list2`,
-            maKH: String(item.maKH || "").replace(/^'/, ""), 
+            id: `cust-${maKH}-${idx}-list2`,
+            maKH: maKH, 
             name: String(item.name || ""),
-            address: String(item.address || "").replace(/^'/, ""), 
+            address: addr, 
             phoneTenant: phoneWithZero,
             newIndex: parseFloat(item.newIndex) || 0, 
             oldIndex: parseFloat(item.oldIndex) || 0,
