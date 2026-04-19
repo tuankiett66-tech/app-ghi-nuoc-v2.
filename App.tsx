@@ -76,21 +76,26 @@ const App: React.FC = () => {
       let allCustomers: Customer[] = [];
       
       if (Array.isArray(result.list1) && result.list1.length > 0) {
-        const mapped1 = result.list1.map((item: any, idx: number) => calculateRow({
-          id: `cust-${item.maKH}-${idx}-list1`,
-          maKH: String(item.maKH || ""), 
-          name: String(item.name || ""),
-          address: String(item.address || ""), 
-          phoneTenant: String(item.phoneTenant || ""),
-          newIndex: parseFloat(item.newIndex) || 0, 
-          oldIndex: parseFloat(item.oldIndex) || 0,
-          oldDebt: parseFloat(item.oldDebt) || 0, 
-          paid: parseFloat(item.paid) || 0,
-          listType: 'list1', 
-          isZalo: !!item.isZalo, 
-          isZaloFriend: !!item.isZaloFriend,
-          note: item.note || ''
-        }, result.config?.waterRate || config.waterRate));
+        const mapped1 = result.list1.map((item: any, idx: number) => {
+          const rawPhone = String(item.phoneTenant || "").replace(/^'/, "");
+          const phoneWithZero = (rawPhone && /^[1-9]\d{8,9}$/.test(rawPhone)) ? '0' + rawPhone : rawPhone;
+          
+          return calculateRow({
+            id: `cust-${item.maKH}-${idx}-list1`,
+            maKH: String(item.maKH || "").replace(/^'/, ""), 
+            name: String(item.name || ""),
+            address: String(item.address || "").replace(/^'/, ""), 
+            phoneTenant: phoneWithZero,
+            newIndex: parseFloat(item.newIndex) || 0, 
+            oldIndex: parseFloat(item.oldIndex) || 0,
+            oldDebt: parseFloat(item.oldDebt) || 0, 
+            paid: parseFloat(item.paid) || 0,
+            listType: 'list1', 
+            isZalo: !!item.isZalo, 
+            isZaloFriend: !!item.isZaloFriend,
+            note: String(item.note || "").replace(/^'/, "")
+          }, result.config?.waterRate || config.waterRate);
+        });
         allCustomers = [...allCustomers, ...mapped1];
       } else {
         // Giữ lại dữ liệu cũ của bộ 1 nếu cloud trống
@@ -98,21 +103,26 @@ const App: React.FC = () => {
       }
 
       if (Array.isArray(result.list2) && result.list2.length > 0) {
-        const mapped2 = result.list2.map((item: any, idx: number) => calculateRow({
-          id: `cust-${item.maKH}-${idx}-list2`,
-          maKH: String(item.maKH || ""), 
-          name: String(item.name || ""),
-          address: String(item.address || ""), 
-          phoneTenant: String(item.phoneTenant || ""),
-          newIndex: parseFloat(item.newIndex) || 0, 
-          oldIndex: parseFloat(item.oldIndex) || 0,
-          oldDebt: parseFloat(item.oldDebt) || 0, 
-          paid: parseFloat(item.paid) || 0,
-          listType: 'list2', 
-          isZalo: !!item.isZalo, 
-          isZaloFriend: !!item.isZaloFriend,
-          note: item.note || ''
-        }, result.config?.waterRate || config.waterRate));
+        const mapped2 = result.list2.map((item: any, idx: number) => {
+          const rawPhone = String(item.phoneTenant || "").replace(/^'/, "");
+          const phoneWithZero = (rawPhone && /^[1-9]\d{8,9}$/.test(rawPhone)) ? '0' + rawPhone : rawPhone;
+
+          return calculateRow({
+            id: `cust-${item.maKH}-${idx}-list2`,
+            maKH: String(item.maKH || "").replace(/^'/, ""), 
+            name: String(item.name || ""),
+            address: String(item.address || "").replace(/^'/, ""), 
+            phoneTenant: phoneWithZero,
+            newIndex: parseFloat(item.newIndex) || 0, 
+            oldIndex: parseFloat(item.oldIndex) || 0,
+            oldDebt: parseFloat(item.oldDebt) || 0, 
+            paid: parseFloat(item.paid) || 0,
+            listType: 'list2', 
+            isZalo: !!item.isZalo, 
+            isZaloFriend: !!item.isZaloFriend,
+            note: String(item.note || "").replace(/^'/, "")
+          }, result.config?.waterRate || config.waterRate);
+        });
         allCustomers = [...allCustomers, ...mapped2];
       } else {
         // Giữ lại dữ liệu cũ của bộ 2 nếu cloud trống
@@ -147,10 +157,10 @@ const App: React.FC = () => {
     );
 
     const data1 = sortedCustomers.filter(c => c.listType === 'list1').map(c => ({
-      maKH: c.maKH, 
+      maKH: "'" + (c.maKH || ""), 
       name: c.name,
-      address: c.address,
-      phoneTenant: c.phoneTenant || c.phone,
+      address: "'" + (c.address || ""),
+      phoneTenant: "'" + (c.phoneTenant || c.phone || ""),
       newIndex: c.newIndex, 
       oldIndex: c.oldIndex,
       consumption: c.volume, 
@@ -160,14 +170,14 @@ const App: React.FC = () => {
       remainingDebt: c.balance, 
       isZalo: !!c.isZalo,
       isZaloFriend: !!c.isZaloFriend,
-      note: c.note || ""
+      note: "'" + (c.note || "")
     }));
 
     const data2 = sortedCustomers.filter(c => c.listType === 'list2').map(c => ({
-      maKH: c.maKH, 
+      maKH: "'" + (c.maKH || ""), 
       name: c.name,
-      address: c.address,
-      phoneTenant: c.phoneTenant || c.phone,
+      address: "'" + (c.address || ""),
+      phoneTenant: "'" + (c.phoneTenant || c.phone || ""),
       newIndex: c.newIndex, 
       oldIndex: c.oldIndex,
       consumption: c.volume, 
@@ -177,7 +187,7 @@ const App: React.FC = () => {
       remainingDebt: c.balance, 
       isZalo: !!c.isZalo,
       isZaloFriend: !!c.isZaloFriend,
-      note: c.note || ""
+      note: "'" + (c.note || "")
     }));
 
     if (!silent) setIsSyncing(true);

@@ -94,7 +94,17 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   const sorted = [...customers].sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
   
   const data = sorted.map(c => [
-    c.maKH, c.name, c.address, c.phone, c.newIndex || "", c.oldIndex, c.volume || "", Math.round(c.amount) || "", Math.round(c.oldDebt), Math.round(c.paid) || "", Math.round(c.balance) || ""
+    "'" + (c.maKH || ""), 
+    c.name, 
+    "'" + (c.address || ""), 
+    "'" + (c.phone || ""), 
+    c.newIndex || "", 
+    c.oldIndex, 
+    c.volume || "", 
+    Math.round(c.amount) || "", 
+    Math.round(c.oldDebt), 
+    Math.round(c.paid) || "", 
+    Math.round(c.balance) || ""
   ]);
 
   // Add summary row
