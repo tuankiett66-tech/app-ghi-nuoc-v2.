@@ -62,12 +62,12 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
                 {c.phoneLandlord && <p className="text-[10px] text-slate-500 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Chủ:</span> {c.phoneLandlord}</p>}
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <div className="font-black text-[19px] text-rose-600 tracking-tighter leading-none mb-1">{formatCurrency(c.balance)}</div>
+            <div className="text-right shrink-0 flex flex-col items-end justify-center">
+              <div className="font-black text-[20px] text-rose-600 tracking-tighter leading-none mb-1.5">{formatCurrency(c.balance)}</div>
               {c.newIndex > 0 ? (
-                <div className="text-[10px] font-black text-white bg-emerald-600 px-2 py-0.5 rounded-lg shadow-sm">SỐ: {c.newIndex}</div>
+                <div className="text-[13px] font-black text-white bg-emerald-600 px-2.5 py-1 rounded-xl shadow-md inline-flex items-center tracking-tight">SỐ: {c.newIndex}</div>
               ) : (
-                <div className="text-[10px] font-black text-slate-400 uppercase italic">Chưa ghi</div>
+                <div className="text-[11px] font-black text-slate-400 uppercase italic tracking-tighter opacity-80">Chưa ghi</div>
               )}
             </div>
           </div>
