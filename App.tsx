@@ -266,6 +266,8 @@ const App: React.FC = () => {
         setConfig(prev => ({ ...prev, lastSyncTime: Date.now() }));
         setLastAutoBackup(Date.now());
         if (!silent) showToast("Đã tải dữ liệu từ máy lên Cloud!");
+        // Reset status to idle after 5s to allow for next clear sync feedback
+        setTimeout(() => setSyncStatus('idle'), 5000);
       } else {
         throw new Error(result.message || "Lỗi không xác định từ server");
       }
@@ -429,7 +431,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
 
   return (
     <div className="h-[100dvh] bg-[#f8fafc] max-w-md mx-auto flex flex-col relative overflow-hidden shadow-2xl">
-      {toast && <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[250] px-6 py-3 rounded-2xl shadow-2xl bg-blue-600 text-white font-black text-sm animate-bounce text-center min-w-[240px] border-2 border-white/20">{toast}</div>}
+      {toast && <div className="fixed top-28 left-1/2 -translate-x-1/2 z-[250] px-8 py-4 rounded-3xl shadow-[0_20px_50px_rgba(37,99,235,0.4)] bg-blue-600 text-white font-black text-base animate-in zoom-in duration-300 text-center min-w-[280px] border-4 border-white/30 backdrop-blur-sm">{toast}</div>}
 
       {(view === 'list' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg') && (
         <>

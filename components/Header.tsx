@@ -98,54 +98,57 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <div className="shrink-0 z-[110] bg-white shadow-sm">
-      <header className="p-2 pt-[calc(0.5rem+var(--sat))] flex justify-between items-center border-b relative z-[120] gap-1">
+      <header className="p-4 pt-[calc(1rem+var(--sat))] flex justify-between items-center border-b relative z-[120] gap-1">
         <div className="flex flex-col ml-1">
-          <h1 className="text-base font-black text-blue-700 italic uppercase leading-none">{title}</h1>
+          <h1 className="text-lg font-black text-blue-700 italic uppercase leading-none">{title}</h1>
           {typeof lastSyncTime === 'number' && lastSyncTime > 0 && !isNaN(lastSyncTime) && (
-            <span className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">
-              Cloud: {(() => {
-                try {
-                  const d = new Date(lastSyncTime);
-                  return isNaN(d.getTime()) ? '---' : d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-                } catch (e) {
-                  return '---';
-                }
-              })()}
-            </span>
+            <div className="flex items-center gap-1 mt-1">
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${syncStatus === 'synced' ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+              <span className={`text-[11px] font-black uppercase tracking-tight transition-colors duration-500 ${syncStatus === 'synced' ? 'text-emerald-600 font-black scale-105 origin-left' : 'text-slate-500'}`}>
+                Cloud: {(() => {
+                  try {
+                    const d = new Date(lastSyncTime);
+                    return isNaN(d.getTime()) ? '---' : d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                  } catch (e) {
+                    return '---';
+                  }
+                })()}
+              </span>
+            </div>
           )}
         </div>
-        <div className="flex gap-0 items-center overflow-x-auto no-scrollbar pr-1">
+        <div className="flex gap-0.5 items-center overflow-x-auto no-scrollbar pr-1">
           <button 
             onClick={() => setIsSearchExpanded(!isSearchExpanded)} 
             title="Tìm kiếm" 
-            className={`p-1.5 rounded-lg transition-all active:scale-90 touch-manipulation shrink-0 ${isSearchExpanded ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-700'}`}
+            className={`p-2 rounded-lg transition-all active:scale-90 touch-manipulation shrink-0 ${isSearchExpanded ? 'bg-blue-600 text-white shadow-lg' : 'text-blue-700'}`}
           >
-            <Search size={19}/>
+            <Search size={20}/>
           </button>
-          <button onClick={onShowVerify} title="Kiểm tra" className="p-1.5 text-emerald-600 active:scale-90 touch-manipulation shrink-0"><ClipboardCheck size={19}/></button>
-          <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-1.5 text-amber-600 active:scale-90 touch-manipulation shrink-0"><MessageSquareQuote size={19}/></button>
-          <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-1.5 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={19}/></button>
-          <button onClick={onToggleUnpaidFilter} title="Lọc chưa thu" className={`p-1.5 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnpaid ? 'text-rose-600 bg-rose-100' : 'text-slate-600'}`}><DollarSign size={19}/></button>
-          <button onClick={onSync} title="Tải từ Cloud về" disabled={isSyncing} className="p-1.5 text-blue-700 active:scale-90 touch-manipulation shrink-0">{isSyncing ? <Loader2 className="animate-spin" size={19}/> : <CloudDownload size={19}/>}</button>
-          <button onClick={onSave} title="Tải lên Cloud" className="p-1.5 text-emerald-600 active:scale-90 touch-manipulation relative shrink-0">
-            <Save size={19}/>
+          <button onClick={onShowVerify} title="Kiểm tra" className="p-2 text-emerald-600 active:scale-90 touch-manipulation shrink-0"><ClipboardCheck size={20}/></button>
+          <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-2 text-amber-600 active:scale-90 touch-manipulation shrink-0"><MessageSquareQuote size={20}/></button>
+          <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-2 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={20}/></button>
+          <button onClick={onToggleUnpaidFilter} title="Lọc chưa thu" className={`p-2 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnpaid ? 'text-rose-600 bg-rose-100' : 'text-slate-600'}`}><DollarSign size={20}/></button>
+          <button onClick={onSync} title="Tải từ Cloud về" disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation shrink-0">{isSyncing ? <Loader2 className="animate-spin" size={20}/> : <CloudDownload size={20}/>}</button>
+          <button onClick={onSave} title="Tải lên Cloud" className="p-2 text-emerald-600 active:scale-90 touch-manipulation relative shrink-0">
+            <Save size={20}/>
             {syncStatus === 'syncing' && (
-              <div className="absolute -top-0.5 -right-0.5 bg-blue-600 text-white rounded-full p-0.5 animate-spin">
-                <Loader2 size={7} />
+              <div className="absolute -top-0.5 -right-0.5 bg-blue-600 text-white rounded-full p-1 animate-spin shadow-md">
+                <Loader2 size={10} strokeWidth={3} />
               </div>
             )}
             {syncStatus === 'synced' && (
-              <div className="absolute -top-0.5 -right-0.5 bg-emerald-500 text-white rounded-full p-0.5 shadow-sm">
-                <Check size={7} strokeWidth={4} />
+              <div className="absolute -top-0.5 -right-0.5 bg-emerald-500 text-white rounded-full p-1 shadow-md animate-in zoom-in duration-300">
+                <Check size={10} strokeWidth={4} />
               </div>
             )}
             {syncStatus === 'error' && (
-              <div className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white rounded-full p-0.5 shadow-sm">
-                <X size={7} strokeWidth={4} />
+              <div className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white rounded-full p-1 shadow-md animate-bounce">
+                <X size={10} strokeWidth={4} />
               </div>
             )}
           </button>
-          <button onClick={onShowConfig} title="Cấu hình" className="p-1.5 text-slate-700 active:scale-90 touch-manipulation shrink-0"><Settings size={19}/></button>
+          <button onClick={onShowConfig} title="Cấu hình" className="p-2 text-slate-700 active:scale-90 touch-manipulation shrink-0"><Settings size={20}/></button>
         </div>
       </header>
 
