@@ -120,6 +120,17 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
               if (!showAdd) {
                 setManualList1Vol(currentStats.list1Vol.toString());
                 setManualList2Vol(currentStats.list2Vol.toString());
+                
+                // Tự động điền số cũ từ bản ghi gần nhất
+                if (records.length > 0) {
+                  const latest = records[0]; // Records are usually sorted by created date desc
+                  setM1Old(latest.master1New.toString());
+                  setM2Old(latest.master2New.toString());
+                  
+                  // Gợi ý kỳ tiếp theo
+                  const lastPeriod = parseInt(latest.period);
+                  if (!isNaN(lastPeriod)) setPeriod((lastPeriod + 1).toString());
+                }
               }
               setShowAdd(!showAdd);
             }}
@@ -208,17 +219,17 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-slate-50 p-2 rounded-xl text-center">
-                      <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Tổng cấp</p>
-                      <p className="text-sm font-black text-slate-900">{totalSupply} <span className="text-[8px]">m³</span></p>
+                    <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-2xl text-center">
+                      <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Tổng cấp</p>
+                      <p className="text-base font-black text-slate-900 leading-none">{totalSupply} <span className="text-[9px]">m³</span></p>
                     </div>
-                    <div className="bg-slate-50 p-2 rounded-xl text-center">
-                      <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Tiêu thụ</p>
-                      <p className="text-sm font-black text-slate-900">{totalConsumption} <span className="text-[8px]">m³</span></p>
+                    <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-2xl text-center">
+                      <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Tiêu thụ</p>
+                      <p className="text-base font-black text-slate-900 leading-none">{totalConsumption} <span className="text-[9px]">m³</span></p>
                     </div>
-                    <div className={`${loss > 0 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'} p-2 rounded-xl text-center`}>
-                      <p className="text-[8px] font-black uppercase mb-0.5">Thất thoát</p>
-                      <p className="text-sm font-black">{loss} <span className="text-[8px]">m³</span></p>
+                    <div className={`${loss > 0 ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'} border p-2.5 rounded-2xl text-center shadow-sm`}>
+                      <p className="text-[9px] font-black uppercase mb-0.5">Thất thoát</p>
+                      <p className="text-base font-black leading-none">{loss} <span className="text-[9px]">m³</span></p>
                     </div>
                   </div>
 
@@ -241,14 +252,22 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                   </div>
 
                   {/* Details for meters */}
-                  <div className="mt-3 pt-3 border-t border-slate-50 grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Đồng hồ 1: {supply1} m³</p>
-                      <p className="text-[8px] font-bold text-slate-300 italic">({r.master1Old} → {r.master1New})</p>
+                  <div className="mt-3 pt-3 border-t-2 border-slate-50 grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-100">
+                      <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Đồng hồ 1: <span className="text-blue-600">{supply1} m³</span></p>
+                      <p className="text-[11px] font-black text-slate-400 bg-white px-2 py-1 rounded-lg border border-slate-100 flex justify-between">
+                        <span>{r.master1Old}</span>
+                        <span className="text-slate-300">→</span>
+                        <span>{r.master1New}</span>
+                      </p>
                     </div>
-                    <div>
-                      <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Đồng hồ 2: {supply2} m³</p>
-                      <p className="text-[8px] font-bold text-slate-300 italic">({r.master2Old} → {r.master2New})</p>
+                    <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-100">
+                      <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Đồng hồ 2: <span className="text-blue-600">{supply2} m³</span></p>
+                      <p className="text-[11px] font-black text-slate-400 bg-white px-2 py-1 rounded-lg border border-slate-100 flex justify-between">
+                        <span>{r.master2Old}</span>
+                        <span className="text-slate-300">→</span>
+                        <span>{r.master2New}</span>
+                      </p>
                     </div>
                   </div>
                 </div>
