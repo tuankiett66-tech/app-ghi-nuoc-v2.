@@ -327,6 +327,7 @@ const App: React.FC = () => {
       
       const match = nameStr.toLowerCase().includes(s) || 
                     maKHStr.toLowerCase().includes(s) || 
+                    (c.address && String(c.address).toLowerCase().includes(s)) ||
                     (c.phoneTenant && String(c.phoneTenant).includes(s)) || 
                     (c.phoneLandlord && String(c.phoneLandlord).includes(s)) ||
                     balanceStr.includes(cleanSearchPrice);
