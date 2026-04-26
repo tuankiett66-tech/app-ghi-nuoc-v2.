@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MessageSquare, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy } from 'lucide-react';
+import { ChevronLeft, MessageSquare, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2 } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
 import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo, generateVietQrUrl } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -13,13 +13,14 @@ interface DetailViewProps {
   onUpdate: (updates: Partial<Customer>) => void;
   onShowQr: () => void;
   onEditInfo: () => void;
+  onDelete: () => void;
   onAddAfter: () => void;
   onSendZalo: () => void;
   generateMsg: (c: Customer, ni: string, pi: string) => string;
 }
 
 export const DetailView: React.FC<DetailViewProps> = ({ 
-  customer, config, onBack, onNavigate, onUpdate, onShowQr, onEditInfo, onAddAfter, onSendZalo, generateMsg 
+  customer, config, onBack, onNavigate, onUpdate, onShowQr, onEditInfo, onDelete, onAddAfter, onSendZalo, generateMsg 
 }) => {
   // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -64,8 +65,8 @@ export const DetailView: React.FC<DetailViewProps> = ({
         <div className="flex gap-1 items-center">
           <button onClick={() => setShowQrInline(!showQrInline)} className={`p-2.5 rounded-xl shadow-lg active:scale-90 shrink-0 transition-all ${showQrInline ? 'bg-rose-600 text-white' : 'bg-blue-600 text-white'}`}><QrCode size={20}/></button>
           <button onClick={() => setShowPreview(!showPreview)} className={`p-2.5 rounded-xl border transition-all shrink-0 ${showPreview ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-slate-50 border-slate-200 text-slate-700'}`}><MessageSquare size={20}/></button>
-          <button onClick={onAddAfter} className="p-2.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-700 active:scale-90 shrink-0" title="Thêm hộ sau"><Plus size={20}/></button>
-          <button onClick={onEditInfo} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 active:scale-90 shrink-0"><Pencil size={20}/></button>
+          <button onClick={onEditInfo} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 active:scale-90 shrink-0" title="Chỉnh sửa"><Pencil size={20}/></button>
+          <button onClick={onDelete} className="p-2.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-600 active:scale-90 shrink-0" title="Xóa khách hàng"><Trash2 size={20}/></button>
         </div>
       </header>
 

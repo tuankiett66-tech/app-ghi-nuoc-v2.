@@ -189,6 +189,21 @@ export const useWaterData = () => {
     alert("Đã cài lại thông tin Ngân hàng mặc định!");
   };
 
+  const deleteCustomer = (id: string) => {
+    const cust = customers.find(c => c.id === id);
+    if (!cust) return;
+    if (confirm(`Bạn có chắc muốn xóa khách hàng "${cust.name}"? Thao tác này không thể hoàn tác.`)) {
+      setCustomers(prev => prev.filter(c => c.id !== id));
+      // Remove from groups as well
+      setGroups(prev => prev.map(g => ({
+        ...g,
+        members: g.members.filter(m => !(m.maKH === cust.maKH && m.source === cust.listType))
+      })));
+      return true;
+    }
+    return false;
+  };
+
   return {
     customers, setCustomers,
     groups, setGroups,
@@ -197,6 +212,7 @@ export const useWaterData = () => {
     lossRecords, setLossRecords,
     updateCustomer,
     addCustomer,
+    deleteCustomer,
     addGroup, updateGroup, deleteGroup,
     closePeriod,
     addLossRecord, deleteLossRecord,

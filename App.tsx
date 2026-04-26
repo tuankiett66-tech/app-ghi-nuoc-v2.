@@ -21,7 +21,7 @@ const App: React.FC = () => {
     config, setConfig, 
     activeTab, setActiveTab, 
     lossRecords, setLossRecords, addLossRecord, deleteLossRecord,
-    updateCustomer, addCustomer, closePeriod, resetBankInfo
+    updateCustomer, addCustomer, deleteCustomer, closePeriod, resetBankInfo
   } = useWaterData();
   
   const [view, setView] = useState<string>('list');
@@ -505,6 +505,12 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onUpdate={(upd) => updateCustomer(selectedId!, upd)}
           onShowQr={() => setShowQr(true)}
           onEditInfo={() => navigateTo('edit_customer', false)}
+          onDelete={() => {
+            if (deleteCustomer(selectedId!)) {
+              showToast("Đã xóa khách hàng!");
+              navigateTo('list');
+            }
+          }}
           onAddAfter={() => { 
             setAfterMaKH(selectedCustomer.maKH); 
             navigateTo('add_customer', false); 
@@ -665,7 +671,14 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
 
       <Modals 
         view={view} setView={setView} addCustomer={addCustomer} 
-        updateCustomer={updateCustomer} config={config} setConfig={setConfig} 
+        updateCustomer={updateCustomer} 
+        onDelete={(id) => {
+          if (deleteCustomer(id)) {
+            showToast("Đã xóa khách hàng!");
+            navigateTo('list');
+          }
+        }}
+        config={config} setConfig={setConfig} 
         selectedCustomer={selectedCustomer}
         suggestedMaKH={suggestNextMaKH(customers, activeTab, afterMaKH)}
       />

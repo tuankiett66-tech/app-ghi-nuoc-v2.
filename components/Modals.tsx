@@ -8,13 +8,14 @@ interface ModalsProps {
   setView: (v: string) => void;
   addCustomer: (data: any) => void;
   updateCustomer: (id: string, updates: Partial<Customer>) => void;
+  onDelete: (id: string) => void;
   config: SystemConfig;
   setConfig: (c: SystemConfig) => void;
   selectedCustomer: Customer | null;
   suggestedMaKH: string;
 }
 
-export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, config, setConfig, selectedCustomer, suggestedMaKH }) => {
+export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, onDelete, config, setConfig, selectedCustomer, suggestedMaKH }) => {
   const [formData, setFormData] = useState({ 
     name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: '', oldIndex: 0, oldDebt: 0, installDate: ''
   });
@@ -107,6 +108,17 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
             >
               Lưu dữ liệu khách
             </button>
+
+            {isEdit && selectedCustomer && (
+              <button 
+                onClick={() => {
+                  onDelete(selectedCustomer.id);
+                }}
+                className="w-full bg-rose-50 text-rose-600 py-3 rounded-2xl font-black uppercase text-[11px] mt-2 active:scale-95 border-2 border-rose-200 flex items-center justify-center gap-2"
+              >
+                Xóa khách hàng này
+              </button>
+            )}
           </div>
         </div>
       </div>
