@@ -11,7 +11,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear } from './utils';
 import { Customer } from './types';
 
 const App: React.FC = () => {
@@ -353,9 +353,8 @@ const App: React.FC = () => {
     const amt = vol * config.waterRate;
     const subtotal = Math.round(amt + c.oldDebt);
     const remaining = subtotal - pi; 
-    const now = new Date();
     
-    const monthYear = `${now.getMonth() + 1}/${now.getFullYear()}`;
+    const monthYear = getBillingMonthYear();
     const cleanName = normalizeString(c.name).toUpperCase();
 
     const bankId = isGroup ? (config.groupBankId || config.bankId) : config.bankId;

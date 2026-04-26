@@ -80,6 +80,15 @@ export const normalizePhoneForZalo = (phone: any): string => {
   return p;
 };
 
+export const getBillingMonthYear = () => {
+  const d = new Date();
+  if (d.getDate() >= 25) {
+    d.setMonth(d.getMonth() + 1);
+  }
+  const m = (d.getMonth() + 1).toString().padStart(2, '0');
+  return `${m}/${d.getFullYear()}`;
+};
+
 export const generateVietQrUrl = (bankId: string, accountNo: string, amount: number, customerName: string) => {
   const amountVnd = Math.max(0, Math.round(amount));
   const cleanName = normalizeString(customerName).toUpperCase();

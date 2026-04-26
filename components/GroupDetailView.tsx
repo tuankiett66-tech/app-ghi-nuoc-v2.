@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode } from 'lucide-react';
 import { Customer, SystemConfig, WaterGroup } from '../types';
-import { formatCurrency, copyToClipboard, generateVietQrUrl, normalizeString } from '../utils';
+import { formatCurrency, copyToClipboard, generateVietQrUrl, normalizeString, getBillingMonthYear } from '../utils';
 
 interface GroupDetailViewProps {
   group: WaterGroup;
@@ -70,8 +70,7 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
   };
 
   const generateGroupMsg = () => {
-    const now = new Date();
-    const monthYear = `${now.getMonth() + 1}/${now.getFullYear()}`;
+    const monthYear = getBillingMonthYear();
     let msg = `KỲ NƯỚC THÁNG ${monthYear}
 NHÓM: ${group.name.toUpperCase()}
 ---------------------------

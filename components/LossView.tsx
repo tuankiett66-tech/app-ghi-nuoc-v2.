@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle } from 'lucide-react';
 import { LossRecord, Customer } from '../types';
-import { formatCurrency } from '../utils';
+import { formatCurrency, getBillingMonthYear } from '../utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -130,6 +130,9 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                   // Gợi ý kỳ tiếp theo
                   const lastPeriod = parseInt(latest.period);
                   if (!isNaN(lastPeriod)) setPeriod((lastPeriod + 1).toString());
+                  
+                  // Goi y thang tiep theo
+                  setMonth(getBillingMonthYear());
                 }
               }
               setShowAdd(!showAdd);
@@ -151,27 +154,27 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Kỳ</label>
-                      <input value={period} onChange={e => setPeriod(e.target.value)} placeholder="VD: 12" className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-black outline-none focus:border-blue-500" />
+                      <input value={period} onChange={e => setPeriod(e.target.value)} placeholder="VD: 12" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-lg font-black outline-none focus:border-blue-500 shadow-inner" />
                     </div>
                     <div>
-                      <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Tháng</label>
-                      <input value={month} onChange={e => setMonth(e.target.value)} placeholder="VD: Dec-25" className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-black outline-none focus:border-blue-500" />
+                      <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block tracking-wider">Tháng</label>
+                      <input value={month} onChange={e => setMonth(e.target.value)} placeholder="VD: Dec-25" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-lg font-black outline-none focus:border-blue-500 shadow-inner" />
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Đồng hồ tổng số 1</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <input type="number" value={m1New} onChange={e => setM1New(e.target.value)} placeholder="Số mới" className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-black outline-none focus:border-blue-500" />
-                      <input type="number" value={m1Old} onChange={e => setM1Old(e.target.value)} placeholder="Số cũ" className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-black outline-none focus:border-blue-500" />
+                  <div className="bg-slate-50 p-5 rounded-[2rem] space-y-3.5 border-2 border-slate-100/50 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center italic">Đồng hồ tổng số 1</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="number" value={m1New} onChange={e => setM1New(e.target.value)} placeholder="Số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" />
+                      <input type="number" value={m1Old} onChange={e => setM1Old(e.target.value)} placeholder="Số cũ" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" />
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Đồng hồ tổng số 2</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <input type="number" value={m2New} onChange={e => setM2New(e.target.value)} placeholder="Số mới" className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-black outline-none focus:border-blue-500" />
-                      <input type="number" value={m2Old} onChange={e => setM2Old(e.target.value)} placeholder="Số cũ" className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-2.5 text-sm font-black outline-none focus:border-blue-500" />
+                  <div className="bg-slate-50 p-5 rounded-[2rem] space-y-3.5 border-2 border-slate-100/50 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center italic">Đồng hồ tổng số 2</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="number" value={m2New} onChange={e => setM2New(e.target.value)} placeholder="Số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" />
+                      <input type="number" value={m2Old} onChange={e => setM2Old(e.target.value)} placeholder="Số cũ" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" />
                     </div>
                   </div>
 
@@ -210,26 +213,26 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="bg-slate-900 text-white text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Kỳ {r.period}</span>
-                        <span className="text-sm font-black text-slate-900">{r.month}</span>
+                        <span className="bg-slate-900 text-white text-[11px] font-black px-2.5 py-1 rounded-xl uppercase tracking-wider">Kỳ {r.period}</span>
+                        <span className="text-lg font-black text-slate-900">{r.month}</span>
                       </div>
                       <p className="text-[10px] font-bold text-slate-400 italic">Ngày tạo: {new Date(r.createdAt).toLocaleDateString('vi-VN')}</p>
                     </div>
                     <button onClick={() => onDelete(r.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90"><Trash2 size={18}/></button>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-2xl text-center">
-                      <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Tổng cấp</p>
-                      <p className="text-base font-black text-slate-900 leading-none">{totalSupply} <span className="text-[9px]">m³</span></p>
+                  <div className="grid grid-cols-3 gap-2.5 mb-4">
+                    <div className="bg-slate-50 border-2 border-slate-100/50 p-3 rounded-[2rem] text-center shadow-sm">
+                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Tổng cấp</p>
+                      <p className="text-xl font-black text-slate-900 leading-none">{totalSupply} <span className="text-[10px]">m³</span></p>
                     </div>
-                    <div className="bg-slate-50 border border-slate-100 p-2.5 rounded-2xl text-center">
-                      <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Tiêu thụ</p>
-                      <p className="text-base font-black text-slate-900 leading-none">{totalConsumption} <span className="text-[9px]">m³</span></p>
+                    <div className="bg-slate-50 border-2 border-slate-100/50 p-3 rounded-[2rem] text-center shadow-sm">
+                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Tiêu thụ</p>
+                      <p className="text-xl font-black text-slate-900 leading-none">{totalConsumption} <span className="text-[10px]">m³</span></p>
                     </div>
-                    <div className={`${loss > 0 ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'} border p-2.5 rounded-2xl text-center shadow-sm`}>
-                      <p className="text-[9px] font-black uppercase mb-0.5">Thất thoát</p>
-                      <p className="text-base font-black leading-none">{loss} <span className="text-[9px]">m³</span></p>
+                    <div className={`${loss > 0 ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'} border-2 p-3 rounded-[2rem] text-center shadow-md animate-pulse-slow`}>
+                      <p className="text-[10px] font-black uppercase mb-1 tracking-widest">Hao hụt</p>
+                      <p className="text-xl font-black leading-none">{loss} <span className="text-[10px]">m³</span></p>
                     </div>
                   </div>
 
@@ -240,7 +243,7 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tỷ lệ hao hụt</span>
-                        <span className={`text-sm font-black ${lossPercent > 10 ? 'text-rose-600' : 'text-emerald-600'}`}>{lossPercent.toFixed(1)}%</span>
+                        <span className={`text-[15px] font-black ${lossPercent > 10 ? 'text-rose-600 underline decoration-2 underline-offset-4' : 'text-emerald-600'}`}>{lossPercent.toFixed(1)}%</span>
                       </div>
                       <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                         <div 
@@ -252,22 +255,28 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                   </div>
 
                   {/* Details for meters */}
-                  <div className="mt-3 pt-3 border-t-2 border-slate-50 grid grid-cols-2 gap-4">
-                    <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Đồng hồ 1: <span className="text-blue-600">{supply1} m³</span></p>
-                      <p className="text-[11px] font-black text-slate-400 bg-white px-2 py-1 rounded-lg border border-slate-100 flex justify-between">
-                        <span>{r.master1Old}</span>
-                        <span className="text-slate-300">→</span>
-                        <span>{r.master1New}</span>
-                      </p>
+                  <div className="mt-4 pt-4 border-t-2 border-slate-50 grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50/80 p-3 rounded-2xl border-2 border-slate-100/50 shadow-sm">
+                      <p className="text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tight">Đồng hồ 1: <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-lg border border-blue-100">{supply1} m³</span></p>
+                      <div className="text-[15px] font-black text-slate-700 bg-white px-3 py-2 rounded-xl border-2 border-slate-100 flex justify-between items-center shadow-inner">
+                        <span className="opacity-60">{r.master1Old}</span>
+                        <div className="flex flex-col items-center leading-none">
+                          <span className="text-slate-300 text-[10px]">ĐẾN</span>
+                          <span className="text-blue-400">→</span>
+                        </div>
+                        <span className="text-slate-900 border-b-2 border-blue-200">{r.master1New}</span>
+                      </div>
                     </div>
-                    <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Đồng hồ 2: <span className="text-blue-600">{supply2} m³</span></p>
-                      <p className="text-[11px] font-black text-slate-400 bg-white px-2 py-1 rounded-lg border border-slate-100 flex justify-between">
-                        <span>{r.master2Old}</span>
-                        <span className="text-slate-300">→</span>
-                        <span>{r.master2New}</span>
-                      </p>
+                    <div className="bg-slate-50/80 p-3 rounded-2xl border-2 border-slate-100/50 shadow-sm">
+                      <p className="text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tight">Đồng hồ 2: <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-lg border border-blue-100">{supply2} m³</span></p>
+                      <div className="text-[15px] font-black text-slate-700 bg-white px-3 py-2 rounded-xl border-2 border-slate-100 flex justify-between items-center shadow-inner">
+                        <span className="opacity-60">{r.master2Old}</span>
+                        <div className="flex flex-col items-center leading-none">
+                          <span className="text-slate-300 text-[10px]">ĐẾN</span>
+                          <span className="text-blue-400">→</span>
+                        </div>
+                        <span className="text-slate-900 border-b-2 border-blue-200">{r.master2New}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
