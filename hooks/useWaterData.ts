@@ -192,13 +192,47 @@ export const useWaterData = () => {
   const deleteCustomer = (id: string) => {
     const cust = customers.find(c => c.id === id);
     if (!cust) return;
-    if (confirm(`Bạn có chắc muốn xóa khách hàng "${cust.name}"? Thao tác này không thể hoàn tác.`)) {
-      setCustomers(prev => prev.filter(c => c.id !== id));
-      // Remove from groups as well
-      setGroups(prev => prev.map(g => ({
-        ...g,
-        members: g.members.filter(m => !(m.maKH === cust.maKH && m.source === cust.listType))
-      })));
+    
+    if (confirm(`Bạn có chắc muốn xóa khách hàng "${cust.name}"? Thao tác này không thể hoàn tác và các mã số sau ${cust.maKH} sẽ được đôn lên.`)) {
+      const deletedMaKH = parseInt(cust.maKH);
+      const listType = cust.listType;
+
+      setCustomers(prev => {
+        // 1. Remove the customer
+        const filtered = prev.filter(c => c.id !== id);
+        
+        // 2. Shift others if MaKH is numeric
+        if (!isNaN(deletedMaKH)) {
+          return filtered.map(c => {
+            const currentMaKH = parseInt(c.maKH);
+            if (c.listType === listType && !isNaN(currentMaKH) && currentMaKH > deletedMaKH) {
+              return { ...c, maKH: (currentMaKH - 1).toString() };
+            }
+            return c;
+          });
+        }
+        return filtered;
+      });
+
+      // 3. Update Groups: Remove deleted and Shift MaKH of others
+      setGroups(prev => prev.map(g => {
+        // Remove deleted member
+        let filteredMembers = g.members.filter(m => !(m.maKH === cust.maKH && m.source === listType));
+        
+        // Shift MaKH for group members as well to stay in sync
+        if (!isNaN(deletedMaKH)) {
+          filteredMembers = filteredMembers.map(m => {
+            const mMaKH = parseInt(m.maKH);
+            if (m.source === listType && !isNaN(mMaKH) && mMaKH > deletedMaKH) {
+              return { ...m, maKH: (mMaKH - 1).toString() };
+            }
+            return m;
+          });
+        }
+
+        return { ...g, members: filteredMembers };
+      }));
+
       return true;
     }
     return false;
