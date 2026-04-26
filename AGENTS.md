@@ -15,6 +15,10 @@
    - QR code display should be inline within `DetailView` (using `showQrInline` state) to avoid modal overlay issues on mobile.
    - Always provide a "Copy Name" button next to the customer name in `DetailView`.
 
+4. **Excel Export**:
+   - When exporting for a new period (file name starts with `Ky_Moi`), the "NỢ LẠI" column (Column K) must be blank to allow the collector to write in it.
+   - Example logic in `utils.ts`: `isKyMoi ? "" : (Math.round(c.balance) || "")`
+
 ## Synchronization
 - The app uses a Google Apps Script for cloud backup.
 - No changes to the script are needed for data structure updates as it handles generic JSON objects.

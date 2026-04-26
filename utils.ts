@@ -102,6 +102,8 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   
   const sorted = [...customers].sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
   
+  const isKyMoi = fileName.startsWith('Ky_Moi');
+  
   const data = sorted.map(c => [
     "'" + (c.maKH || ""), 
     c.name, 
@@ -113,7 +115,7 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
     Math.round(c.amount) || "", 
     Math.round(c.oldDebt), 
     Math.round(c.paid) || "", 
-    Math.round(c.balance) || ""
+    isKyMoi ? "" : (Math.round(c.balance) || "")
   ]);
 
   // Add summary row
@@ -124,7 +126,7 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   const totalBalance = sorted.reduce((sum, c) => sum + (c.balance || 0), 0);
 
   data.push([
-    "TỔNG CỘNG", "", "", "", "", "", totalVolume, Math.round(totalAmount), Math.round(totalOldDebt), Math.round(totalPaid), Math.round(totalBalance)
+    "TỔNG CỘNG", "", "", "", "", "", totalVolume, Math.round(totalAmount), Math.round(totalOldDebt), Math.round(totalPaid), isKyMoi ? "" : Math.round(totalBalance)
   ]);
   
   const ws = XLSX.utils.aoa_to_sheet([header, ...data]);

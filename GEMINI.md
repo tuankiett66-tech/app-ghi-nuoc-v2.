@@ -21,7 +21,11 @@
 - **Problem**: QR Modal was sometimes hidden or hard to interact with on mobile.
 - **Solution**: Implement `showQrInline` in `DetailView` to show the QR code directly below the customer name.
 
+### 4. Excel Export for Collectors (Fixed in V4.0)
+- **Problem**: The "Nợ lại" (Remaining Debt) column was showing calculated values when exporting the "Ky_Moi" sheet for collectors. The user wants this column blank for manual entry.
+- **Solution**: Inside `exportToExcel`, check if `fileName` starts with `Ky_Moi`. If true, set the balance field to an empty string.
+
 ## Code References
-- `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization).
+- `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel` (blank column K logic).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).
 - `components/DetailView.tsx`: Header layout and inline QR display.
