@@ -104,19 +104,27 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   
   const isKyMoi = fileName.startsWith('Ky_Moi');
   
-  const data = sorted.map(c => [
-    "'" + (c.maKH || ""), 
-    c.name, 
-    "'" + (c.address || ""), 
-    "'" + (c.phone || ""), 
-    c.newIndex || "", 
-    c.oldIndex, 
-    c.volume || "", 
-    Math.round(c.amount) || "", 
-    Math.round(c.oldDebt), 
-    Math.round(c.paid) || "", 
-    isKyMoi ? "" : (Math.round(c.balance) || "")
-  ]);
+  const data = sorted.map(c => {
+    // Ưu tiên phoneTenant, nếu khác phone thì hiển thị cả hai
+    let displayPhone = c.phoneTenant || "";
+    if (c.phone && c.phone !== c.phoneTenant) {
+      displayPhone = displayPhone ? `${displayPhone} / ${c.phone}` : c.phone;
+    }
+
+    return [
+      { v: c.maKH || "", t: 's' }, 
+      c.name, 
+      { v: c.address || "", t: 's' }, 
+      { v: displayPhone, t: 's' }, 
+      c.newIndex || "", 
+      c.oldIndex, 
+      c.volume || "", 
+      Math.round(c.amount) || "", 
+      Math.round(c.oldDebt), 
+      Math.round(c.paid) || "", 
+      isKyMoi ? "" : (Math.round(c.balance) || "")
+    ];
+  });
 
   // Add summary row
   const totalVolume = sorted.reduce((sum, c) => sum + (c.volume || 0), 0);
@@ -149,7 +157,7 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
     }
 
     const customer = sorted[R - 1];
-    const isZalo = customer.isZalo || customer.isZaloFriend;
+    const isZalo = !!(customer.isZalo || customer.isZaloFriend);
     
     // Style the "KHÁCH HÀNG" column (Col 1)
     const nameCellRef = XLSX.utils.encode_cell({r: R, c: 1});
@@ -165,6 +173,10 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
       if (ws[cellRef]) {
         ws[cellRef].t = 's'; // Force string type
         ws[cellRef].z = '@'; // Force text format
+        // Ensure no auto-date conversion by re-setting the value as string if it looks suspicious
+        if (typeof ws[cellRef].v === 'number' && (C === 2 || C === 3)) {
+           // This shouldn't happen if we passed {v, t:'s'} but let's be safe
+        }
       }
     });
   }

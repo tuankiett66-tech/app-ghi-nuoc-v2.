@@ -151,7 +151,8 @@ export const useWaterData = () => {
         oldDebt: c.balance,
         newIndex: 0,
         paid: 0,
-        isZalo: false,
+        isZalo: c.isZalo,
+        isZaloFriend: c.isZaloFriend,
         note: '',
         updatedAt: undefined
       }, config.waterRate);
