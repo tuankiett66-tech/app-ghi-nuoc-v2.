@@ -105,22 +105,22 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   const isKyMoi = fileName.startsWith('Ky_Moi');
   
   const data = sorted.map(c => {
-    // Ưu tiên phoneTenant, nếu khác phone thì hiển thị cả hai
-    let displayPhone = c.phoneTenant || "";
-    if (c.phone && c.phone !== c.phoneTenant) {
-      displayPhone = displayPhone ? `${displayPhone} / ${c.phone}` : c.phone;
+    // Hiển thị SĐT: ưu tiên phoneTenant, sau đó phone, sau đó phoneLandlord
+    let dp = c.phoneTenant || c.phone || "";
+    if (c.phoneLandlord && c.phoneLandlord !== dp) {
+      dp = dp ? `${dp} / ${c.phoneLandlord}` : c.phoneLandlord;
     }
 
     return [
-      { v: "'" + (c.maKH || ""), t: 's' }, 
+      c.maKH || "", 
       c.name, 
-      { v: "'" + (c.address || ""), t: 's' }, 
-      { v: "'" + displayPhone, t: 's' }, 
+      c.address || "", 
+      dp || "", 
       c.newIndex || "", 
-      c.oldIndex, 
+      c.oldIndex || 0, 
       c.volume || "", 
       Math.round(c.amount) || "", 
-      Math.round(c.oldDebt), 
+      Math.round(c.oldDebt) || 0, 
       Math.round(c.paid) || "", 
       isKyMoi ? "" : (Math.round(c.balance) || "")
     ];
@@ -171,12 +171,22 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
     [0, 2, 3].forEach(C => {
       const cellRef = XLSX.utils.encode_cell({r: R, c: C});
       if (ws[cellRef]) {
+        let val = ws[cellRef].v;
+        
+        // Nếu là số (do Excel tự đoán khi dùng aoa_to_sheet), chuyển về chuỗi
+        if (typeof val === 'number') {
+           // Nếu là ngày tháng bị chuyển đổi, cố gắng giữ format (hạn chế thôi)
+           val = String(val);
+        }
+        
+        // Thêm dấu nháy đơn vào giá trị thực để Excel tuyệt đối không format lại
+        // Đây là cách an toàn nhất cho các cột dữ liệu quan trọng như Địa chỉ và SĐT
+        if (val && !String(val).startsWith("'")) {
+          ws[cellRef].v = "'" + val;
+        }
+        
         ws[cellRef].t = 's'; // Force string type
         ws[cellRef].z = '@'; // Force text format
-        // Ensure no auto-date conversion by re-setting the value as string if it looks suspicious
-        if (typeof ws[cellRef].v === 'number' && (C === 2 || C === 3)) {
-           // This shouldn't happen if we passed {v, t:'s'} but let's be safe
-        }
       }
     });
   }
