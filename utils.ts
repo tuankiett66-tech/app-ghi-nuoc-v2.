@@ -112,10 +112,10 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
     }
 
     return [
-      { v: c.maKH || "", t: 's' }, 
+      { v: "'" + (c.maKH || ""), t: 's' }, 
       c.name, 
-      { v: c.address || "", t: 's' }, 
-      { v: displayPhone, t: 's' }, 
+      { v: "'" + (c.address || ""), t: 's' }, 
+      { v: "'" + displayPhone, t: 's' }, 
       c.newIndex || "", 
       c.oldIndex, 
       c.volume || "", 
