@@ -17,7 +17,8 @@
 
 4. **Excel Export**:
    - When exporting for a new period (file name starts with `Ky_Moi`), the "NỢ LẠI" column (Column K) must be blank to allow the collector to write in it.
-   - For MaKH, Address, and Phone columns, always prefix the value with a single quote `'` in the Excel cell to prevent auto-formatting (e.g., preventing addresses from flipping to dates and keeping leading zeros in phones).
+   - For MaKH, Address, and Phone columns, use a Zero-Width Space (`\u200B`) prefix in the Excel cell to prevent auto-formatting (e.g., preventing addresses from flipping to dates and keeping leading zeros in phones).
+   - Example logic in `utils.ts`: `const safeAddress = c.address ? "\u200B" + c.address : "";`
    - Example logic in `utils.ts`: `isKyMoi ? "" : (Math.round(c.balance) || "")`
 
 ## Synchronization

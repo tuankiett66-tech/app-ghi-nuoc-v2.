@@ -105,17 +105,22 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   const isKyMoi = fileName.startsWith('Ky_Moi');
   
   const data = sorted.map(c => {
-    // Hiển thị SĐT: ưu tiên phoneTenant, sau đó phone, sau đó phoneLandlord
-    let dp = c.phoneTenant || c.phone || "";
-    if (c.phoneLandlord && c.phoneLandlord !== dp) {
-      dp = dp ? `${dp} / ${c.phoneLandlord}` : c.phoneLandlord;
-    }
+    // Hiển thị tất cả các số điện thoại hiện có, phân cách bởi dấu gạch chéo
+    const phones = [c.phone, c.phoneTenant, c.phoneLandlord]
+      .filter(p => p && String(p).trim() !== "")
+      .filter((v, i, a) => a.indexOf(v) === i); // Lấy giá trị duy nhất
+    const dp = phones.join(" / ");
+
+    // Sử dụng Zero-width space (\u200B) để ngăn Excel tự động định dạng ngày tháng mà không làm lộ dấu nháy đơn
+    const safeMaKH = c.maKH ? `\u200B${c.maKH}` : "";
+    const safeAddress = c.address ? `\u200B${c.address}` : "";
+    const safePhone = dp ? `\u200B${dp}` : "";
 
     return [
-      c.maKH || "", 
+      { v: safeMaKH, t: 's' },
       c.name, 
-      c.address || "", 
-      dp || "", 
+      { v: safeAddress, t: 's' }, 
+      { v: safePhone, t: 's' }, 
       c.newIndex || "", 
       c.oldIndex || 0, 
       c.volume || "", 
@@ -171,20 +176,6 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
     [0, 2, 3].forEach(C => {
       const cellRef = XLSX.utils.encode_cell({r: R, c: C});
       if (ws[cellRef]) {
-        let val = ws[cellRef].v;
-        
-        // Nếu là số (do Excel tự đoán khi dùng aoa_to_sheet), chuyển về chuỗi
-        if (typeof val === 'number') {
-           // Nếu là ngày tháng bị chuyển đổi, cố gắng giữ format (hạn chế thôi)
-           val = String(val);
-        }
-        
-        // Thêm dấu nháy đơn vào giá trị thực để Excel tuyệt đối không format lại
-        // Đây là cách an toàn nhất cho các cột dữ liệu quan trọng như Địa chỉ và SĐT
-        if (val && !String(val).startsWith("'")) {
-          ws[cellRef].v = "'" + val;
-        }
-        
         ws[cellRef].t = 's'; // Force string type
         ws[cellRef].z = '@'; // Force text format
       }

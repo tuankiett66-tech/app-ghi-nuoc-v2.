@@ -7,6 +7,7 @@ import { DetailView } from './components/DetailView';
 import { ConfigView } from './components/ConfigView';
 import { StatsView } from './components/StatsView';
 import { LossView } from './components/LossView';
+import { LossDailyTracking } from './components/LossDailyTracking';
 import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
@@ -21,6 +22,7 @@ const App: React.FC = () => {
     config, setConfig, 
     activeTab, setActiveTab, 
     lossRecords, setLossRecords, addLossRecord, deleteLossRecord,
+    dailySupplyReadings, setDailySupplyReadings, addDailyReading, deleteDailyReading,
     updateCustomer, addCustomer, deleteCustomer, closePeriod, resetBankInfo
   } = useWaterData();
   
@@ -71,6 +73,20 @@ const App: React.FC = () => {
           list2Volume: parseFloat(r.list2Volume) || 0
         }));
         setLossRecords(sanitizedLoss);
+      }
+
+      if (Array.isArray(result.dailySupplyReadings)) {
+        const sanitizedDaily = result.dailySupplyReadings.map((r: any, idx: number) => ({
+          ...r,
+          id: r.id || `supply-sync-${Date.now()}-${idx}`,
+          updatedAt: parseFloat(r.updatedAt) || Date.now(),
+          master1: parseFloat(r.master1) || 0,
+          master2: parseFloat(r.master2) || 0,
+          consumption1: parseFloat(r.consumption1) || 0,
+          consumption2: parseFloat(r.consumption2) || 0
+        })).sort((a: any, b: any) => b.date.localeCompare(a.date));
+        // @ts-ignore
+        setDailySupplyReadings(sanitizedDaily);
       }
 
       let allCustomers: Customer[] = [];
@@ -252,7 +268,8 @@ const App: React.FC = () => {
           },
           list1: data1,
           list2: data2,
-          lossRecords: lossRecords
+          lossRecords: lossRecords,
+          dailySupplyReadings: dailySupplyReadings
         })
       });
       
@@ -597,6 +614,16 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onBack={() => navigateTo('list')}
           onAdd={addLossRecord}
           onDelete={deleteLossRecord}
+          onShowDailyTracking={() => navigateTo('loss_daily_record')}
+        />
+      )}
+
+      {view === 'loss_daily_record' && (
+        <LossDailyTracking 
+          readings={dailySupplyReadings}
+          onBack={() => navigateTo('loss_management')}
+          onAdd={addDailyReading}
+          onDelete={deleteDailyReading}
         />
       )}
 
@@ -622,7 +649,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           </button>
           <button 
             onClick={() => navigateTo('loss_management')} 
-            className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${view === 'loss_management' ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'text-slate-400'}`}
+            className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${view === 'loss_management' || view === 'loss_daily_record' ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'text-slate-400'}`}
           >
             HAO HỤT
           </button>

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity } from 'lucide-react';
 import { LossRecord, Customer } from '../types';
 import { formatCurrency, getBillingMonthYear } from '../utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
@@ -12,9 +12,10 @@ interface LossViewProps {
   onBack: () => void;
   onAdd: (record: Omit<LossRecord, 'id' | 'createdAt'>) => void;
   onDelete: (id: string) => void;
+  onShowDailyTracking: () => void;
 }
 
-export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, onAdd, onDelete }) => {
+export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, onAdd, onDelete, onShowDailyTracking }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [activeView, setActiveView] = useState<'table' | 'chart'>('table');
 
@@ -81,6 +82,12 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
           <h1 className="text-base font-black uppercase italic text-slate-900 tracking-tight">Quản lý thất thoát</h1>
         </div>
         <div className="flex bg-slate-100 p-1 rounded-xl">
+          <button 
+            onClick={onShowDailyTracking}
+            className="p-2 mr-1 rounded-lg bg-indigo-100 text-indigo-600 shadow-sm flex items-center gap-1 active:scale-95 transition-all text-[10px] font-black uppercase"
+          >
+            <Activity size={16}/> Theo dõi ngày
+          </button>
           <button 
             onClick={() => setActiveView('table')}
             className={`p-2 rounded-lg transition-all ${activeView === 'table' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}

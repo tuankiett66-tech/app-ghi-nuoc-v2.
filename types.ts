@@ -63,4 +63,15 @@ export interface LossRecord {
   createdAt: number;
 }
 
-export type ViewState = 'list' | 'edit' | 'detail' | 'quick_record' | 'config' | 'stats' | 'edit_customer' | 'add_customer' | 'edit_message_template' | 'group_list' | 'group_detail' | 'verify' | 'loss_management';
+export interface DailySupplyReading {
+  id: string;
+  date: string; // YYYY-MM-DD
+  master1: number;
+  master2: number;
+  consumption1?: number; // Calculated: reading today - reading yesterday
+  consumption2?: number; // Calculated: reading today - reading yesterday
+  notes?: string;
+  updatedAt: number;
+}
+
+export type ViewState = 'list' | 'edit' | 'detail' | 'quick_record' | 'config' | 'stats' | 'edit_customer' | 'add_customer' | 'edit_message_template' | 'group_list' | 'group_detail' | 'verify' | 'loss_management' | 'loss_daily_record' | 'loss_daily_history';

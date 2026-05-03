@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Customer, SystemConfig, WaterGroup, GroupMember, LossRecord } from '../types';
+import { Customer, SystemConfig, WaterGroup, GroupMember, LossRecord, DailySupplyReading } from '../types';
 import { calculateRow } from '../utils';
 
 export const useWaterData = () => {
@@ -25,6 +25,17 @@ export const useWaterData = () => {
       return Array.isArray(data) ? data : [];
     } catch (e) {
       console.error("Error loading loss records:", e);
+      return [];
+    }
+  });
+
+  const [dailySupplyReadings, setDailySupplyReadings] = useState<DailySupplyReading[]>(() => {
+    try {
+      const saved = localStorage.getItem('water_daily_supply_v21');
+      const data = saved ? JSON.parse(saved) : [];
+      return (Array.isArray(data) ? data : []).sort((a, b) => b.date.localeCompare(a.date));
+    } catch (e) {
+      console.error("Error loading daily supply readings:", e);
       return [];
     }
   });
@@ -93,7 +104,8 @@ export const useWaterData = () => {
     localStorage.setItem('water_config_v21', JSON.stringify(config));
     localStorage.setItem('water_active_tab', activeTab);
     localStorage.setItem('water_loss_records_v21', JSON.stringify(lossRecords));
-  }, [customers, groups, config, activeTab, lossRecords]);
+    localStorage.setItem('water_daily_supply_v21', JSON.stringify(dailySupplyReadings));
+  }, [customers, groups, config, activeTab, lossRecords, dailySupplyReadings]);
 
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
     setCustomers(prev => prev.map(c => {
@@ -177,6 +189,45 @@ export const useWaterData = () => {
     }
   };
 
+  const addDailyReading = (reading: Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>) => {
+    // Sort logic to find the previous day's reading
+    const sorted = [...dailySupplyReadings].sort((a, b) => a.date.localeCompare(b.date));
+    const previous = sorted.reverse().find(r => r.date < reading.date);
+    
+    const newRecord: DailySupplyReading = {
+      ...reading,
+      id: `supply-${Date.now()}`,
+      updatedAt: Date.now(),
+      consumption1: previous ? Math.max(0, reading.master1 - previous.master1) : 0,
+      consumption2: previous ? Math.max(0, reading.master2 - previous.master2) : 0,
+    };
+    
+    setDailySupplyReadings(prev => [newRecord, ...prev].sort((a, b) => b.date.localeCompare(a.date)));
+    
+    // Recalculate following readings if date is in middle
+    recalculateDailyConsumption([newRecord, ...dailySupplyReadings]);
+  };
+
+  const recalculateDailyConsumption = (allReadings: DailySupplyReading[]) => {
+    const sorted = [...allReadings].sort((a, b) => a.date.localeCompare(b.date));
+    const updated = sorted.map((r, i) => {
+      const prev = sorted[i - 1];
+      return {
+        ...r,
+        consumption1: prev ? Math.max(0, r.master1 - prev.master1) : 0,
+        consumption2: prev ? Math.max(0, r.master2 - prev.master2) : 0
+      };
+    });
+    setDailySupplyReadings(updated.sort((a, b) => b.date.localeCompare(a.date)));
+  };
+
+  const deleteDailyReading = (id: string) => {
+    if (confirm("Xóa ngày ghi này?")) {
+      const filtered = dailySupplyReadings.filter(r => r.id !== id);
+      recalculateDailyConsumption(filtered);
+    }
+  };
+
   const resetBankInfo = () => {
     const defaults = { 
       bankId: 'vcb', 
@@ -245,12 +296,14 @@ export const useWaterData = () => {
     config, setConfig,
     activeTab, setActiveTab,
     lossRecords, setLossRecords,
+    dailySupplyReadings, setDailySupplyReadings,
     updateCustomer,
     addCustomer,
     deleteCustomer,
     addGroup, updateGroup, deleteGroup,
     closePeriod,
     addLossRecord, deleteLossRecord,
+    addDailyReading, deleteDailyReading,
     resetBankInfo
   };
 };
