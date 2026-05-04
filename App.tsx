@@ -383,8 +383,13 @@ const App: React.FC = () => {
 MÃ KH: ${c.maKH}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
-NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}
-CÒN LẠI: ${remaining.toLocaleString('vi-VN')}
+NỢ CŨ: ${c.oldDebt.toLocaleString('vi-VN')}\n`;
+
+    if (pi > 0) {
+      msg += `ĐÃ THANH TOÁN: -${pi.toLocaleString('vi-VN')}\n`;
+    }
+
+    msg += `CÒN LẠI: ${remaining.toLocaleString('vi-VN')}
 
 ${config.globalMessage}
 👉 THÔNG TIN CHUYỂN KHOẢN:

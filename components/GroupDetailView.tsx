@@ -82,7 +82,7 @@ SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocal
 NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
 
       if (c.paid > 0) {
-        msg += `\nĐÃ TRẢ: -${Math.round(c.paid).toLocaleString('vi-VN')}`;
+        msg += `\nĐÃ THANH TOÁN: -${Math.round(c.paid).toLocaleString('vi-VN')}`;
       }
 
       msg += `\nCÒN LẠI: ${Math.round(c.balance).toLocaleString('vi-VN')}
