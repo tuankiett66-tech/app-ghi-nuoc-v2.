@@ -68,7 +68,9 @@ export const useWaterData = () => {
       groupAccountNo: '8888942444224',
       groupAccountName: 'TO TUAN KIET',
       globalMessage: 'Quy khach vui long thanh toan truoc ngay 10 hang thang.',
-      lastSyncTime: 0
+      lastSyncTime: 0,
+      master1Initial: 0,
+      master2Initial: 0
     };
     try {
       const saved = localStorage.getItem('water_config_v21');
@@ -198,8 +200,8 @@ export const useWaterData = () => {
       ...reading,
       id: `supply-${Date.now()}`,
       updatedAt: Date.now(),
-      consumption1: previous ? Math.max(0, reading.master1 - previous.master1) : 0,
-      consumption2: previous ? Math.max(0, reading.master2 - previous.master2) : 0,
+      consumption1: previous ? Math.max(0, reading.master1 - previous.master1) : Math.max(0, reading.master1 - (config.master1Initial || 0)),
+      consumption2: previous ? Math.max(0, reading.master2 - previous.master2) : Math.max(0, reading.master2 - (config.master2Initial || 0)),
     };
     
     setDailySupplyReadings(prev => [newRecord, ...prev].sort((a, b) => b.date.localeCompare(a.date)));
@@ -209,16 +211,25 @@ export const useWaterData = () => {
   };
 
   const recalculateDailyConsumption = (allReadings: DailySupplyReading[]) => {
-    const sorted = [...allReadings].sort((a, b) => a.date.localeCompare(b.date));
+    const sorted = [...allReadings].sort((a, b) => {
+      const dateTimeA = `${a.date} ${a.time || '00:00'}`;
+      const dateTimeB = `${b.date} ${b.time || '00:00'}`;
+      return dateTimeA.localeCompare(dateTimeB);
+    });
+
     const updated = sorted.map((r, i) => {
       const prev = sorted[i - 1];
       return {
         ...r,
-        consumption1: prev ? Math.max(0, r.master1 - prev.master1) : 0,
-        consumption2: prev ? Math.max(0, r.master2 - prev.master2) : 0
+        consumption1: prev ? Math.max(0, r.master1 - prev.master1) : Math.max(0, r.master1 - (config.master1Initial || 0)),
+        consumption2: prev ? Math.max(0, r.master2 - prev.master2) : Math.max(0, r.master2 - (config.master2Initial || 0))
       };
     });
-    setDailySupplyReadings(updated.sort((a, b) => b.date.localeCompare(a.date)));
+    setDailySupplyReadings(updated.sort((a, b) => {
+      const dateTimeA = `${a.date} ${a.time || '00:00'}`;
+      const dateTimeB = `${b.date} ${b.time || '00:00'}`;
+      return dateTimeB.localeCompare(dateTimeA);
+    }));
   };
 
   const deleteDailyReading = (id: string) => {

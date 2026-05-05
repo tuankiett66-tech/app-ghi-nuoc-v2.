@@ -48,6 +48,9 @@ export interface SystemConfig {
   sheetUrl: string;
   globalMessage: string;
   lastSyncTime?: number;
+  // Opening readings for Loss Tracking
+  master1Initial?: number;
+  master2Initial?: number;
 }
 
 export interface LossRecord {
@@ -66,10 +69,11 @@ export interface LossRecord {
 export interface DailySupplyReading {
   id: string;
   date: string; // YYYY-MM-DD
+  time?: string; // HH:mm
   master1: number;
   master2: number;
-  consumption1?: number; // Calculated: reading today - reading yesterday
-  consumption2?: number; // Calculated: reading today - reading yesterday
+  consumption1?: number; // Calculated: reading today - reading yesterday (or initial)
+  consumption2?: number; // Calculated: reading today - reading yesterday (or initial)
   notes?: string;
   updatedAt: number;
 }

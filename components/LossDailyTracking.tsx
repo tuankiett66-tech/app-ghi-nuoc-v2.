@@ -1,25 +1,33 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity } from 'lucide-react';
-import { DailySupplyReading } from '../types';
+import { DailySupplyReading, SystemConfig } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
+import { formatCurrency } from '../utils';
 
 interface LossDailyTrackingProps {
   readings: DailySupplyReading[];
+  config: SystemConfig;
+  setConfig: React.Dispatch<React.SetStateAction<SystemConfig>>;
   onBack: () => void;
   onAdd: (reading: Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>) => void;
   onDelete: (id: string) => void;
 }
 
-export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, onBack, onAdd, onDelete }) => {
-  const [activeTab, setActiveTab] = useState<'record' | 'history' | 'chart'>('record');
+export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, config, setConfig, onBack, onAdd, onDelete }) => {
+  const [activeTab, setActiveTab] = useState<'record' | 'history' | 'chart'>('history');
   
   // Form state
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [time, setTime] = useState(new Date().toTimeString().slice(0, 5));
   const [m1, setM1] = useState('');
   const [m2, setM2] = useState('');
   const [notes, setNotes] = useState('');
+
+  const [showInitialSettings, setShowInitialSettings] = useState(false);
+  const [tempM1Init, setTempM1Init] = useState(config.master1Initial?.toString() || '0');
+  const [tempM2Init, setTempM2Init] = useState(config.master2Initial?.toString() || '0');
 
   const handleAdd = () => {
     if (!m1 || !m2) {
@@ -28,12 +36,22 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
     }
     onAdd({
       date,
+      time,
       master1: parseFloat(m1),
       master2: parseFloat(m2),
       notes
     });
     setM1(''); setM2(''); setNotes('');
     setActiveTab('history');
+  };
+
+  const handleSaveInitial = () => {
+    setConfig(prev => ({
+      ...prev,
+      master1Initial: parseFloat(tempM1Init) || 0,
+      master2Initial: parseFloat(tempM2Init) || 0
+    }));
+    setShowInitialSettings(false);
   };
 
   const chartData = useMemo(() => {
@@ -72,22 +90,25 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <div className="bg-white p-6 rounded-[2.5rem] border-2 border-blue-50 shadow-xl space-y-5">
             <div className="space-y-4">
-              <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase ml-3 mb-1.5 block">Ngày ghi chỉ số</label>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                  <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl pl-12 pr-4 py-4 text-xl font-black outline-none focus:border-blue-500 shadow-inner" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-3 mb-1.5 block">Ngày ghi</label>
+                  <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-black outline-none focus:border-blue-500 shadow-inner" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-3 mb-1.5 block">Giờ ghi</label>
+                  <input type="time" value={time} onChange={e => setTime(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-black outline-none focus:border-blue-500 shadow-inner" />
                 </div>
               </div>
 
               <div className="bg-slate-50 p-6 rounded-[2.2rem] border-2 border-slate-100/50 shadow-sm space-y-4">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center italic">Đồng hồ tổng số 1</p>
-                <input type="number" value={m1} onChange={e => setM1(e.target.value)} placeholder="Nhập chỉ số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-5 text-2xl font-black text-center outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-100 transition-all placeholder:text-slate-200 shadow-sm" />
+                <input type="number" inputMode="decimal" value={m1} onChange={e => setM1(e.target.value)} placeholder="Nhập chỉ số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-5 text-2xl font-black text-center outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-100 transition-all placeholder:text-slate-200 shadow-sm" />
               </div>
 
               <div className="bg-slate-50 p-6 rounded-[2.2rem] border-2 border-slate-100/50 shadow-sm space-y-4">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center italic">Đồng hồ tổng số 2</p>
-                <input type="number" value={m2} onChange={e => setM2(e.target.value)} placeholder="Nhập chỉ số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-5 text-2xl font-black text-center outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-100 transition-all placeholder:text-slate-200 shadow-sm" />
+                <input type="number" inputMode="decimal" value={m2} onChange={e => setM2(e.target.value)} placeholder="Nhập chỉ số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-5 text-2xl font-black text-center outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-100 transition-all placeholder:text-slate-200 shadow-sm" />
               </div>
 
               <div>
@@ -97,80 +118,142 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
             </div>
 
             <button onClick={handleAdd} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase text-lg shadow-xl shadow-blue-200 active:scale-95 flex items-center justify-center gap-3">
-              <Save size={20}/> Lưu dữ liệu ngày
+              <Save size={20}/> Lưu dữ liệu
             </button>
-          </div>
-
-          <div className="bg-amber-50 border-2 border-amber-100 p-5 rounded-[2rem] flex gap-4">
-            <div className="bg-amber-100 p-3 rounded-2xl text-amber-600 self-start"><AlertCircle size={24}/></div>
-            <div>
-              <p className="text-sm font-black text-amber-900 mb-1 tracking-tight">Hướng dẫn quản lý thất thoát</p>
-              <p className="text-[11px] font-bold text-amber-700 leading-relaxed italic opacity-80">
-                Hãy tạo thói quen ghi chỉ số vào một khung giờ cố định mỗi ngày (Vd: 8h sáng). App sẽ tự tính toán lượng m3 tiêu thụ so với ngày hôm trước để giúp bạn nhận diện biến động bất thường.
-              </p>
-            </div>
           </div>
         </motion.div>
       )}
 
       {activeTab === 'history' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-          {readings.length === 0 ? (
-            <div className="py-20 text-center text-slate-300">
-              <History size={48} className="mx-auto mb-3 opacity-20" />
-              <p className="font-black uppercase text-xs tracking-widest leading-loose">Chưa có lịch sử hàng ngày<br/><span className="text-[10px] font-bold italic lowercase italic">vui lòng nhập dữ liệu ở tab đầu tiên</span></p>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+          <div className="bg-white p-4 rounded-[2rem] border-2 border-slate-100 shadow-sm">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <h2 className="text-xs font-black uppercase text-slate-900 tracking-tight flex items-center gap-2">
+                <Activity size={16} className="text-blue-600" />
+                Chỉ số chốt kỳ trước
+              </h2>
+              <button 
+                onClick={() => {
+                  setTempM1Init(config.master1Initial?.toString() || '0');
+                  setTempM2Init(config.master2Initial?.toString() || '0');
+                  setShowInitialSettings(!showInitialSettings);
+                }} 
+                className="text-[10px] font-black text-blue-600 uppercase border-b-2 border-blue-600/30 pb-0.5"
+              >
+                {showInitialSettings ? 'Hủy' : 'Sửa số chốt'}
+              </button>
             </div>
-          ) : (
-            readings.map((r, idx) => {
-              const totalCons = (r.consumption1 || 0) + (r.consumption2 || 0);
-              const isHigh = totalCons > avgConsumption * 1.5;
-              
-              return (
-                <div key={r.id} className="bg-white p-4 rounded-[2rem] border-2 border-slate-100 shadow-sm relative overflow-hidden">
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-2">
-                       <span className="bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest">{r.date.split('-').reverse().join('/')}</span>
-                       {isHigh && <span className="bg-rose-100 text-rose-600 text-[9px] font-black px-2 py-1 rounded-lg uppercase animate-pulse border border-rose-200">Bất thường</span>}
-                    </div>
-                    <button onClick={() => onDelete(r.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={18}/></button>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="bg-slate-50 border-2 border-slate-100/50 p-4 rounded-[2rem] shadow-sm">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 italic text-center">Tiêu thụ M1</p>
-                      <p className="text-2xl font-black text-slate-900 text-center leading-none tracking-tighter">{r.consumption1} <span className="text-[10px] uppercase opacity-50 tracking-normal">m3</span></p>
-                      <div className="mt-2 text-[10px] font-bold text-slate-400 text-center border-t border-slate-200 pt-1">CS: {r.master1}</div>
-                    </div>
-                    <div className="bg-slate-50 border-2 border-slate-100/50 p-4 rounded-[2rem] shadow-sm">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 italic text-center">Tiêu thụ M2</p>
-                      <p className="text-2xl font-black text-slate-900 text-center leading-none tracking-tighter">{r.consumption2} <span className="text-[10px] uppercase opacity-50 tracking-normal">m3</span></p>
-                      <div className="mt-2 text-[10px] font-bold text-slate-400 text-center border-t border-slate-200 pt-1">CS: {r.master2}</div>
-                    </div>
+            {showInitialSettings ? (
+              <div className="space-y-3 p-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chốt M1</label>
+                    <input type="number" value={tempM1Init} onChange={e => setTempM1Init(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
                   </div>
-
-                  <div className={`p-4 rounded-[2rem] border-2 flex items-center justify-between ${isHigh ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-blue-50 border-blue-100 text-blue-700'}`}>
-                    <div className="flex items-center gap-3">
-                      <TrendingUp size={20} className={isHigh ? 'animate-bounce' : ''} />
-                      <div className="flex flex-col">
-                        <span className="text-[9px] font-black uppercase opacity-60 tracking-wider">Tổng tiêu thụ ngày</span>
-                        <span className="text-xl font-black leading-none">{totalCons} m³</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                       <span className="text-[8px] font-black uppercase opacity-60 block">Trung bình</span>
-                       <span className="text-sm font-black opacity-80">{avgConsumption.toFixed(1)} m³</span>
-                    </div>
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chốt M2</label>
+                    <input type="number" value={tempM2Init} onChange={e => setTempM2Init(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
                   </div>
-                  
-                  {r.notes && (
-                    <div className="mt-3 bg-amber-50 border-2 border-amber-100/50 p-3 rounded-2xl text-[11px] font-bold text-amber-700 italic">
-                      💡 {r.notes}
-                    </div>
-                  )}
                 </div>
-              );
-            })
-          )}
+                <button onClick={handleSaveInitial} className="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs">Cập nhật số chốt</button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 px-2">
+                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M1 kỳ trước</p>
+                  <p className="text-lg font-black text-slate-700">{config.master1Initial?.toLocaleString('vi-VN') || 0}</p>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M2 kỳ trước</p>
+                  <p className="text-lg font-black text-slate-700">{config.master2Initial?.toLocaleString('vi-VN') || 0}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b-2 border-slate-100">
+                  <th className="py-4 px-3 text-[9px] font-black text-slate-400 uppercase text-left">Ngày/Giờ</th>
+                  <th className="py-4 px-3 text-[9px] font-black text-slate-400 uppercase text-center">Đồng hồ 1</th>
+                  <th className="py-4 px-3 text-[9px] font-black text-slate-400 uppercase text-center">Đồng hồ 2</th>
+                  <th className="py-4 px-3 text-[9px] font-black text-slate-400 uppercase text-center">Tổng</th>
+                  <th className="py-4 px-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {readings.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-20 text-center text-slate-300">
+                      <History size={48} className="mx-auto mb-3 opacity-20" />
+                      <p className="font-black uppercase text-[10px] tracking-widest leading-loose">Chưa có dữ liệu hàng ngày</p>
+                    </td>
+                  </tr>
+                ) : (
+                  readings.map((r, idx) => {
+                    const totalCons = (r.consumption1 || 0) + (r.consumption2 || 0);
+                    const isHigh = totalCons > avgConsumption * 1.5 && readings.length > 3;
+                    
+                    return (
+                      <React.Fragment key={r.id}>
+                        <tr className={`border-b border-slate-50 transition-colors ${isHigh ? 'bg-rose-50/30' : 'hover:bg-slate-50/50'}`}>
+                          <td className="py-4 px-3">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-black text-slate-900">{r.date.split('-').reverse().slice(0, 2).join('/')}</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase">{r.time || '--:--'}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-3 text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="text-sm font-black text-blue-600">{r.consumption1}</span>
+                              <span className="text-[8px] font-bold text-slate-400 uppercase">CS: {r.master1}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-3 text-center">
+                            <div className="flex flex-col items-center">
+                              <span className="text-sm font-black text-indigo-600">{r.consumption2}</span>
+                              <span className="text-[8px] font-bold text-slate-400 uppercase">CS: {r.master2}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-3 text-center">
+                             <span className={`text-base font-black ${isHigh ? 'text-rose-600' : 'text-slate-900'}`}>{totalCons}</span>
+                             {isHigh && <div className="text-[7px] font-black text-rose-500 uppercase tracking-tighter">Bất thường</div>}
+                          </td>
+                          <td className="py-4 px-2 text-right">
+                            <button onClick={() => onDelete(r.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={16}/></button>
+                          </td>
+                        </tr>
+                        {r.notes && (
+                          <tr className="bg-amber-50/30 border-b border-slate-50">
+                            <td colSpan={5} className="py-2 px-4 text-[9px] font-bold text-amber-700 italic">
+                               💡 {r.notes}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="bg-slate-900 text-white p-5 rounded-[2.5rem] shadow-xl flex items-center justify-between">
+            <div className="flex items-center gap-4">
+               <div className="bg-blue-500/20 p-3 rounded-2xl text-blue-300"><TrendingUp size={24}/></div>
+               <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5 mt-1">TB tiêu thụ/ngày</p>
+                  <p className="text-2xl font-black tracking-tighter leading-none">{avgConsumption.toFixed(1)} <span className="text-xs font-bold opacity-40 italic tracking-normal">m3/ngày</span></p>
+               </div>
+            </div>
+            <div className="h-10 w-px bg-white/10 mx-2"></div>
+            <div className="text-right">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5 mt-1">Số ngày ghi</p>
+               <p className="text-xl font-black text-blue-400">{readings.length} <span className="text-[10px] font-black text-slate-500">NGÀY</span></p>
+            </div>
+          </div>
         </motion.div>
       )}
 

@@ -83,8 +83,13 @@ const App: React.FC = () => {
           master1: parseFloat(r.master1) || 0,
           master2: parseFloat(r.master2) || 0,
           consumption1: parseFloat(r.consumption1) || 0,
-          consumption2: parseFloat(r.consumption2) || 0
-        })).sort((a: any, b: any) => b.date.localeCompare(a.date));
+          consumption2: parseFloat(r.consumption2) || 0,
+          time: r.time || ''
+        })).sort((a: any, b: any) => {
+          const dateTimeA = `${a.date} ${a.time || '00:00'}`;
+          const dateTimeB = `${b.date} ${b.time || '00:00'}`;
+          return dateTimeB.localeCompare(dateTimeA);
+        });
         // @ts-ignore
         setDailySupplyReadings(sanitizedDaily);
       }
@@ -268,7 +273,9 @@ const App: React.FC = () => {
             groupBankId: config.groupBankId || "",
             groupAccountNo: config.groupAccountNo || "",
             groupAccountName: config.groupAccountName || "",
-            globalMessage: config.globalMessage
+            globalMessage: config.globalMessage,
+            master1Initial: config.master1Initial || 0,
+            master2Initial: config.master2Initial || 0
           },
           list1: data1,
           list2: data2,
@@ -630,6 +637,8 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
       {view === 'loss_daily_record' && (
         <LossDailyTracking 
           readings={dailySupplyReadings}
+          config={config}
+          setConfig={setConfig}
           onBack={() => navigateTo('loss_management')}
           onAdd={addDailyReading}
           onDelete={deleteDailyReading}
