@@ -130,6 +130,7 @@ const App: React.FC = () => {
             listType: 'list1', 
             isZalo: !!item.isZalo, 
             isZaloFriend: !!item.isZaloFriend,
+            isProcessed: !!item.isProcessed,
             note: String(item.note || "").replace(/^'/, "")
           }, result.config?.waterRate || config.waterRate);
         });
@@ -175,6 +176,7 @@ const App: React.FC = () => {
             listType: 'list2', 
             isZalo: !!item.isZalo, 
             isZaloFriend: !!item.isZaloFriend,
+            isProcessed: !!item.isProcessed,
             note: String(item.note || "").replace(/^'/, "")
           }, result.config?.waterRate || config.waterRate);
         });
@@ -225,6 +227,7 @@ const App: React.FC = () => {
       remainingDebt: c.balance, 
       isZalo: !!c.isZalo,
       isZaloFriend: !!c.isZaloFriend,
+      isProcessed: !!c.isProcessed,
       note: "'" + (c.note || "")
     }));
 
@@ -242,6 +245,7 @@ const App: React.FC = () => {
       remainingDebt: c.balance, 
       isZalo: !!c.isZalo,
       isZaloFriend: !!c.isZaloFriend,
+      isProcessed: !!c.isProcessed,
       note: "'" + (c.note || "")
     }));
 
