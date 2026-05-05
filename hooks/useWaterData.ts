@@ -239,6 +239,11 @@ export const useWaterData = () => {
     }
   };
 
+  const updateDailyReading = (id: string, updates: Partial<DailySupplyReading>) => {
+    const updatedRaw = dailySupplyReadings.map(r => r.id === id ? { ...r, ...updates, updatedAt: Date.now() } : r);
+    recalculateDailyConsumption(updatedRaw);
+  };
+
   const resetBankInfo = () => {
     const defaults = { 
       bankId: 'vcb', 
@@ -314,7 +319,7 @@ export const useWaterData = () => {
     addGroup, updateGroup, deleteGroup,
     closePeriod,
     addLossRecord, deleteLossRecord,
-    addDailyReading, deleteDailyReading,
+    addDailyReading, deleteDailyReading, updateDailyReading,
     resetBankInfo
   };
 };

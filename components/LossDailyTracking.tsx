@@ -13,9 +13,10 @@ interface LossDailyTrackingProps {
   onBack: () => void;
   onAdd: (reading: Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<DailySupplyReading>) => void;
 }
 
-export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, config, setConfig, onBack, onAdd, onDelete }) => {
+export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, config, setConfig, onBack, onAdd, onDelete, onUpdate }) => {
   const [activeTab, setActiveTab] = useState<'record' | 'history' | 'chart'>('history');
   
   // Form state
@@ -24,6 +25,10 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
   const [m1, setM1] = useState('');
   const [m2, setM2] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<Partial<DailySupplyReading>>({});
 
   const [showInitialSettings, setShowInitialSettings] = useState(false);
   const [tempM1Init, setTempM1Init] = useState(config.master1Initial?.toString() || '0');
@@ -43,6 +48,18 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
     });
     setM1(''); setM2(''); setNotes('');
     setActiveTab('history');
+  };
+
+  const handleStartEdit = (r: DailySupplyReading) => {
+    setEditingId(r.id);
+    setEditData({ ...r });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingId && editData) {
+      onUpdate(editingId, editData);
+      setEditingId(null);
+    }
   };
 
   const handleSaveInitial = () => {
@@ -195,40 +212,69 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                   readings.map((r, idx) => {
                     const totalCons = (r.consumption1 || 0) + (r.consumption2 || 0);
                     const isHigh = totalCons > avgConsumption * 1.5 && readings.length > 3;
+                    const isEditing = editingId === r.id;
                     
                     return (
                       <React.Fragment key={r.id}>
                         <tr className={`border-b border-slate-50 transition-colors ${isHigh ? 'bg-rose-50/30' : 'hover:bg-slate-50/50'}`}>
                           <td className="py-4 px-3">
-                            <div className="flex flex-col">
-                              <span className="text-xs font-black text-slate-900">{r.date.split('-').reverse().slice(0, 2).join('/')}</span>
-                              <span className="text-[9px] font-bold text-slate-400 uppercase">{r.time || '--:--'}</span>
-                            </div>
+                            {isEditing ? (
+                              <div className="flex flex-col gap-1">
+                                <input type="date" value={editData.date} onChange={e => setEditData({...editData, date: e.target.value})} className="text-[10px] p-1 border rounded w-20" />
+                                <input type="time" value={editData.time} onChange={e => setEditData({...editData, time: e.target.value})} className="text-[10px] p-1 border rounded w-20" />
+                              </div>
+                            ) : (
+                              <div className="flex flex-col" onClick={() => handleStartEdit(r)}>
+                                <span className="text-xs font-black text-slate-900">{r.date.split('-').reverse().slice(0, 2).join('/')}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase">{r.time || '--:--'}</span>
+                              </div>
+                            )}
                           </td>
                           <td className="py-4 px-3 text-center">
-                            <div className="flex flex-col items-center">
-                              <span className="text-sm font-black text-blue-600">{r.consumption1}</span>
-                              <span className="text-[8px] font-bold text-slate-400 uppercase">CS: {r.master1}</span>
-                            </div>
+                            {isEditing ? (
+                              <input type="number" value={editData.master1} onChange={e => setEditData({...editData, master1: parseFloat(e.target.value)})} className="w-16 text-xs text-center border rounded p-1 font-black" />
+                            ) : (
+                              <div className="flex flex-col items-center" onClick={() => handleStartEdit(r)}>
+                                <span className="text-sm font-black text-blue-600">{r.consumption1}</span>
+                                <span className="text-[8px] font-bold text-slate-400 uppercase">CS: {r.master1}</span>
+                              </div>
+                            )}
                           </td>
                           <td className="py-4 px-3 text-center">
-                            <div className="flex flex-col items-center">
-                              <span className="text-sm font-black text-indigo-600">{r.consumption2}</span>
-                              <span className="text-[8px] font-bold text-slate-400 uppercase">CS: {r.master2}</span>
-                            </div>
+                            {isEditing ? (
+                              <input type="number" value={editData.master2} onChange={e => setEditData({...editData, master2: parseFloat(e.target.value)})} className="w-16 text-xs text-center border rounded p-1 font-black" />
+                            ) : (
+                              <div className="flex flex-col items-center" onClick={() => handleStartEdit(r)}>
+                                <span className="text-sm font-black text-indigo-600">{r.consumption2}</span>
+                                <span className="text-[8px] font-bold text-slate-400 uppercase">CS: {r.master2}</span>
+                              </div>
+                            )}
                           </td>
                           <td className="py-4 px-3 text-center">
-                             <span className={`text-base font-black ${isHigh ? 'text-rose-600' : 'text-slate-900'}`}>{totalCons}</span>
-                             {isHigh && <div className="text-[7px] font-black text-rose-500 uppercase tracking-tighter">Bất thường</div>}
+                            {isEditing ? (
+                              <div className="flex flex-col gap-1">
+                                <button onClick={handleSaveEdit} className="bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded">LƯU</button>
+                                <button onClick={() => setEditingId(null)} className="bg-slate-200 text-slate-600 text-[8px] font-black px-2 py-1 rounded">HỦY</button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center" onClick={() => handleStartEdit(r)}>
+                                <span className={`text-base font-black ${isHigh ? 'text-rose-600' : 'text-slate-900'}`}>{totalCons}</span>
+                                {isHigh && <div className="text-[7px] font-black text-rose-500 uppercase tracking-tighter">Bất thường</div>}
+                              </div>
+                            )}
                           </td>
                           <td className="py-4 px-2 text-right">
                             <button onClick={() => onDelete(r.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={16}/></button>
                           </td>
                         </tr>
-                        {r.notes && (
+                        {(r.notes || isEditing) && (
                           <tr className="bg-amber-50/30 border-b border-slate-50">
                             <td colSpan={5} className="py-2 px-4 text-[9px] font-bold text-amber-700 italic">
-                               💡 {r.notes}
+                               {isEditing ? (
+                                 <input value={editData.notes || ''} onChange={e => setEditData({...editData, notes: e.target.value})} placeholder="Ghi chú..." className="w-full bg-transparent border-none outline-none font-bold italic" />
+                               ) : (
+                                 <>💡 {r.notes}</>
+                               )}
                             </td>
                           </tr>
                         )}

@@ -28,4 +28,4 @@
 ## Synchronization
 - The app uses a Google Apps Script for cloud backup.
 - No changes to the script are needed for data structure updates as it handles generic JSON objects.
-- Ensure `handleBackupCloud` in `App.tsx` maps all critical fields: `isProcessed`, `isZalo`, `dailySupplyReadings`.
+- Ensure `handleBackupCloud` in `App.tsx` maps all critical fields: `isProcessed`, `isZalo`, `dailySupplyReadings`, `master1Initial`, `master2Initial`.
