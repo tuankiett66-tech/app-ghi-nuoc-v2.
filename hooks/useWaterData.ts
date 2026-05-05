@@ -109,6 +109,10 @@ export const useWaterData = () => {
     localStorage.setItem('water_daily_supply_v21', JSON.stringify(dailySupplyReadings));
   }, [customers, groups, config, activeTab, lossRecords, dailySupplyReadings]);
 
+  useEffect(() => {
+    recalculateDailyConsumption(dailySupplyReadings);
+  }, [config.master1Initial, config.master2Initial]);
+
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
     setCustomers(prev => prev.map(c => {
       if (c.id === id) {

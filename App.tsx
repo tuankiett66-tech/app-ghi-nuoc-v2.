@@ -57,7 +57,13 @@ const App: React.FC = () => {
       const result = await res.json();
       
       if (result.config) {
-        setConfig(prev => ({ ...prev, ...result.config, lastSyncTime: Date.now() }));
+        setConfig(prev => ({ 
+          ...prev, 
+          ...result.config, 
+          master1Initial: parseFloat(result.config.master1Initial) || result.config.master1Initial || 0,
+          master2Initial: parseFloat(result.config.master2Initial) || result.config.master2Initial || 0,
+          lastSyncTime: Date.now() 
+        }));
       }
 
       if (Array.isArray(result.lossRecords)) {

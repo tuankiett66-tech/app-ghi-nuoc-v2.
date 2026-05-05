@@ -147,7 +147,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
             <div className="flex items-center justify-between mb-4 px-2">
               <h2 className="text-xs font-black uppercase text-slate-900 tracking-tight flex items-center gap-2">
                 <Activity size={16} className="text-blue-600" />
-                Chỉ số chốt kỳ trước
+                Số chốt đầu kỳ (Opening Index)
               </h2>
               <button 
                 onClick={() => {
@@ -165,11 +165,11 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
               <div className="space-y-3 p-2 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chốt M1</label>
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chốt M1 (Số Cuối Kỳ Trước)</label>
                     <input type="number" value={tempM1Init} onChange={e => setTempM1Init(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chốt M2</label>
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chốt M2 (Số Cuối Kỳ Trước)</label>
                     <input type="number" value={tempM2Init} onChange={e => setTempM2Init(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
                   </div>
                 </div>
@@ -178,15 +178,18 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
             ) : (
               <div className="grid grid-cols-2 gap-3 px-2">
                 <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M1 kỳ trước</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M1 (Số Cuối Kỳ Trước)</p>
                   <p className="text-lg font-black text-slate-700">{config.master1Initial?.toLocaleString('vi-VN') || 0}</p>
                 </div>
                 <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M2 kỳ trước</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M2 (Số Cuối Kỳ Trước)</p>
                   <p className="text-lg font-black text-slate-700">{config.master2Initial?.toLocaleString('vi-VN') || 0}</p>
                 </div>
               </div>
             )}
+            <p className="text-[9px] font-bold text-slate-400 italic px-2 mt-3 block text-center opacity-70">
+              App dùng số này để tính cho ngày ghi chép đầu tiên.
+            </p>
           </div>
 
           <div className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
@@ -343,6 +346,15 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
           </div>
         </motion.div>
       )}
+      <div className="bg-amber-50 border-2 border-amber-100 p-5 rounded-[2rem] flex gap-4 mt-4">
+        <div className="bg-amber-100 p-3 rounded-2xl text-amber-600 self-start"><AlertCircle size={24}/></div>
+        <div>
+          <p className="text-sm font-black text-amber-900 mb-1 tracking-tight">Hướng dẫn số chốt</p>
+          <p className="text-[11px] font-bold text-amber-700 leading-relaxed italic opacity-80">
+            "Số chốt kỳ trước" chính là <span className="underline decoration-2 text-amber-900 uppercase">Chỉ số CUỐI</span> của kỳ nước vừa xong. App dùng số này để tính tiêu thụ cho ngày đầu tiên của kỳ mới.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
