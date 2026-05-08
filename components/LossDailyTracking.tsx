@@ -4,7 +4,7 @@ import { ChevronLeft, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, His
 import { DailySupplyReading, SystemConfig } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
-import { formatCurrency, formatDateDisplay, normalizeDate } from '../utils';
+import { formatCurrency, formatDateDisplay, normalizeDate, normalizeTime } from '../utils';
 
 interface LossDailyTrackingProps {
   readings: DailySupplyReading[];
@@ -53,7 +53,11 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
 
   const handleStartEdit = (r: DailySupplyReading) => {
     setEditingId(r.id);
-    setEditData({ ...r, date: normalizeDate(r.date) });
+    setEditData({ 
+      ...r, 
+      date: normalizeDate(r.date),
+      time: normalizeTime(r.time)
+    });
   };
 
   const handleSaveEdit = () => {
@@ -239,7 +243,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                             ) : (
                               <div className="flex flex-col" onClick={() => handleStartEdit(r)}>
                                 <span className="text-xs font-black text-slate-900">{formatDateDisplay(r.date)}</span>
-                                <span className="text-[9px] font-bold text-slate-400 uppercase">{r.time || '--:--'}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase">{normalizeTime(r.time || '--:--')}</span>
                               </div>
                             )}
                           </td>
