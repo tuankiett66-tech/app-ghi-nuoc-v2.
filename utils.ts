@@ -44,14 +44,19 @@ export const calculateRow = (cust: any, rate: number) => {
 };
 
 export const normalizeDate = (dateStr: any): string => {
-  if (!dateStr) return new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
+  if (!dateStr) {
+    const now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  }
   const str = String(dateStr);
   
-  // 1. Nếu chuỗi bắt đầu bằng YYYY-MM-DD, lấy luôn 10 ký tự đó (tránh bị lệch múi giờ khi parse Date)
-  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+  // Nếu là chuỗi chính xác YYYY-MM-DD (độ dài 10), trả về luôn
+  // Tránh parse Date vì có thể bị lệch múi giờ nếu máy khách có cấu hình lạ
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str) && str.length === 10) return str;
   
-  // 2. Nếu không, parse Date và lấy theo giờ địa phương (Local Time)
+  // Nếu là chuỗi ISO (có chữ T) hoặc các định dạng khác
+  // Phải parse bằng new Date() và lấy ngày theo giờ ĐỊA PHƯƠNG (Local Time)
+  // để bù đắp các chuỗi UTC từ Google Sheets/Excel (ví dụ: 2026-04-29T17:00:00Z là sáng ngày 30/04)
   const d = new Date(str);
   if (!isNaN(d.getTime())) {
     const y = d.getFullYear();
@@ -66,7 +71,7 @@ export const normalizeTime = (timeStr: any): string => {
   if (!timeStr) return '--:--';
   const str = String(timeStr);
   
-  // Nếu là chuỗi ISO (thường từ Excel/Google Sheets cho giờ: 1899-12-30T...)
+  // Nếu là chuỗi ISO hoặc có T
   if (str.includes('T')) {
     const d = new Date(str);
     if (!isNaN(d.getTime())) {
@@ -76,9 +81,10 @@ export const normalizeTime = (timeStr: any): string => {
     }
   }
   
-  // Nếu đã là HH:mm hoặc HH:mm:ss
-  if (/^\d{1,2}:\d{2}/.test(str)) {
-    return str.substring(0, 5);
+  // Nếu đã có dạng HH:mm
+  const timeMatch = str.match(/(\d{1,2}):(\d{2})/);
+  if (timeMatch) {
+    return `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
   }
   
   return str;
