@@ -51,6 +51,7 @@ export interface SystemConfig {
   // Opening readings for Loss Tracking
   master1Initial?: number;
   master2Initial?: number;
+  masterInitialDate?: string;
 }
 
 export interface LossRecord {

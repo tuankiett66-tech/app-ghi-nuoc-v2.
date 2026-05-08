@@ -43,6 +43,39 @@ export const calculateRow = (cust: any, rate: number) => {
   };
 };
 
+export const normalizeDate = (dateStr: any): string => {
+  if (!dateStr) return new Date().toISOString().split('T')[0];
+  const str = String(dateStr);
+  
+  // If it's already YYYY-MM-DD, return it
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  
+  // If it's ISO format, take the part before T
+  if (str.includes('T')) {
+    const part = str.split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(part)) return part;
+  }
+  
+  // Fallback for other date objects/strings
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  return str;
+};
+
+export const formatDateDisplay = (dateStr: any): string => {
+  const norm = normalizeDate(dateStr);
+  const parts = norm.split('-');
+  if (parts.length >= 3) {
+    return `${parts[2]}/${parts[1]}`;
+  }
+  return norm;
+};
+
 export const formatCurrency = (value: number) => {
   if (value === undefined || value === null) return "0 đ";
   return Math.round(value).toLocaleString('vi-VN') + ' đ';

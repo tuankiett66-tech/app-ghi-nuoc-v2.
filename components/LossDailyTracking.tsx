@@ -4,7 +4,7 @@ import { ChevronLeft, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, His
 import { DailySupplyReading, SystemConfig } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
-import { formatCurrency } from '../utils';
+import { formatCurrency, formatDateDisplay, normalizeDate } from '../utils';
 
 interface LossDailyTrackingProps {
   readings: DailySupplyReading[];
@@ -33,6 +33,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
   const [showInitialSettings, setShowInitialSettings] = useState(false);
   const [tempM1Init, setTempM1Init] = useState(config.master1Initial?.toString() || '0');
   const [tempM2Init, setTempM2Init] = useState(config.master2Initial?.toString() || '0');
+  const [tempDateInit, setTempDateInit] = useState(config.masterInitialDate || new Date().toISOString().split('T')[0]);
 
   const handleAdd = () => {
     if (!m1 || !m2) {
@@ -40,7 +41,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
       return;
     }
     onAdd({
-      date,
+      date: normalizeDate(date),
       time,
       master1: parseFloat(m1),
       master2: parseFloat(m2),
@@ -52,12 +53,12 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
 
   const handleStartEdit = (r: DailySupplyReading) => {
     setEditingId(r.id);
-    setEditData({ ...r });
+    setEditData({ ...r, date: normalizeDate(r.date) });
   };
 
   const handleSaveEdit = () => {
     if (editingId && editData) {
-      onUpdate(editingId, editData);
+      onUpdate(editingId, { ...editData, date: normalizeDate(editData.date) });
       setEditingId(null);
     }
   };
@@ -66,14 +67,15 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
     setConfig(prev => ({
       ...prev,
       master1Initial: parseFloat(tempM1Init) || 0,
-      master2Initial: parseFloat(tempM2Init) || 0
+      master2Initial: parseFloat(tempM2Init) || 0,
+      masterInitialDate: normalizeDate(tempDateInit)
     }));
     setShowInitialSettings(false);
   };
 
   const chartData = useMemo(() => {
     return [...readings].reverse().map(r => ({
-      date: r.date.split('-').slice(1).reverse().join('/'), // DD/MM
+      date: formatDateDisplay(r.date), // DD/MM
       'Tổng tiêu thụ': (r.consumption1 || 0) + (r.consumption2 || 0),
       'Đồng hồ 1': r.consumption1 || 0,
       'Đồng hồ 2': r.consumption2 || 0,
@@ -173,6 +175,10 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                     <input type="number" value={tempM2Init} onChange={e => setTempM2Init(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
                   </div>
                 </div>
+                <div>
+                   <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Ngày chốt (Số liệu tính cho ngày đầu kỳ)</label>
+                   <input type="date" value={tempDateInit} onChange={e => setTempDateInit(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
+                </div>
                 <button onClick={handleSaveInitial} className="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs">Cập nhật số chốt</button>
               </div>
             ) : (
@@ -184,6 +190,10 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                 <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
                   <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M2 (Số Cuối Kỳ Trước)</p>
                   <p className="text-lg font-black text-slate-700">{config.master2Initial?.toLocaleString('vi-VN') || 0}</p>
+                </div>
+                <div className="col-span-2 bg-slate-50 rounded-2xl p-2 border border-slate-100 text-center">
+                   <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Ngày chốt kỳ trước</p>
+                   <p className="text-xs font-black text-slate-600">{formatDateDisplay(config.masterInitialDate || '')}</p>
                 </div>
               </div>
             )}
@@ -228,7 +238,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                               </div>
                             ) : (
                               <div className="flex flex-col" onClick={() => handleStartEdit(r)}>
-                                <span className="text-xs font-black text-slate-900">{r.date.split('-').reverse().slice(0, 2).join('/')}</span>
+                                <span className="text-xs font-black text-slate-900">{formatDateDisplay(r.date)}</span>
                                 <span className="text-[9px] font-bold text-slate-400 uppercase">{r.time || '--:--'}</span>
                               </div>
                             )}

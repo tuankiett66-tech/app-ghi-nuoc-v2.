@@ -12,7 +12,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate } from './utils';
 import { Customer } from './types';
 
 const App: React.FC = () => {
@@ -21,7 +21,7 @@ const App: React.FC = () => {
     groups, addGroup, updateGroup, deleteGroup, 
     config, setConfig, 
     activeTab, setActiveTab, 
-    lossRecords, setLossRecords, addLossRecord, deleteLossRecord,
+    lossRecords, setLossRecords, addLossRecord, deleteLossRecord, updateLossRecord,
     dailySupplyReadings, setDailySupplyReadings, addDailyReading, deleteDailyReading, updateDailyReading,
     updateCustomer, addCustomer, deleteCustomer, closePeriod, resetBankInfo
   } = useWaterData();
@@ -62,6 +62,7 @@ const App: React.FC = () => {
           ...result.config, 
           master1Initial: parseFloat(result.config.master1Initial) || result.config.master1Initial || 0,
           master2Initial: parseFloat(result.config.master2Initial) || result.config.master2Initial || 0,
+          masterInitialDate: normalizeDate(result.config.masterInitialDate),
           lastSyncTime: Date.now() 
         }));
       }
@@ -90,6 +91,7 @@ const App: React.FC = () => {
           master2: parseFloat(r.master2) || 0,
           consumption1: parseFloat(r.consumption1) || 0,
           consumption2: parseFloat(r.consumption2) || 0,
+          date: normalizeDate(r.date),
           time: r.time || ''
         })).sort((a: any, b: any) => {
           const dateTimeA = `${a.date} ${a.time || '00:00'}`;
@@ -281,7 +283,8 @@ const App: React.FC = () => {
             groupAccountName: config.groupAccountName || "",
             globalMessage: config.globalMessage,
             master1Initial: config.master1Initial || 0,
-            master2Initial: config.master2Initial || 0
+            master2Initial: config.master2Initial || 0,
+            masterInitialDate: config.masterInitialDate || ""
           },
           list1: data1,
           list2: data2,
@@ -636,6 +639,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onBack={() => navigateTo('list')}
           onAdd={addLossRecord}
           onDelete={deleteLossRecord}
+          onUpdate={updateLossRecord}
           onShowDailyTracking={() => navigateTo('loss_daily_record')}
         />
       )}
@@ -653,7 +657,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
       )}
 
       {/* Navigation Tab Bar */}
-      {(view === 'list' || view === 'stats' || view === 'loss_management' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg' || view === 'group_list' || view === 'group_detail' || view === 'verify') && (
+      {(view === 'list' || view === 'stats' || view === 'loss_management' || view === 'loss_daily_record' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg' || view === 'group_list' || view === 'group_detail' || view === 'verify') && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border-2 border-slate-100 p-1.5 rounded-[2.2rem] flex gap-1 shadow-2xl z-[200] mb-[var(--sab)] min-w-[360px]">
           <button 
             onClick={() => { 

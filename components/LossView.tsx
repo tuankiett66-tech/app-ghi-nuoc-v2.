@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity, Save } from 'lucide-react';
 import { LossRecord, Customer } from '../types';
 import { formatCurrency, getBillingMonthYear } from '../utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
@@ -12,12 +12,17 @@ interface LossViewProps {
   onBack: () => void;
   onAdd: (record: Omit<LossRecord, 'id' | 'createdAt'>) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<LossRecord>) => void;
   onShowDailyTracking: () => void;
 }
 
-export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, onAdd, onDelete, onShowDailyTracking }) => {
+export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, onAdd, onDelete, onUpdate, onShowDailyTracking }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [activeView, setActiveView] = useState<'table' | 'chart'>('table');
+  
+  // Editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<Partial<LossRecord>>({});
 
   // Form state
   const [period, setPeriod] = useState('');
@@ -215,8 +220,10 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
               const loss = totalSupply - totalConsumption;
               const lossPercent = totalSupply > 0 ? (loss / totalSupply) * 100 : 0;
 
+              const isEditing = editingId === r.id;
+
               return (
-                <div key={r.id} className="bg-white p-4 rounded-[2rem] border-2 border-slate-100 shadow-sm relative overflow-hidden group">
+                <div key={r.id} className="bg-white p-4 rounded-[2rem] border-2 border-slate-100 shadow-sm relative overflow-hidden group transition-all">
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -225,23 +232,87 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                       </div>
                       <p className="text-[10px] font-bold text-slate-400 italic">Ngày tạo: {new Date(r.createdAt).toLocaleDateString('vi-VN')}</p>
                     </div>
-                    <button onClick={() => onDelete(r.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors active:scale-90"><Trash2 size={18}/></button>
+                    <div className="flex gap-2">
+                       {isEditing ? (
+                         <div className="flex gap-1 animate-in fade-in zoom-in duration-200">
+                            <button 
+                              onClick={() => {
+                                onUpdate(r.id, editData);
+                                setEditingId(null);
+                              }} 
+                              className="p-2 bg-emerald-500 text-white rounded-xl shadow-sm active:scale-95"
+                            ><Save size={18}/></button>
+                            <button onClick={() => setEditingId(null)} className="p-2 bg-slate-100 text-slate-400 rounded-xl active:scale-90 font-black text-[10px] uppercase px-3">Hủy</button>
+                         </div>
+                       ) : (
+                         <button 
+                           onClick={() => {
+                             setEditingId(r.id);
+                             setEditData({ ...r });
+                           }} 
+                           className="p-2 text-blue-600 bg-blue-50 rounded-xl active:scale-90"
+                         ><Activity size={18}/></button>
+                       )}
+                       <button onClick={() => onDelete(r.id)} className="p-2 text-slate-200 hover:text-rose-500 transition-colors active:scale-90"><Trash2 size={18}/></button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2.5 mb-4">
-                    <div className="bg-slate-50 border-2 border-slate-100/50 p-3 rounded-[2rem] text-center shadow-sm">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Tổng cấp</p>
-                      <p className="text-xl font-black text-slate-900 leading-none">{totalSupply} <span className="text-[10px]">m³</span></p>
+                  {isEditing ? (
+                    <div className="bg-blue-50 p-4 rounded-[2.5rem] border-2 border-blue-100 shadow-inner mb-4 animate-in slide-in-from-top-2 duration-300 space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-black text-blue-400 uppercase ml-2 mb-1 block">Kỳ</label>
+                          <input value={editData.period || ''} onChange={e => setEditData({...editData, period: e.target.value})} className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black" />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black text-blue-400 uppercase ml-2 mb-1 block">Tháng</label>
+                          <input value={editData.month || ''} onChange={e => setEditData({...editData, month: e.target.value})} className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black" />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                           <p className="text-[9px] font-black text-blue-500 uppercase text-center italic">Đồng hồ 1</p>
+                           <input type="number" value={editData.master1New} onChange={e => setEditData({...editData, master1New: parseFloat(e.target.value) || 0})} placeholder="Mới" className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
+                           <input type="number" value={editData.master1Old} onChange={e => setEditData({...editData, master1Old: parseFloat(e.target.value) || 0})} placeholder="Cũ" className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
+                        </div>
+                        <div className="space-y-2">
+                           <p className="text-[9px] font-black text-blue-500 uppercase text-center italic">Đồng hồ 2</p>
+                           <input type="number" value={editData.master2New} onChange={e => setEditData({...editData, master2New: parseFloat(e.target.value) || 0})} placeholder="Mới" className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
+                           <input type="number" value={editData.master2Old} onChange={e => setEditData({...editData, master2Old: parseFloat(e.target.value) || 0})} placeholder="Cũ" className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-black text-blue-500 uppercase text-center italic">Tiêu thụ từ Danh bộ</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[9px] font-black text-blue-400 uppercase ml-2 mb-1 block">Bộ 01 (M3)</label>
+                            <input type="number" value={editData.list1Volume} onChange={e => setEditData({...editData, list1Volume: parseFloat(e.target.value) || 0})} className="w-full bg-white border-2 border-blue-200 rounded-2xl px-4 py-2 text-lg font-black text-center outline-none focus:border-blue-600" />
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-black text-blue-400 uppercase ml-2 mb-1 block">Bộ 02 (M3)</label>
+                            <input type="number" value={editData.list2Volume} onChange={e => setEditData({...editData, list2Volume: parseFloat(e.target.value) || 0})} className="w-full bg-white border-2 border-blue-200 rounded-2xl px-4 py-2 text-lg font-black text-center outline-none focus:border-blue-600" />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-slate-50 border-2 border-slate-100/50 p-3 rounded-[2rem] text-center shadow-sm">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Tiêu thụ</p>
-                      <p className="text-xl font-black text-slate-900 leading-none">{totalConsumption} <span className="text-[10px]">m³</span></p>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2.5 mb-4">
+                      <div className="bg-slate-50 border-2 border-slate-100/50 p-3 rounded-[2rem] text-center shadow-sm">
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Tổng cấp</p>
+                        <p className="text-xl font-black text-slate-900 leading-none">{totalSupply} <span className="text-[10px]">m³</span></p>
+                      </div>
+                      <div className="bg-slate-50 border-2 border-slate-100/50 p-3 rounded-[2rem] text-center shadow-sm">
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Tiêu thụ</p>
+                        <p className="text-xl font-black text-slate-900 leading-none">{totalConsumption} <span className="text-[10px]">m³</span></p>
+                      </div>
+                      <div className={`${loss > 0 ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'} border-2 p-3 rounded-[2rem] text-center shadow-md animate-pulse-slow`}>
+                        <p className="text-[10px] font-black uppercase mb-1 tracking-widest">Hao hụt</p>
+                        <p className="text-xl font-black leading-none">{loss} <span className="text-[10px]">m³</span></p>
+                      </div>
                     </div>
-                    <div className={`${loss > 0 ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'} border-2 p-3 rounded-[2rem] text-center shadow-md animate-pulse-slow`}>
-                      <p className="text-[10px] font-black uppercase mb-1 tracking-widest">Hao hụt</p>
-                      <p className="text-xl font-black leading-none">{loss} <span className="text-[10px]">m³</span></p>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
                     <div className={`p-2 rounded-xl ${lossPercent > 10 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>

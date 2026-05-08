@@ -111,7 +111,7 @@ export const useWaterData = () => {
 
   useEffect(() => {
     recalculateDailyConsumption(dailySupplyReadings);
-  }, [config.master1Initial, config.master2Initial]);
+  }, [config.master1Initial, config.master2Initial, config.masterInitialDate]);
 
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
     setCustomers(prev => prev.map(c => {
@@ -195,6 +195,10 @@ export const useWaterData = () => {
     }
   };
 
+  const updateLossRecord = (id: string, updates: Partial<LossRecord>) => {
+    setLossRecords(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  };
+
   const addDailyReading = (reading: Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>) => {
     // Sort logic to find the previous day's reading
     const sorted = [...dailySupplyReadings].sort((a, b) => a.date.localeCompare(b.date));
@@ -214,8 +218,22 @@ export const useWaterData = () => {
     recalculateDailyConsumption([newRecord, ...dailySupplyReadings]);
   };
 
+  const deleteDailyReading = (id: string) => {
+    if (confirm("Xóa bản ghi này?")) {
+      const updated = dailySupplyReadings.filter(r => r.id !== id);
+      setDailySupplyReadings(updated);
+      recalculateDailyConsumption(updated);
+    }
+  };
+
+  const updateDailyReading = (id: string, updates: Partial<DailySupplyReading>) => {
+    const updated = dailySupplyReadings.map(r => r.id === id ? { ...r, ...updates } : r);
+    setDailySupplyReadings(updated);
+    recalculateDailyConsumption(updated);
+  };
+
   const recalculateDailyConsumption = (allReadings: DailySupplyReading[]) => {
-    const sorted = [...allReadings].sort((a, b) => {
+    const sorted = [...allReadings].map(r => ({ ...r, date: r.date.split('T')[0] })).sort((a, b) => {
       const dateTimeA = `${a.date} ${a.time || '00:00'}`;
       const dateTimeB = `${b.date} ${b.time || '00:00'}`;
       return dateTimeA.localeCompare(dateTimeB);
@@ -234,18 +252,6 @@ export const useWaterData = () => {
       const dateTimeB = `${b.date} ${b.time || '00:00'}`;
       return dateTimeB.localeCompare(dateTimeA);
     }));
-  };
-
-  const deleteDailyReading = (id: string) => {
-    if (confirm("Xóa ngày ghi này?")) {
-      const filtered = dailySupplyReadings.filter(r => r.id !== id);
-      recalculateDailyConsumption(filtered);
-    }
-  };
-
-  const updateDailyReading = (id: string, updates: Partial<DailySupplyReading>) => {
-    const updatedRaw = dailySupplyReadings.map(r => r.id === id ? { ...r, ...updates, updatedAt: Date.now() } : r);
-    recalculateDailyConsumption(updatedRaw);
   };
 
   const resetBankInfo = () => {
@@ -322,7 +328,7 @@ export const useWaterData = () => {
     deleteCustomer,
     addGroup, updateGroup, deleteGroup,
     closePeriod,
-    addLossRecord, deleteLossRecord,
+    addLossRecord, deleteLossRecord, updateLossRecord,
     addDailyReading, deleteDailyReading, updateDailyReading,
     resetBankInfo
   };
