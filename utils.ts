@@ -44,14 +44,14 @@ export const calculateRow = (cust: any, rate: number) => {
 };
 
 export const normalizeDate = (dateStr: any): string => {
-  if (!dateStr) return new Date().toISOString().split('T')[0];
+  if (!dateStr) return new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
   const str = String(dateStr);
   
-  // If it's already YYYY-MM-DD, return it immediately
-  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  // 1. Nếu chuỗi bắt đầu bằng YYYY-MM-DD, lấy luôn 10 ký tự đó (tránh bị lệch múi giờ khi parse Date)
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) return `${match[1]}-${match[2]}-${match[3]}`;
   
-  // For any other string (including ISO with T), parse using Date and get local parts
-  // This avoids the 1-day shift caused by naive string splitting of UTC-based ISO strings
+  // 2. Nếu không, parse Date và lấy theo giờ địa phương (Local Time)
   const d = new Date(str);
   if (!isNaN(d.getTime())) {
     const y = d.getFullYear();
@@ -66,7 +66,7 @@ export const normalizeTime = (timeStr: any): string => {
   if (!timeStr) return '--:--';
   const str = String(timeStr);
   
-  // If it's an ISO string (like 1899-12-30T06:26:56.000Z or similar)
+  // Nếu là chuỗi ISO (thường từ Excel/Google Sheets cho giờ: 1899-12-30T...)
   if (str.includes('T')) {
     const d = new Date(str);
     if (!isNaN(d.getTime())) {
@@ -76,7 +76,7 @@ export const normalizeTime = (timeStr: any): string => {
     }
   }
   
-  // If it's already HH:mm or HH:mm:ss
+  // Nếu đã là HH:mm hoặc HH:mm:ss
   if (/^\d{1,2}:\d{2}/.test(str)) {
     return str.substring(0, 5);
   }
