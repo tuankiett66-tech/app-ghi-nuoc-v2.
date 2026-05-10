@@ -253,7 +253,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                             ) : (
                               <div className="flex flex-col items-center" onClick={() => handleStartEdit(r)}>
                                 <span className="text-sm font-black text-blue-600">{r.consumption1}</span>
-                                <span className="text-[11px] font-black text-slate-500 uppercase">CS: {r.master1}</span>
+                                <span className="text-[13px] font-black text-slate-600 uppercase">CS: {r.master1}</span>
                               </div>
                             )}
                           </td>
@@ -263,7 +263,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                             ) : (
                               <div className="flex flex-col items-center" onClick={() => handleStartEdit(r)}>
                                 <span className="text-sm font-black text-indigo-600">{r.consumption2}</span>
-                                <span className="text-[11px] font-black text-slate-500 uppercase">CS: {r.master2}</span>
+                                <span className="text-[13px] font-black text-slate-600 uppercase">CS: {r.master2}</span>
                               </div>
                             )}
                           </td>

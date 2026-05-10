@@ -57,6 +57,16 @@ const App: React.FC = () => {
       const result = await res.json();
       
       if (result.config) {
+        // Safe parsing for extra sync data from script fallback
+        let extraData: any = {};
+        if (result.config.extra_sync_data) {
+          try {
+            extraData = JSON.parse(result.config.extra_sync_data);
+          } catch (e) {
+            console.error("Error parsing extra sync data", e);
+          }
+        }
+
         setConfig(prev => ({ 
           ...prev, 
           ...result.config, 
@@ -65,52 +75,72 @@ const App: React.FC = () => {
           masterInitialDate: normalizeDate(result.config.masterInitialDate),
           lastSyncTime: Date.now() 
         }));
-      }
 
-      if (Array.isArray(result.lossRecords)) {
-        const sanitizedLoss = result.lossRecords.map((r: any, idx: number) => ({
-          ...r,
-          id: r.id || `loss-sync-${Date.now()}-${idx}`,
-          createdAt: parseFloat(r.createdAt) || Date.now(),
-          master1New: parseFloat(r.master1New) || 0,
-          master1Old: parseFloat(r.master1Old) || 0,
-          master2New: parseFloat(r.master2New) || 0,
-          master2Old: parseFloat(r.master2Old) || 0,
-          list1Volume: parseFloat(r.list1Volume) || 0,
-          list2Volume: parseFloat(r.list2Volume) || 0
-        }));
-        setLossRecords(sanitizedLoss);
-      }
+        // Restore loss records from top level or config fallback
+        const rawLoss = result.lossRecords || extraData.lossRecords;
+        if (Array.isArray(rawLoss)) {
+          const sanitizedLoss = rawLoss.map((r: any, idx: number) => ({
+            ...r,
+            id: r.id || `loss-sync-${Date.now()}-${idx}`,
+            createdAt: parseFloat(r.createdAt) || Date.now(),
+            master1New: parseFloat(r.master1New) || 0,
+            master1Old: parseFloat(r.master1Old) || 0,
+            master2New: parseFloat(r.master2New) || 0,
+            master2Old: parseFloat(r.master2Old) || 0,
+            list1Volume: parseFloat(r.list1Volume) || 0,
+            list2Volume: parseFloat(r.list2Volume) || 0
+          }));
+          setLossRecords(sanitizedLoss);
+        }
 
-      if (Array.isArray(result.dailySupplyReadings)) {
-        const sanitizedDaily = result.dailySupplyReadings.map((r: any, idx: number) => ({
-          ...r,
-          id: r.id || `supply-sync-${Date.now()}-${idx}`,
-          updatedAt: parseFloat(r.updatedAt) || Date.now(),
-          master1: parseFloat(r.master1) || 0,
-          master2: parseFloat(r.master2) || 0,
-          consumption1: parseFloat(r.consumption1) || 0,
-          consumption2: parseFloat(r.consumption2) || 0,
-          date: normalizeDate(r.date),
-          time: r.time || ''
-        })).sort((a: any, b: any) => {
-          const dateTimeA = `${a.date} ${a.time || '00:00'}`;
-          const dateTimeB = `${b.date} ${b.time || '00:00'}`;
-          return dateTimeB.localeCompare(dateTimeA);
-        });
-        // @ts-ignore
-        setDailySupplyReadings(sanitizedDaily);
-      }
+        // Restore daily supply from top level or config fallback
+        const rawDaily = result.dailySupplyReadings || extraData.dailySupplyReadings;
+        if (Array.isArray(rawDaily)) {
+          const sanitizedDaily = rawDaily.map((r: any, idx: number) => ({
+            ...r,
+            id: r.id || `supply-sync-${Date.now()}-${idx}`,
+            updatedAt: parseFloat(r.updatedAt) || Date.now(),
+            master1: parseFloat(r.master1) || 0,
+            master2: parseFloat(r.master2) || 0,
+            consumption1: parseFloat(r.consumption1) || 0,
+            consumption2: parseFloat(r.consumption2) || 0,
+            date: normalizeDate(r.date),
+            time: r.time || ''
+          })).sort((a: any, b: any) => {
+            const dateTimeA = `${a.date} ${a.time || '00:00'}`;
+            const dateTimeB = `${b.date} ${b.time || '00:00'}`;
+            return dateTimeB.localeCompare(dateTimeA);
+          });
+          // @ts-ignore
+          setDailySupplyReadings(sanitizedDaily);
+        }
 
-      if (Array.isArray(result.groups)) {
-        const sanitizedGroups = result.groups.map((g: any) => ({
-          ...g,
-          members: (g.members || []).map((m: any) => ({
-            ...m,
-            maKH: String(m.maKH || "").replace(/^'/, "")
-          }))
-        }));
-        setGroups(sanitizedGroups);
+        // Restore groups with MERGE logic to ensure both sides are preserved
+        const rawGroups = result.groups || extraData.groups;
+        if (Array.isArray(rawGroups)) {
+          const sanitizedGroups = rawGroups.map((g: any) => ({
+            ...g,
+            members: (g.members || []).map((m: any) => ({
+              ...m,
+              maKH: String(m.maKH || "").replace(/^'/, "")
+            }))
+          }));
+
+          setGroups(prev => {
+            // MERGE: Keep local groups that are not in cloud (by name/id)
+            const merged = [...sanitizedGroups];
+            prev.forEach(localGroup => {
+              const exists = sanitizedGroups.some(cloudGroup => 
+                cloudGroup.id === localGroup.id || 
+                cloudGroup.name.toUpperCase() === localGroup.name.toUpperCase()
+              );
+              if (!exists) {
+                merged.push(localGroup);
+              }
+            });
+            return merged;
+          });
+        }
       }
 
       let allCustomers: Customer[] = [];
@@ -295,10 +325,18 @@ const App: React.FC = () => {
             globalMessage: config.globalMessage,
             master1Initial: config.master1Initial || 0,
             master2Initial: config.master2Initial || 0,
-            masterInitialDate: config.masterInitialDate || ""
+            masterInitialDate: config.masterInitialDate || "",
+            // Add extra sync data as JSON string inside config object
+            // This ensures scripts that only handle "config" can still sync these features
+            extra_sync_data: JSON.stringify({
+              groups,
+              lossRecords,
+              dailySupplyReadings
+            })
           },
           list1: data1,
           list2: data2,
+          // Still include top-level for scripts that support them
           groups: groups,
           lossRecords: lossRecords,
           dailySupplyReadings: dailySupplyReadings

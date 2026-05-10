@@ -119,8 +119,8 @@ export const DetailView: React.FC<DetailViewProps> = ({
           <div className="flex justify-between items-center text-[15px] font-bold text-slate-600">
             <span>Tiêu thụ:</span>
             <span className="text-slate-900 font-black flex items-center gap-1">
-               {customer.volume} m³ 
-               <span className="text-[14px] text-slate-900 font-black">
+               <span className="text-[18px]">{customer.volume} m³</span>
+               <span className="text-[15px] text-slate-900 font-black">
                  (x {config.waterRate.toLocaleString('vi-VN')} = {formatCurrency(customer.amount)})
                </span>
             </span>

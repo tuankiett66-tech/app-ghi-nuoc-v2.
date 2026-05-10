@@ -335,7 +335,7 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                   {/* Details for meters */}
                   <div className="mt-4 pt-4 border-t-2 border-slate-50 grid grid-cols-2 gap-3">
                     <div className="bg-slate-50/80 p-3 rounded-2xl border-2 border-slate-100/50 shadow-sm">
-                      <p className="text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tight">Đồng hồ 1: <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-lg border border-blue-100 text-[14px]">{supply1} m³</span></p>
+                      <p className="text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tight">Đồng hồ 1: <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100 text-[18px]">{supply1} m³</span></p>
                       <div className="text-[15px] font-black text-slate-700 bg-white px-3 py-2 rounded-xl border-2 border-slate-100 flex justify-between items-center shadow-inner">
                         <span className="opacity-60">{r.master1Old}</span>
                         <div className="flex flex-col items-center leading-none">
@@ -346,7 +346,7 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                       </div>
                     </div>
                     <div className="bg-slate-50/80 p-3 rounded-2xl border-2 border-slate-100/50 shadow-sm">
-                      <p className="text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tight">Đồng hồ 2: <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-lg border border-blue-100 text-[14px]">{supply2} m³</span></p>
+                      <p className="text-[11px] font-black text-slate-500 uppercase mb-2 tracking-tight">Đồng hồ 2: <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100 text-[18px]">{supply2} m³</span></p>
                       <div className="text-[15px] font-black text-slate-700 bg-white px-3 py-2 rounded-xl border-2 border-slate-100 flex justify-between items-center shadow-inner">
                         <span className="opacity-60">{r.master2Old}</span>
                         <div className="flex flex-col items-center leading-none">
