@@ -72,7 +72,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
 
       <div className="flex-1 space-y-5 overflow-y-auto px-1 pb-10">
         <div className="border-l-[6px] border-blue-700 pl-4 py-1 relative">
-          <span className="bg-blue-700 text-white text-[11px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm">Mã KH: {customer.maKH}</span>
+          <span className="bg-blue-700 text-white text-[13px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm">Mã KH: {customer.maKH}</span>
           <div className="flex items-center gap-2 mt-2">
             <h2 className="font-black uppercase text-[22px] text-slate-900 leading-tight">{customer.name}</h2>
             <button 
@@ -120,7 +120,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
             <span>Tiêu thụ:</span>
             <span className="text-slate-900 font-black flex items-center gap-1">
                {customer.volume} m³ 
-               <span className="text-[11px] text-slate-700 font-bold">
+               <span className="text-[14px] text-slate-900 font-black">
                  (x {config.waterRate.toLocaleString('vi-VN')} = {formatCurrency(customer.amount)})
                </span>
             </span>

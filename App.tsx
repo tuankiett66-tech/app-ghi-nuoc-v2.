@@ -18,7 +18,7 @@ import { Customer } from './types';
 const App: React.FC = () => {
   const { 
     customers, setCustomers, 
-    groups, addGroup, updateGroup, deleteGroup, 
+    groups, setGroups, addGroup, updateGroup, deleteGroup, 
     config, setConfig, 
     activeTab, setActiveTab, 
     lossRecords, setLossRecords, addLossRecord, deleteLossRecord, updateLossRecord,
@@ -100,6 +100,17 @@ const App: React.FC = () => {
         });
         // @ts-ignore
         setDailySupplyReadings(sanitizedDaily);
+      }
+
+      if (Array.isArray(result.groups)) {
+        const sanitizedGroups = result.groups.map((g: any) => ({
+          ...g,
+          members: (g.members || []).map((m: any) => ({
+            ...m,
+            maKH: String(m.maKH || "").replace(/^'/, "")
+          }))
+        }));
+        setGroups(sanitizedGroups);
       }
 
       let allCustomers: Customer[] = [];
@@ -288,6 +299,7 @@ const App: React.FC = () => {
           },
           list1: data1,
           list2: data2,
+          groups: groups,
           lossRecords: lossRecords,
           dailySupplyReadings: dailySupplyReadings
         })
@@ -574,6 +586,8 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onBack={() => navigateTo('list')}
           onSelectGroup={(id) => { setSelectedGroupId(id); navigateTo('group_detail'); }}
           onAddGroup={addGroup} onDeleteGroup={deleteGroup}
+          onUpdateGroup={updateGroup}
+          onReorderGroups={setGroups}
         />
       )}
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode } from 'lucide-react';
+import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode, ArrowUp, ArrowDown } from 'lucide-react';
 import { Customer, SystemConfig, WaterGroup } from '../types';
 import { formatCurrency, copyToClipboard, generateVietQrUrl, normalizeString, getBillingMonthYear } from '../utils';
 
@@ -27,8 +27,9 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
 
   const groupData = useMemo(() => {
     return (group.members || []).map(m => {
-      return customers.find(c => c.maKH === m.maKH && c.listType === m.source);
-    }).filter(Boolean) as Customer[];
+      const found = customers.find(c => c.maKH === m.maKH && c.listType === m.source);
+      return found ? { ...found, source: m.source } : null;
+    }).filter(Boolean) as (Customer & { source: string })[];
   }, [group, customers]);
 
   const totals = useMemo(() => groupData.reduce((acc, curr) => ({
@@ -67,6 +68,15 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
 
   const removeMember = (maKH: string, source: string) => {
     onUpdateGroup(group.id, { members: (group.members || []).filter(m => !(m.maKH === maKH && m.source === source)) });
+  };
+
+  const moveMember = (index: number, direction: 'up' | 'down') => {
+    const newMembers = [...(group.members || [])];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex >= 0 && targetIndex < newMembers.length) {
+      [newMembers[index], newMembers[targetIndex]] = [newMembers[targetIndex], newMembers[index]];
+      onUpdateGroup(group.id, { members: newMembers });
+    }
   };
 
   const generateGroupMsg = () => {
@@ -130,8 +140,8 @@ Nội dung: TT NUOC ${cleanGroupName}`;
           <div className="flex justify-between items-center mb-1.5 px-0.5">
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest italic">"Nhặt" hộ dân bằng Mã KH</p>
               <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 scale-90 origin-right">
-                  <button onClick={() => setSourceInput('list1')} className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase transition-all ${sourceInput === 'list1' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>BỘ 01</button>
-                  <button onClick={() => setSourceInput('list2')} className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase transition-all ${sourceInput === 'list2' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>BỘ 02</button>
+                  <button onClick={() => setSourceInput('list1')} className={`px-2 py-0.5 rounded-md text-[11px] font-black uppercase transition-all ${sourceInput === 'list1' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>BỘ 01</button>
+                  <button onClick={() => setSourceInput('list2')} className={`px-2 py-0.5 rounded-md text-[11px] font-black uppercase transition-all ${sourceInput === 'list2' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>BỘ 02</button>
               </div>
           </div>
           <div className="relative flex gap-1.5">
@@ -153,7 +163,7 @@ Nội dung: TT NUOC ${cleanGroupName}`;
           </div>
           {previewCust && (
             <div className="mt-1.5 p-1.5 bg-indigo-50 rounded-lg border border-indigo-100 flex items-center justify-between animate-in slide-in-from-top-1">
-               <p className="font-black text-indigo-700 uppercase text-[10px]">{previewCust.name}</p>
+               <p className="font-black text-indigo-700 uppercase text-[12px]">{previewCust.name}</p>
                <UserCheck className="text-indigo-500 shrink-0" size={14} />
             </div>
           )}
@@ -166,19 +176,23 @@ Nội dung: TT NUOC ${cleanGroupName}`;
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pb-44 space-y-1">
-        {groupData.map((c) => (
-          <div key={`${c.maKH}-${c.listType}`} className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center active:scale-[0.99] transition-all">
+        {groupData.map((c, idx) => (
+          <div key={`${c.maKH}-${c.source}`} className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center active:scale-[0.99] transition-all">
               <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex flex-col gap-0.5 shrink-0">
+                      <button onClick={() => moveMember(idx, 'up')} disabled={idx === 0} className={`p-0.5 rounded ${idx === 0 ? 'text-slate-100' : 'text-slate-300 active:text-indigo-500'}`}><ArrowUp size={12}/></button>
+                      <button onClick={() => moveMember(idx, 'down')} disabled={idx === groupData.length - 1} className={`p-0.5 rounded ${idx === groupData.length - 1 ? 'text-slate-100' : 'text-slate-300 active:text-indigo-500'}`}><ArrowDown size={12}/></button>
+                  </div>
                   <div className="flex flex-col items-center gap-0 shrink-0">
-                      <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-[10px] shadow-sm">{c.maKH}</div>
-                      <span className="text-[6px] font-black text-slate-400 uppercase leading-none mt-0.5">{c.listType === 'list1' ? 'B01' : 'B02'}</span>
+                      <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-[12px] shadow-sm">{c.maKH}</div>
+                      <span className="text-[7px] font-black text-slate-400 uppercase leading-none mt-0.5">{c.source === 'list1' ? 'B01' : 'B02'}</span>
                   </div>
                   <div className="min-w-0">
                       <p className="font-black text-slate-900 uppercase text-[11px] leading-tight mb-0.5">{c.name}</p>
                       <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.balance)}</p>
                   </div>
               </div>
-              <button onClick={() => removeMember(c.maKH, c.listType)} className="p-1.5 text-rose-300 active:scale-90"><Trash2 size={16}/></button>
+              <button onClick={() => removeMember(c.maKH, c.source)} className="p-1.5 text-rose-300 active:scale-90"><Trash2 size={16}/></button>
           </div>
         ))}
         {groupData.length === 0 && <div className="py-6 text-center text-slate-300 italic uppercase font-black text-[8px] tracking-widest">Trong</div>}
@@ -210,3 +224,4 @@ Nội dung: TT NUOC ${cleanGroupName}`;
     </div>
   );
 };
+
