@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, Users, Plus, Trash2, ArrowRight, X, Edit2, ArrowUp, ArrowDown } from 'lucide-react';
+import { ChevronLeft, Users, Plus, Trash2, ArrowRight, X, Edit2, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 import { WaterGroup, GroupMember, Customer } from '../types';
 
 interface GroupListViewProps {
@@ -112,42 +112,49 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-40">
         {groups.map((group, idx) => (
-          <div key={group.id} onClick={() => onSelectGroup(group.id)} className="bg-white p-4 rounded-[2rem] shadow-sm border-2 border-transparent active:border-indigo-200 active:scale-[0.98] transition-all flex justify-between items-center group relative overflow-hidden">
-            <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1 shrink-0">
-                    <button 
-                      disabled={idx === 0}
-                      onClick={(e) => moveGroup(e, idx, 'up')}
-                      className={`p-1 rounded-md ${idx === 0 ? 'text-slate-200' : 'text-slate-400 bg-slate-50 active:bg-indigo-100 active:text-indigo-600'}`}
-                    >
-                        <ArrowUp size={16}/>
-                    </button>
-                    <button 
-                      disabled={idx === groups.length - 1}
-                      onClick={(e) => moveGroup(e, idx, 'down')}
-                      className={`p-1 rounded-md ${idx === groups.length - 1 ? 'text-slate-200' : 'text-slate-400 bg-slate-50 active:bg-indigo-100 active:text-indigo-600'}`}
-                    >
-                        <ArrowDown size={16}/>
-                    </button>
+          <div key={group.id} className="bg-white rounded-[2rem] shadow-sm border-2 border-transparent hover:border-indigo-100 transition-all flex items-stretch group relative overflow-hidden min-h-[5rem]">
+            {/* Reorder Zone - Separated from main click area */}
+            <div className="w-14 bg-slate-50 flex flex-col items-center justify-center border-r border-slate-100 shrink-0">
+                <button 
+                    disabled={idx === 0}
+                    onClick={(e) => { e.stopPropagation(); moveGroup(e, idx, 'up'); }}
+                    className={`flex-1 w-full flex items-center justify-center transition-colors ${idx === 0 ? 'text-slate-200' : 'text-slate-400 active:bg-indigo-100 active:text-indigo-600'}`}
+                >
+                    <ArrowUp size={20}/>
+                </button>
+                <div className="flex items-center justify-center py-0.5 opacity-20 text-slate-500">
+                  <GripVertical size={16} />
                 </div>
-                <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                        <h3 className="font-black text-slate-900 uppercase text-md leading-tight">{group.name}</h3>
-                        <button onClick={(e) => handleStartEdit(e, group)} className="p-1 px-2 text-slate-300 hover:text-indigo-500 bg-slate-50 rounded-lg">
-                            <Edit2 size={14}/>
+                <button 
+                    disabled={idx === groups.length - 1}
+                    onClick={(e) => { e.stopPropagation(); moveGroup(e, idx, 'down'); }}
+                    className={`flex-1 w-full flex items-center justify-center transition-colors ${idx === groups.length - 1 ? 'text-slate-200' : 'text-slate-400 active:bg-indigo-100 active:text-indigo-600'}`}
+                >
+                    <ArrowDown size={20}/>
+                </button>
+            </div>
+
+            {/* Clickable Content Zone */}
+            <div onClick={() => onSelectGroup(group.id)} className="flex-1 flex justify-between items-center px-4 py-3 active:bg-slate-50 transition-colors cursor-pointer min-w-0">
+                <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-black text-slate-900 uppercase text-md leading-tight truncate">{group.name}</h3>
+                        <button onClick={(e) => handleStartEdit(e, group)} className="p-1 px-2 text-slate-400 hover:text-indigo-600 bg-slate-100 rounded-lg">
+                            <Edit2 size={12}/>
                         </button>
                     </div>
-                    <p className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg inline-block text-[10px] font-black uppercase tracking-wider">{(group.members || []).length} Hộ thành viên</p>
+                    <p className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg inline-block text-[10px] font-black uppercase tracking-wider mt-1">{(group.members || []).length} Hộ thành viên</p>
                 </div>
-            </div>
-            <div className="flex items-center gap-1">
-                <button 
-                    onClick={(e) => { e.stopPropagation(); if(confirm("Bạn muốn xóa nhóm này?")) onDeleteGroup(group.id); }} 
-                    className="p-3 text-rose-300 hover:text-rose-600 active:scale-90 transition-colors"
-                >
-                    <Trash2 size={22}/>
-                </button>
-                <div className="p-2 text-slate-200 group-active:text-indigo-600"><ArrowRight size={22}/></div>
+                
+                <div className="flex items-center gap-1 shrink-0">
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); if(confirm("Bạn muốn xóa nhóm này?")) onDeleteGroup(group.id); }} 
+                        className="p-3 text-rose-300 hover:text-rose-600 active:scale-90 transition-colors"
+                    >
+                        <Trash2 size={24}/>
+                    </button>
+                    <div className="p-2 text-slate-200 group-hover:text-indigo-600"><ArrowRight size={24}/></div>
+                </div>
             </div>
           </div>
         ))}

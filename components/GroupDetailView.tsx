@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode, ArrowUp, ArrowDown } from 'lucide-react';
+import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 import { Customer, SystemConfig, WaterGroup } from '../types';
 import { formatCurrency, copyToClipboard, generateVietQrUrl, normalizeString, getBillingMonthYear } from '../utils';
 
@@ -177,22 +177,41 @@ Nội dung: TT NUOC ${cleanGroupName}`;
 
       <div className="flex-1 overflow-y-auto px-2 pb-44 space-y-1">
         {groupData.map((c, idx) => (
-          <div key={`${c.maKH}-${c.source}`} className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center active:scale-[0.99] transition-all">
-              <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex flex-col gap-0.5 shrink-0">
-                      <button onClick={() => moveMember(idx, 'up')} disabled={idx === 0} className={`p-0.5 rounded ${idx === 0 ? 'text-slate-100' : 'text-slate-300 active:text-indigo-500'}`}><ArrowUp size={12}/></button>
-                      <button onClick={() => moveMember(idx, 'down')} disabled={idx === groupData.length - 1} className={`p-0.5 rounded ${idx === groupData.length - 1 ? 'text-slate-100' : 'text-slate-300 active:text-indigo-500'}`}><ArrowDown size={12}/></button>
+          <div key={`${c.maKH}-${c.source}`} className="bg-white rounded-2xl border border-slate-100 shadow-sm flex items-stretch overflow-hidden min-h-[4rem]">
+              {/* Member Reorder Zone */}
+              <div className="w-10 bg-slate-50 flex flex-col border-r border-slate-100 shrink-0">
+                  <button 
+                    onClick={() => moveMember(idx, 'up')} 
+                    disabled={idx === 0} 
+                    className={`flex-1 flex items-center justify-center ${idx === 0 ? 'text-slate-100' : 'text-slate-400 active:bg-indigo-50 active:text-indigo-600'}`}
+                  >
+                    <ArrowUp size={16}/>
+                  </button>
+                  <div className="flex items-center justify-center h-2 opacity-10 text-slate-900">
+                    <GripVertical size={12} />
                   </div>
-                  <div className="flex flex-col items-center gap-0 shrink-0">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-[12px] shadow-sm">{c.maKH}</div>
-                      <span className="text-[7px] font-black text-slate-400 uppercase leading-none mt-0.5">{c.source === 'list1' ? 'B01' : 'B02'}</span>
-                  </div>
-                  <div className="min-w-0">
-                      <p className="font-black text-slate-900 uppercase text-[11px] leading-tight mb-0.5">{c.name}</p>
-                      <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.balance)}</p>
-                  </div>
+                  <button 
+                    onClick={() => moveMember(idx, 'down')} 
+                    disabled={idx === groupData.length - 1} 
+                    className={`flex-1 flex items-center justify-center ${idx === groupData.length - 1 ? 'text-slate-100' : 'text-slate-400 active:bg-indigo-50 active:text-indigo-600'}`}
+                  >
+                    <ArrowDown size={16}/>
+                  </button>
               </div>
-              <button onClick={() => removeMember(c.maKH, c.source)} className="p-1.5 text-rose-300 active:scale-90"><Trash2 size={16}/></button>
+
+              <div className="flex-1 flex justify-between items-center p-2 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex flex-col items-center gap-0 shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-[12px] shadow-sm">{c.maKH}</div>
+                          <span className="text-[7px] font-black text-slate-400 uppercase leading-none mt-0.5">{c.source === 'list1' ? 'B01' : 'B02'}</span>
+                      </div>
+                      <div className="min-w-0">
+                          <p className="font-black text-slate-900 uppercase text-[11px] leading-tight mb-0.5 truncate">{c.name}</p>
+                          <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.balance)}</p>
+                      </div>
+                  </div>
+                  <button onClick={() => removeMember(c.maKH, c.source)} className="p-2 text-rose-300 active:scale-90 shrink-0"><Trash2 size={16}/></button>
+              </div>
           </div>
         ))}
         {groupData.length === 0 && <div className="py-6 text-center text-slate-300 italic uppercase font-black text-[8px] tracking-widest">Trong</div>}
