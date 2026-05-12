@@ -24,6 +24,18 @@
 - **Problem**: Address column values like `304/5` were being reversed/auto-formatted as dates by Excel. Attempting to use a single quote prefix `'` resulted in the quote being visible in the cell value.
 - **Solution**: Use a Zero-Width Space (`\u200B`) at the start of the address, MaKH, and phone strings. This is invisible (unlike `'`) and effectively stops Excel's auto-formatting and date-parsing logic.
 
+### 4. Click vs. Reorder Conflict (Fixed in V4.3)
+- **Problem**: Reorder buttons (up/down) were too slow and looked "unprofessional". Using arrows in a clickable zone often triggered the wrong action.
+- **Solution**: Implement a dedicated "Sort Mode" (Edit Mode). When active, show a 3-bar "Grip" icon. Use `@dnd-kit` for native-feeling drag-and-drop reordering. This completely separates the "Viewing/Navigation" state from the "Organizing" state.
+
+### 5. Multi-Device Group Sync (Fixed in V4.2)
+- **Problem**: Overwriting groups during sync led to data loss if one device had 18 groups and another had 20.
+- **Solution**: Implement a merge strategy during the `restore` phase. Check if a local group exists in the cloud payload (by ID or Case-Insensitive Name). If not, keep the local version. This ensures all groups from all devices eventually aggregate in the cloud.
+
+### 6. Visibility in Sunlight
+- **Problem**: Small fonts for critical numbers (usage, readings) were hard to read outdoors.
+- **Solution**: Standardize on high-contrast, large font sizes for numeric data in `DetailView`, `LossView`, and `LossDailyTracking`.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel` (blank column K logic).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).

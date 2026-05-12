@@ -1,7 +1,22 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, Users, Plus, Trash2, ArrowRight, X, Edit2, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
+import { ChevronLeft, Users, Plus, Trash2, ArrowRight, X, Edit2, GripVertical, Settings2, Check } from 'lucide-react';
 import { WaterGroup, GroupMember, Customer } from '../types';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface GroupListViewProps {
   groups: WaterGroup[];
@@ -14,13 +29,99 @@ interface GroupListViewProps {
   onReorderGroups: (newGroups: WaterGroup[]) => void;
 }
 
+const SortableGroupItem = ({ 
+  group, 
+  onSelect, 
+  onDelete, 
+  onEdit, 
+  isSortMode 
+}: { 
+  group: WaterGroup; 
+  onSelect: (id: string) => void; 
+  onDelete: (id: string, e: React.MouseEvent) => void;
+  onEdit: (group: WaterGroup, e: React.MouseEvent) => void;
+  isSortMode: boolean;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: group.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 100 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className={`bg-white rounded-[2rem] shadow-sm border-2 transition-all flex items-stretch group relative overflow-hidden min-h-[5rem] ${isSortMode ? 'border-dashed border-indigo-200' : 'border-transparent hover:border-indigo-100'}`}
+    >
+      {isSortMode && (
+        <div 
+          {...attributes} 
+          {...listeners}
+          className="w-14 bg-indigo-50/50 flex items-center justify-center border-r border-indigo-100 shrink-0 cursor-grab active:cursor-grabbing hover:bg-indigo-100 transition-colors"
+        >
+          <div className="flex flex-col gap-1 text-indigo-400">
+            <GripVertical size={24} />
+          </div>
+        </div>
+      )}
+
+      <div 
+        onClick={() => !isSortMode && onSelect(group.id)} 
+        className={`flex-1 flex justify-between items-center px-4 py-3 transition-colors min-w-0 ${isSortMode ? '' : 'active:bg-slate-50 cursor-pointer'}`}
+      >
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-black text-slate-900 uppercase text-md leading-tight truncate">{group.name}</h3>
+            <button onClick={(e) => onEdit(group, e)} className="p-1 px-2 text-slate-400 hover:text-indigo-600 bg-slate-100 rounded-lg">
+              <Edit2 size={12}/>
+            </button>
+          </div>
+          <p className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg inline-block text-[10px] font-black uppercase tracking-wider mt-1">{(group.members || []).length} Hộ thành viên</p>
+        </div>
+        
+        <div className="flex items-center gap-1 shrink-0">
+          <button 
+            onClick={(e) => onDelete(group.id, e)} 
+            className="p-3 text-rose-300 hover:text-rose-600 active:scale-90 transition-colors"
+          >
+            <Trash2 size={24}/>
+          </button>
+          <div className={`p-2 transition-colors ${isSortMode ? 'text-slate-100' : 'text-slate-200 group-hover:text-indigo-600'}`}>
+            <ArrowRight size={24}/>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const GroupListView: React.FC<GroupListViewProps> = ({ 
     groups, customers, onBack, onSelectGroup, onAddGroup, onDeleteGroup, onUpdateGroup, onReorderGroups 
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isSortMode, setIsSortMode] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState('');
   const [editName, setEditName] = useState('');
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const handleManualAdd = () => {
     if (!newGroupName.trim()) return;
@@ -29,7 +130,7 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
     setShowAddForm(false);
   };
 
-  const handleStartEdit = (e: React.MouseEvent, group: WaterGroup) => {
+  const handleStartEdit = (group: WaterGroup, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingId(group.id);
     setEditName(group.name);
@@ -42,13 +143,12 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
     }
   };
 
-  const moveGroup = (e: React.MouseEvent, index: number, direction: 'up' | 'down') => {
-    e.stopPropagation();
-    const newGroups = [...groups];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex >= 0 && targetIndex < newGroups.length) {
-      [newGroups[index], newGroups[targetIndex]] = [newGroups[targetIndex], newGroups[index]];
-      onReorderGroups(newGroups);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = groups.findIndex((g) => g.id === active.id);
+      const newIndex = groups.findIndex((g) => g.id === over.id);
+      onReorderGroups(arrayMove(groups, oldIndex, newIndex));
     }
   };
 
@@ -62,13 +162,24 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
                 <h2 className="text-lg font-black uppercase italic text-indigo-700">Danh bộ Nhóm</h2>
             </div>
         </div>
-        <button 
-            onClick={() => setShowAddForm(true)} 
-            className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl shadow-lg active:scale-95 border-b-4 border-indigo-900 flex items-center gap-2"
-        >
-            <Plus size={22}/>
-            <span className="text-[10px] font-black uppercase">Tạo Nhóm</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+              onClick={() => setIsSortMode(!isSortMode)} 
+              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-md font-black uppercase text-[10px] ${isSortMode ? 'bg-emerald-600 text-white border-b-4 border-emerald-900' : 'bg-slate-100 text-slate-600 border-b-4 border-slate-300'}`}
+          >
+              {isSortMode ? <Check size={18}/> : <Settings2 size={18}/>}
+              <span>{isSortMode ? 'Xong' : 'Sắp xếp'}</span>
+          </button>
+          {!isSortMode && (
+            <button 
+                onClick={() => setShowAddForm(true)} 
+                className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl shadow-lg active:scale-95 border-b-4 border-indigo-900 flex items-center gap-2"
+            >
+                <Plus size={22}/>
+                <span className="text-[10px] font-black uppercase">Tạo</span>
+            </button>
+          )}
+        </div>
       </header>
 
       {showAddForm && (
@@ -111,53 +222,30 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
       )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-40">
-        {groups.map((group, idx) => (
-          <div key={group.id} className="bg-white rounded-[2rem] shadow-sm border-2 border-transparent hover:border-indigo-100 transition-all flex items-stretch group relative overflow-hidden min-h-[5rem]">
-            {/* Reorder Zone - Separated from main click area */}
-            <div className="w-14 bg-slate-50 flex flex-col items-center justify-center border-r border-slate-100 shrink-0">
-                <button 
-                    disabled={idx === 0}
-                    onClick={(e) => { e.stopPropagation(); moveGroup(e, idx, 'up'); }}
-                    className={`flex-1 w-full flex items-center justify-center transition-colors ${idx === 0 ? 'text-slate-200' : 'text-slate-400 active:bg-indigo-100 active:text-indigo-600'}`}
-                >
-                    <ArrowUp size={20}/>
-                </button>
-                <div className="flex items-center justify-center py-0.5 opacity-20 text-slate-500">
-                  <GripVertical size={16} />
-                </div>
-                <button 
-                    disabled={idx === groups.length - 1}
-                    onClick={(e) => { e.stopPropagation(); moveGroup(e, idx, 'down'); }}
-                    className={`flex-1 w-full flex items-center justify-center transition-colors ${idx === groups.length - 1 ? 'text-slate-200' : 'text-slate-400 active:bg-indigo-100 active:text-indigo-600'}`}
-                >
-                    <ArrowDown size={20}/>
-                </button>
-            </div>
-
-            {/* Clickable Content Zone */}
-            <div onClick={() => onSelectGroup(group.id)} className="flex-1 flex justify-between items-center px-4 py-3 active:bg-slate-50 transition-colors cursor-pointer min-w-0">
-                <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-black text-slate-900 uppercase text-md leading-tight truncate">{group.name}</h3>
-                        <button onClick={(e) => handleStartEdit(e, group)} className="p-1 px-2 text-slate-400 hover:text-indigo-600 bg-slate-100 rounded-lg">
-                            <Edit2 size={12}/>
-                        </button>
-                    </div>
-                    <p className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg inline-block text-[10px] font-black uppercase tracking-wider mt-1">{(group.members || []).length} Hộ thành viên</p>
-                </div>
-                
-                <div className="flex items-center gap-1 shrink-0">
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); if(confirm("Bạn muốn xóa nhóm này?")) onDeleteGroup(group.id); }} 
-                        className="p-3 text-rose-300 hover:text-rose-600 active:scale-90 transition-colors"
-                    >
-                        <Trash2 size={24}/>
-                    </button>
-                    <div className="p-2 text-slate-200 group-hover:text-indigo-600"><ArrowRight size={24}/></div>
-                </div>
-            </div>
-          </div>
-        ))}
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext 
+            items={groups.map(g => g.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {groups.map((group) => (
+              <SortableGroupItem
+                key={group.id}
+                group={group}
+                isSortMode={isSortMode}
+                onSelect={onSelectGroup}
+                onDelete={(id, e) => { 
+                  e.stopPropagation(); 
+                  if(confirm("Bạn muốn xóa nhóm này?")) onDeleteGroup(id); 
+                }}
+                onEdit={handleStartEdit}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
 
         {groups.length === 0 && (
           <div className="py-20 text-center space-y-4">

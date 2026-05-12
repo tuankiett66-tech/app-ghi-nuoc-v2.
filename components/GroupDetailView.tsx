@@ -1,8 +1,23 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
+import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode, GripVertical, Settings2, Check } from 'lucide-react';
 import { Customer, SystemConfig, WaterGroup } from '../types';
 import { formatCurrency, copyToClipboard, generateVietQrUrl, normalizeString, getBillingMonthYear } from '../utils';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface GroupDetailViewProps {
   group: WaterGroup;
@@ -16,9 +31,77 @@ interface GroupDetailViewProps {
   onShowQr: (bankId: string, accountNo: string, amount: number, name: string) => void;
 }
 
+const SortableMemberItem = ({ 
+  c, 
+  onRemove, 
+  isSortMode 
+}: { 
+  c: Customer & { source: string }; 
+  onRemove: (maKH: string, source: string) => void;
+  isSortMode: boolean;
+}) => {
+  const id = `${c.maKH}-${c.source}`;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 100 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className={`bg-white rounded-2xl border shadow-sm flex items-stretch overflow-hidden min-h-[4rem] transition-all ${isSortMode ? 'border-dashed border-indigo-200' : 'border-slate-100'}`}
+    >
+      {isSortMode && (
+        <div 
+          {...attributes} 
+          {...listeners}
+          className="w-10 bg-indigo-50/50 flex items-center justify-center border-r border-indigo-100 shrink-0 cursor-grab active:cursor-grabbing hover:bg-indigo-100"
+        >
+          <GripVertical size={20} className="text-indigo-400" />
+        </div>
+      )}
+
+      <div className="flex-1 flex justify-between items-center p-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+              <div className="flex flex-col items-center gap-0 shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-[12px] shadow-sm">{c.maKH}</div>
+                  <span className="text-[7px] font-black text-slate-400 uppercase leading-none mt-0.5">{c.source === 'list1' ? 'B01' : 'B02'}</span>
+              </div>
+              <div className="min-w-0">
+                  <p className="font-black text-slate-900 uppercase text-[11px] leading-tight mb-0.5 truncate">{c.name}</p>
+                  <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.balance)}</p>
+              </div>
+          </div>
+          <button onClick={() => onRemove(c.maKH, c.source)} className="p-2 text-rose-300 active:scale-90 shrink-0"><Trash2 size={16}/></button>
+      </div>
+    </div>
+  );
+};
+
 export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, customers, config, onBack, onUpdateGroup, onSendZalo, onMarkGroupPaid, onNavigate, onShowQr }) => {
   const [maKHInput, setMaKHInput] = useState('');
   const [sourceInput, setSourceInput] = useState<'list1' | 'list2'>('list1');
+  const [isSortMode, setIsSortMode] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const previewCust = useMemo(() => {
     if (!maKHInput) return null;
@@ -70,12 +153,12 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
     onUpdateGroup(group.id, { members: (group.members || []).filter(m => !(m.maKH === maKH && m.source === source)) });
   };
 
-  const moveMember = (index: number, direction: 'up' | 'down') => {
-    const newMembers = [...(group.members || [])];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex >= 0 && targetIndex < newMembers.length) {
-      [newMembers[index], newMembers[targetIndex]] = [newMembers[targetIndex], newMembers[index]];
-      onUpdateGroup(group.id, { members: newMembers });
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = (group.members || []).findIndex((m) => `${m.maKH}-${m.source}` === active.id);
+      const newIndex = (group.members || []).findIndex((m) => `${m.maKH}-${m.source}` === over.id);
+      onUpdateGroup(group.id, { members: arrayMove(group.members || [], oldIndex, newIndex) });
     }
   };
 
@@ -126,16 +209,29 @@ Nội dung: TT NUOC ${cleanGroupName}`;
       <header className="px-4 py-1.5 flex items-center justify-between bg-white border-b shadow-sm shrink-0">
         <div className="flex items-center gap-1">
             <button onClick={onBack} className="p-2 -ml-2 text-slate-800 active:scale-90"><ChevronLeft size={24}/></button>
-            <div className="flex bg-slate-100 rounded-xl p-0.5 border border-slate-200 scale-90">
-              <button onClick={() => onNavigate('prev')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft size={16}/></button>
-              <button onClick={() => onNavigate('next')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft className="rotate-180" size={16}/></button>
-            </div>
-            <h2 className="text-sm font-black uppercase italic text-indigo-700 ml-1">{group.name}</h2>
+            {!isSortMode && (
+              <div className="flex bg-slate-100 rounded-xl p-0.5 border border-slate-200 scale-90">
+                <button onClick={() => onNavigate('prev')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft size={16}/></button>
+                <button onClick={() => onNavigate('next')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft className="rotate-180" size={16}/></button>
+              </div>
+            )}
+            <h2 className="text-sm font-black uppercase italic text-indigo-700 ml-1 truncate max-w-[100px]">{group.name}</h2>
         </div>
-        <button onClick={() => { const n = prompt("Sua ten nhom:", group.name); if(n) onUpdateGroup(group.id, {name: n.toUpperCase()}); }} className="p-2 text-slate-400 active:scale-90"><Info size={18}/></button>
+        <div className="flex items-center gap-1">
+          <button 
+              onClick={() => setIsSortMode(!isSortMode)} 
+              className={`p-2 rounded-xl transition-all flex items-center gap-1 scale-90 ${isSortMode ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500'}`}
+          >
+              {isSortMode ? <Check size={16}/> : <Settings2 size={16}/>}
+              <span className="text-[10px] font-black uppercase">{isSortMode ? 'Xong' : 'Sửa'}</span>
+          </button>
+          {!isSortMode && (
+            <button onClick={() => { const n = prompt("Sua ten nhom:", group.name); if(n) onUpdateGroup(group.id, {name: n.toUpperCase()}); }} className="p-2 text-slate-400 active:scale-90"><Info size={18}/></button>
+          )}
+        </div>
       </header>
 
-      <div className="p-2 space-y-1.5 shrink-0">
+      <div className={`transition-all duration-300 overflow-hidden ${isSortMode ? 'h-0 opacity-0 mb-0' : 'p-2 space-y-1.5 shrink-0 opacity-100'}`}>
         <div className="bg-white p-2.5 rounded-[1.2rem] shadow-md border border-indigo-50">
           <div className="flex justify-between items-center mb-1.5 px-0.5">
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest italic">"Nhặt" hộ dân bằng Mã KH</p>
@@ -175,45 +271,26 @@ Nội dung: TT NUOC ${cleanGroupName}`;
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-44 space-y-1">
-        {groupData.map((c, idx) => (
-          <div key={`${c.maKH}-${c.source}`} className="bg-white rounded-2xl border border-slate-100 shadow-sm flex items-stretch overflow-hidden min-h-[4rem]">
-              {/* Member Reorder Zone */}
-              <div className="w-10 bg-slate-50 flex flex-col border-r border-slate-100 shrink-0">
-                  <button 
-                    onClick={() => moveMember(idx, 'up')} 
-                    disabled={idx === 0} 
-                    className={`flex-1 flex items-center justify-center ${idx === 0 ? 'text-slate-100' : 'text-slate-400 active:bg-indigo-50 active:text-indigo-600'}`}
-                  >
-                    <ArrowUp size={16}/>
-                  </button>
-                  <div className="flex items-center justify-center h-2 opacity-10 text-slate-900">
-                    <GripVertical size={12} />
-                  </div>
-                  <button 
-                    onClick={() => moveMember(idx, 'down')} 
-                    disabled={idx === groupData.length - 1} 
-                    className={`flex-1 flex items-center justify-center ${idx === groupData.length - 1 ? 'text-slate-100' : 'text-slate-400 active:bg-indigo-50 active:text-indigo-600'}`}
-                  >
-                    <ArrowDown size={16}/>
-                  </button>
-              </div>
-
-              <div className="flex-1 flex justify-between items-center p-2 min-w-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                      <div className="flex flex-col items-center gap-0 shrink-0">
-                          <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-[12px] shadow-sm">{c.maKH}</div>
-                          <span className="text-[7px] font-black text-slate-400 uppercase leading-none mt-0.5">{c.source === 'list1' ? 'B01' : 'B02'}</span>
-                      </div>
-                      <div className="min-w-0">
-                          <p className="font-black text-slate-900 uppercase text-[11px] leading-tight mb-0.5 truncate">{c.name}</p>
-                          <p className="text-[9px] text-slate-500 font-bold leading-none">{c.volume}m3 • {formatCurrency(c.balance)}</p>
-                      </div>
-                  </div>
-                  <button onClick={() => removeMember(c.maKH, c.source)} className="p-2 text-rose-300 active:scale-90 shrink-0"><Trash2 size={16}/></button>
-              </div>
-          </div>
-        ))}
+      <div className={`flex-1 overflow-y-auto px-2 pb-44 space-y-1 ${isSortMode ? 'mt-2' : ''}`}>
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext 
+            items={groupData.map(c => `${c.maKH}-${c.source}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {groupData.map((c) => (
+              <SortableMemberItem 
+                key={`${c.maKH}-${c.source}`} 
+                c={c} 
+                isSortMode={isSortMode}
+                onRemove={removeMember}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
         {groupData.length === 0 && <div className="py-6 text-center text-slate-300 italic uppercase font-black text-[8px] tracking-widest">Trong</div>}
       </div>
 
