@@ -238,15 +238,15 @@ Nội dung: TT NUOC ${cleanGroupName}`;
   return (
     <div className="fixed inset-0 bg-[#f8fafc] z-[250] flex flex-col pt-[calc(0.5rem+var(--sat))] animate-in slide-in-from-bottom duration-300">
       <header className="px-4 py-1.5 flex items-center justify-between bg-white border-b shadow-sm shrink-0">
-        <div className="flex items-center gap-1">
-            <button onClick={onBack} className="p-2 -ml-2 text-slate-800 active:scale-90"><ChevronLeft size={24}/></button>
+        <div className="flex items-center gap-1 min-w-0 flex-1">
+            <button onClick={onBack} className="p-2 -ml-2 text-slate-800 active:scale-90 shrink-0"><ChevronLeft size={24}/></button>
             {!isSortMode && (
-              <div className="flex bg-slate-100 rounded-xl p-0.5 border border-slate-200 scale-90">
+              <div className="flex bg-slate-100 rounded-xl p-0.5 border border-slate-200 scale-90 shrink-0">
                 <button onClick={() => onNavigate('prev')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft size={16}/></button>
                 <button onClick={() => onNavigate('next')} className="p-1.5 text-slate-700 active:scale-90"><ChevronLeft className="rotate-180" size={16}/></button>
               </div>
             )}
-            <h2 className="text-sm font-black uppercase italic text-indigo-700 ml-1 truncate max-w-[100px]">{group.name}</h2>
+            <h2 className="text-[11px] font-black uppercase italic text-indigo-700 ml-0.5 line-clamp-2 leading-tight min-w-0">{group.name}</h2>
         </div>
         <div className="flex items-center gap-1">
           <button 

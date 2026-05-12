@@ -81,9 +81,9 @@ const SortableGroupItem = ({
         className={`flex-1 flex justify-between items-center px-4 py-3 transition-colors min-w-0 ${isSortMode ? '' : 'active:bg-slate-50 cursor-pointer'}`}
       >
         <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-black text-slate-900 uppercase text-md leading-tight truncate">{group.name}</h3>
-            <button onClick={(e) => onEdit(group, e)} className="p-1 px-2 text-slate-400 hover:text-indigo-600 bg-slate-100 rounded-lg">
+          <div className="flex items-start gap-2">
+            <h3 className="font-black text-slate-900 uppercase text-md leading-tight line-clamp-2 flex-1">{group.name}</h3>
+            <button onClick={(e) => onEdit(group, e)} className="p-1 px-2 text-slate-400 hover:text-indigo-600 bg-slate-100 rounded-lg shrink-0">
               <Edit2 size={12}/>
             </button>
           </div>
