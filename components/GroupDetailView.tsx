@@ -162,12 +162,38 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
     }
   };
 
+  const groupLoss = useMemo(() => {
+    if (group.oldIndex === undefined || group.newIndex === undefined) return null;
+    const masterConsumption = group.newIndex - group.oldIndex;
+    const membersConsumption = totals.vol;
+    const loss = masterConsumption - membersConsumption;
+    const lossPercent = masterConsumption > 0 ? (loss / masterConsumption) * 100 : 0;
+    return { masterConsumption, membersConsumption, loss, lossPercent };
+  }, [group.oldIndex, group.newIndex, totals.vol]);
+
+  const handleUpdateIndices = (oldIdx: string, newIdx: string) => {
+    onUpdateGroup(group.id, {
+      oldIndex: parseFloat(oldIdx) || 0,
+      newIndex: parseFloat(newIdx) || 0,
+      updatedAt: Date.now()
+    });
+  };
+
   const generateGroupMsg = () => {
     const monthYear = getBillingMonthYear();
     let msg = `KỲ NƯỚC THÁNG ${monthYear}
 NHÓM: ${group.name.toUpperCase()}
 ---------------------------
 `;
+    // Group Meter Section
+    if (group.oldIndex !== undefined && group.newIndex !== undefined) {
+      const gCons = group.newIndex - group.oldIndex;
+      msg += `ĐỒNG HỒ TỔNG NHÓM:
+SỐ: ${group.newIndex} - ${group.oldIndex} = ${gCons} m3
+---------------------------
+`;
+    }
+
     groupData.forEach((c) => {
       msg += `MÃ KH: ${c.maKH}
 KH: ${c.name}
@@ -186,6 +212,11 @@ NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
     const finalTotal = Math.round(totals.total);
     msg += `TỔNG THANH TOÁN: ${finalTotal.toLocaleString('vi-VN')} đ\n`;
     
+    // Group Loss info for collector (optional but helpful)
+    if (groupLoss) {
+      msg += `Hao hụt nhóm: ${groupLoss.loss.toFixed(1)} m3 (${groupLoss.lossPercent.toFixed(1)}%)\n`;
+    }
+
     const cleanGroupName = normalizeString(group.name).toUpperCase();
 
     const bankId = config.groupBankId || config.bankId;
@@ -265,11 +296,54 @@ Nội dung: TT NUOC ${cleanGroupName}`;
           )}
         </div>
 
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-white p-2 rounded-xl border-2 border-indigo-50 shadow-sm flex flex-col gap-1">
+            <div className="flex justify-between items-center px-1">
+              <label className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">CS TỔNG NHÓM (CŨ)</label>
+            </div>
+            <input 
+              type="number"
+              className="bg-slate-50 p-1.5 rounded-lg font-black text-slate-600 text-[14px] outline-none border-2 border-transparent focus:border-indigo-300 text-center"
+              value={group.oldIndex || 0}
+              onChange={e => handleUpdateIndices(e.target.value, (group.newIndex || 0).toString())}
+            />
+          </div>
+          <div className="bg-white p-2 rounded-xl border-2 border-blue-50 shadow-sm flex flex-col gap-1">
+            <div className="flex justify-between items-center px-1">
+              <label className="text-[8px] font-black text-blue-400 uppercase tracking-tighter">CS TỔNG NHÓM (MỚI)</label>
+            </div>
+            <input 
+              type="number"
+              className="bg-blue-50/50 p-1.5 rounded-lg font-black text-blue-700 text-[14px] outline-none border-2 border-transparent focus:border-blue-300 text-center"
+              value={group.newIndex || 0}
+              onChange={e => handleUpdateIndices((group.oldIndex || 0).toString(), e.target.value)}
+            />
+          </div>
+        </div>
+
         <div className="bg-white p-1.5 rounded-xl border shadow-sm flex items-center gap-2">
             <label className="text-[8px] font-black text-slate-400 uppercase tracking-tighter whitespace-nowrap px-1">Zalo Chu nhom</label>
             <input className="flex-1 bg-indigo-50/50 p-1.5 rounded-lg font-black text-indigo-700 text-[12px] outline-none border border-transparent focus:border-indigo-300" value={group.masterSdt || ''} onChange={e => onUpdateGroup(group.id, { masterSdt: e.target.value })} placeholder="09xxxx..." />
         </div>
       </div>
+
+      {groupLoss && (
+        <div className="mx-2 p-2 bg-slate-900 rounded-xl text-white flex justify-between items-center shadow-lg animate-in slide-in-from-top-2">
+          <div className="flex flex-col">
+            <span className="text-[7px] font-black text-slate-400 uppercase leading-none mb-1 tracking-widest">Hao hụt nhóm</span>
+            <span className="text-sm font-black tracking-tight">{groupLoss.loss.toFixed(1)} <span className="text-[9px] opacity-60">m3</span></span>
+          </div>
+          <div className="text-center bg-white/10 px-2 py-1 rounded-lg">
+            <p className="text-[7px] font-black text-slate-400 uppercase mb-0.5">Tiêu thụ Nhóm</p>
+            <p className="text-[10px] font-black text-blue-400">{groupLoss.masterConsumption} m3</p>
+          </div>
+          <div className="text-right">
+            <span className={`text-xs font-black px-2 py-1 rounded-lg ${groupLoss.lossPercent > 10 ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+              {groupLoss.lossPercent.toFixed(1)}%
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className={`flex-1 overflow-y-auto px-2 pb-44 space-y-1 ${isSortMode ? 'mt-2' : ''}`}>
         <DndContext 

@@ -36,15 +36,15 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
   const [tempDateInit, setTempDateInit] = useState(config.masterInitialDate || new Date().toISOString().split('T')[0]);
 
   const handleAdd = () => {
-    if (!m1 || !m2) {
-      alert("Vui lòng nhập chỉ số của cả 2 đồng hồ");
+    if (!m1 && !m2) {
+      alert("Vui lòng nhập ít nhất 1 chỉ số đồng hồ");
       return;
     }
     onAdd({
       date: normalizeDate(date),
       time,
-      master1: parseFloat(m1),
-      master2: parseFloat(m2),
+      master1: parseFloat(m1) || 0,
+      master2: parseFloat(m2) || 0,
       notes
     });
     setM1(''); setM2(''); setNotes('');

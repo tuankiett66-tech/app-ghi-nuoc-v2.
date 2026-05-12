@@ -34,6 +34,9 @@ export interface WaterGroup {
   name: string;
   masterSdt: string;
   members: GroupMember[]; // Danh sach thanh vien kem nguon du lieu
+  oldIndex?: number;      // Chỉ số tổng nhóm (Cũ)
+  newIndex?: number;      // Chỉ số tổng nhóm (Mới)
+  updatedAt?: number;     // Ngày ghi chỉ số nhóm
 }
 
 export interface SystemConfig {
