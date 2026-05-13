@@ -185,6 +185,7 @@ const App: React.FC = () => {
             isZalo: !!item.isZalo, 
             isZaloFriend: !!item.isZaloFriend,
             isProcessed: !!item.isProcessed,
+            installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, "")
           }, result.config?.waterRate || config.waterRate);
         });
@@ -231,6 +232,7 @@ const App: React.FC = () => {
             isZalo: !!item.isZalo, 
             isZaloFriend: !!item.isZaloFriend,
             isProcessed: !!item.isProcessed,
+            installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, "")
           }, result.config?.waterRate || config.waterRate);
         });
@@ -282,6 +284,7 @@ const App: React.FC = () => {
       isZalo: !!c.isZalo,
       isZaloFriend: !!c.isZaloFriend,
       isProcessed: !!c.isProcessed,
+      installDate: c.installDate || "",
       note: "'" + (c.note || "")
     }));
 
@@ -300,6 +303,7 @@ const App: React.FC = () => {
       isZalo: !!c.isZalo,
       isZaloFriend: !!c.isZaloFriend,
       isProcessed: !!c.isProcessed,
+      installDate: c.installDate || "",
       note: "'" + (c.note || "")
     }));
 

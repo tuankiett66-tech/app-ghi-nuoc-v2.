@@ -9,6 +9,7 @@
 2. **Data Persistence & Sync**:
    - **Phone Numbers**: In `updateCustomer`, always check for `undefined` (e.g., `updates.phoneTenant !== undefined`) to allow empty strings (`""`) to be saved.
    - **Green Status (isProcessed)**: Always include `isProcessed` in Cloud Backup and Restore (Sync) to prevent losing the "sent message" visual indicator.
+   - **Meter Install Date (installDate)**: Ensure `installDate` is mapped in `handleBackupCloud` and `handleSyncCloud` to persist meter expiration tracking across devices.
    - **Daily Supply Tracking**: Ensure `dailySupplyReadings` array is included in the Cloud Backup JSON object to persist loss management history.
    - **Group Sync & Merging**: When restoring from cloud, use a merge strategy for `groups` to compare local vs cloud entities (by ID or Name) and preserve data from both sides. Include `extra_sync_data` (stringified JSON) within the `config` object as a fallback for scripts that only support the config table.
 

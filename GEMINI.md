@@ -21,6 +21,8 @@
 - **Problem**: QR Modal was sometimes hidden or hard to interact with on mobile.
 - **Solution**: Implement `showQrInline` in `DetailView` to show the QR code directly below the customer name.
 
+- **Meter Tracking Persistence**: Ensure `installDate` is included in all map/mapping loops in `App.tsx` and `utils.ts` to prevent data loss during Cloud Sync or Excel re-imports.
+
 - **Problem**: Address column values like `304/5` were being reversed/auto-formatted as dates by Excel. Attempting to use a single quote prefix `'` resulted in the quote being visible in the cell value.
 - **Solution**: Use a Zero-Width Space (`\u200B`) at the start of the address, MaKH, and phone strings. This is invisible (unlike `'`) and effectively stops Excel's auto-formatting and date-parsing logic.
 
