@@ -1,5 +1,5 @@
 
-import { Customer, GroupMember } from './types';
+import { Customer, GroupMember, DailySupplyReading } from './types';
 
 // Helper to load XLSX dynamically
 const getXLSX = async () => {
@@ -241,6 +241,33 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Data");
+  XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
+
+export const exportDailyToExcel = async (readings: DailySupplyReading[], fileName: string = 'Theo_Doi_Hang_Ngay') => {
+  const XLSX = await getXLSX();
+  const header = ["NGÀY", "GIỜ", "CHỈ SỐ ĐH1", "TIÊU THỤ ĐH1 (m3)", "CHỈ SỐ ĐH2", "TIÊU THỤ ĐH2 (m3)", "TỔNG TIÊU THỤ (m3)", "GHI CHÚ"];
+  
+  // Sort by date (descending like in the UI)
+  const sorted = [...readings].sort((a, b) => b.date.localeCompare(a.date) || (b.time || "").localeCompare(a.time || ""));
+
+  const data = sorted.map(r => {
+    return [
+      formatDateDisplay(r.date),
+      normalizeTime(r.time),
+      r.master1 || 0,
+      r.consumption1 || 0,
+      r.master2 || 0,
+      r.consumption2 || 0,
+      (r.consumption1 || 0) + (r.consumption2 || 0),
+      r.notes || ""
+    ];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+  
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Dữ liệu");
   XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 

@@ -1,10 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity, FileDown } from 'lucide-react';
 import { DailySupplyReading, SystemConfig } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
-import { formatCurrency, formatDateDisplay, normalizeDate, normalizeTime } from '../utils';
+import { formatCurrency, formatDateDisplay, normalizeDate, normalizeTime, exportDailyToExcel } from '../utils';
 
 interface LossDailyTrackingProps {
   readings: DailySupplyReading[];
@@ -102,10 +102,19 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
             <p className="text-[10px] font-bold text-slate-400 italic">Theo dõi biến động & thất thoát</p>
           </div>
         </div>
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl">
+        <div className="flex bg-slate-100 p-1 rounded-2xl gap-0.5">
           <button onClick={() => setActiveTab('record')} className={`p-2 rounded-xl transition-all ${activeTab === 'record' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}><Plus size={18}/></button>
           <button onClick={() => setActiveTab('history')} className={`p-2 rounded-xl transition-all ${activeTab === 'history' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}><History size={18}/></button>
           <button onClick={() => setActiveTab('chart')} className={`p-2 rounded-xl transition-all ${activeTab === 'chart' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}><Activity size={18}/></button>
+          <div className="w-[1px] bg-slate-200 mx-0.5 my-1.5" />
+          <button 
+            onClick={() => exportDailyToExcel(readings)} 
+            disabled={readings.length === 0}
+            className="p-2 rounded-xl text-emerald-600 active:bg-white active:shadow-sm disabled:opacity-20 transition-all"
+            title="Xuất Excel"
+          >
+            <FileDown size={18}/>
+          </button>
         </div>
       </header>
 
