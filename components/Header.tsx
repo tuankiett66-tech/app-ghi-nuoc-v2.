@@ -108,7 +108,10 @@ export const Header: React.FC<HeaderProps> = ({
                 Cloud: {(() => {
                   try {
                     const d = new Date(lastSyncTime);
-                    return isNaN(d.getTime()) ? '---' : d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    if (isNaN(d.getTime())) return '---';
+                    const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                    const timeStr = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    return `${dateStr} ${timeStr}`;
                   } catch (e) {
                     return '---';
                   }
