@@ -138,11 +138,19 @@ export const normalizePhoneForZalo = (phone: any): string => {
 
 export const getBillingMonthYear = () => {
   const d = new Date();
+  let year = d.getFullYear();
+  let month = d.getMonth() + 1; // 1 to 12
+  
   if (d.getDate() >= 25) {
-    d.setMonth(d.getMonth() + 1);
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
   }
-  const m = (d.getMonth() + 1).toString().padStart(2, '0');
-  return `${m}/${d.getFullYear()}`;
+  
+  const m = month.toString().padStart(2, '0');
+  return `${m}/${year}`;
 };
 
 export const generateVietQrUrl = (bankId: string, accountNo: string, amount: number, customerName: string) => {
