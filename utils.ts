@@ -350,13 +350,23 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
           
           // Neu Mã KH khong hop le thi bo qua
           if (!maKH || maKH === "0") continue;
+
+          const nameVal = String(row[colMap.name] || "").trim();
+          const cleanMaKH = maKH.replace(/[\u200B\s]/g, "").toUpperCase();
+          const cleanName = nameVal.replace(/[\u200B\s]/g, "").toUpperCase();
+
+          // Bỏ qua các hàng TỔNG CỘNG hoặc có chứa từ khóa Tổng cộng
+          if (cleanMaKH.includes("TỔNG") || cleanMaKH.includes("CỘNG") || cleanMaKH.includes("TONG") || cleanMaKH.includes("CONG") ||
+              cleanName.includes("TỔNG CỘNG") || cleanName.includes("TONG CONG") || cleanName === "TỔNG" || cleanName === "CỘNG") {
+            continue;
+          }
           
           const phone = String(row[colMap.phone] || "").trim();
           
           res.push(calculateRow({
             id: `xl-${maKH}-${listType}`,
             maKH: maKH,
-            name: String(row[colMap.name] || ""),
+            name: nameVal,
             address: String(row[colMap.address] || ""),
             phone: phone,
             phoneTenant: phone,

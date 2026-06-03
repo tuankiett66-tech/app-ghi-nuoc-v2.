@@ -26,9 +26,17 @@ export const useWaterData = () => {
     try {
       const saved = localStorage.getItem('water_data_final_v21');
       const data = saved ? JSON.parse(saved) : [];
-      return (Array.isArray(data) ? data : []).map((c: any) => {
+      const loaded = (Array.isArray(data) ? data : []).map((c: any) => {
         const maKH = c.maKH || c.stt || "";
         return { ...c, maKH: String(maKH) };
+      });
+      // Filter out any "TỔNG CỘNG" row that accidentally got imported as a customer
+      return loaded.filter((c: any) => {
+        const cleanMaKH = String(c.maKH || "").replace(/[\u200B\s]/g, "").toUpperCase();
+        const cleanName = String(c.name || "").replace(/[\u200B\s]/g, "").toUpperCase();
+        const isSumRow = cleanMaKH.includes("TỔNG") || cleanMaKH.includes("CỘNG") || cleanMaKH.includes("TONG") || cleanMaKH.includes("CONG") ||
+                         cleanName.includes("TỔNG CỘNG") || cleanName.includes("TONG CONG") || cleanName === "TỔNG" || cleanName === "CỘNG";
+        return !isSumRow;
       });
     } catch (e) {
       console.error("Error loading customers:", e);
