@@ -14,9 +14,10 @@ interface LossDailyTrackingProps {
   onAdd: (reading: Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<DailySupplyReading>) => void;
+  onClosePeriod: () => boolean;
 }
 
-export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, config, setConfig, onBack, onAdd, onDelete, onUpdate }) => {
+export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, config, setConfig, onBack, onAdd, onDelete, onUpdate, onClosePeriod }) => {
   const [activeTab, setActiveTab] = useState<'record' | 'history' | 'chart'>('history');
   
   // Form state
@@ -91,6 +92,23 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
     const totals = readings.map(r => (r.consumption1 || 0) + (r.consumption2 || 0));
     return totals.reduce((a, b) => a + b, 0) / totals.length;
   }, [readings]);
+
+  const { totalM1Cons, totalM2Cons, grandTotalCons } = useMemo(() => {
+    const m1Sum = readings.reduce((sum, r) => sum + (r.consumption1 || 0), 0);
+    const m2Sum = readings.reduce((sum, r) => sum + (r.consumption2 || 0), 0);
+    return {
+      totalM1Cons: m1Sum,
+      totalM2Cons: m2Sum,
+      grandTotalCons: m1Sum + m2Sum
+    };
+  }, [readings]);
+
+  const handleConfirmClosePeriod = () => {
+    const confirmMsg = "CẢNH BÁO: Bạn có chắc chắn muốn CHỐT KỲ nước hằng ngày?\n\n- Chỉ số cuối của kỳ hiện tại sẽ được lưu làm số chốt (số cũ) cho kỳ mới.\n- Toàn bộ danh sách ghi chép hằng ngày của kỳ này sẽ được xóa để sẵn sàng ghi kỳ mới.\n\n👉 KHUYÊN DÙNG: Hãy bấm nút xuất file Excel ở góc trên để lưu trữ trước khi chốt!";
+    if (confirm(confirmMsg)) {
+      onClosePeriod();
+    }
+  };
 
   return (
     <div className="h-full bg-slate-50 flex flex-col p-3 pt-[calc(0.5rem+var(--sat))] animate-in slide-in-from-right duration-300 overflow-y-auto pb-32">
@@ -326,6 +344,43 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                <p className="text-xl font-black text-blue-400">{readings.length} <span className="text-[10px] font-black text-slate-500">NGÀY</span></p>
             </div>
           </div>
+
+          {readings.length > 0 && (
+            <>
+              <div className="bg-blue-950 text-white p-5 rounded-[2.5rem] shadow-xl space-y-4 border border-blue-900/40">
+                <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                  <h3 className="text-[11px] font-black uppercase tracking-wider text-blue-300">Tổng tiêu thụ lũy kế cả kỳ</h3>
+                  <span className="text-[8px] font-black uppercase tracking-widest bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-lg">Từ số chốt</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className="bg-white/5 p-3.5 rounded-2xl border border-white/5 flex flex-col justify-center">
+                    <p className="text-[9px] font-black text-blue-400 uppercase mb-1 tracking-wider">Đồng hồ 1</p>
+                    <p className="text-[20px] font-black text-blue-100 leading-none">{totalM1Cons.toLocaleString('vi-VN')} <span className="text-[11px] opacity-50 font-normal">m³</span></p>
+                  </div>
+                  <div className="bg-white/5 p-3.5 rounded-2xl border border-white/5 flex flex-col justify-center">
+                    <p className="text-[9px] font-black text-indigo-400 uppercase mb-1 tracking-wider">Đồng hồ 2</p>
+                    <p className="text-[20px] font-black text-indigo-100 leading-none">{totalM2Cons.toLocaleString('vi-VN')} <span className="text-[11px] opacity-50 font-normal">m³</span></p>
+                  </div>
+                </div>
+                <div className="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 flex justify-between items-center">
+                  <div className="text-left">
+                    <p className="text-[11px] font-black text-blue-400 uppercase tracking-wide leading-none mb-1">Tổng 2 đồng hồ</p>
+                    <p className="text-[8px] font-bold text-slate-400 leading-none italic">Lũy kế tiêu thụ hàng ngày</p>
+                  </div>
+                  <p className="text-[24px] font-black text-blue-400 leading-none">{grandTotalCons.toLocaleString('vi-VN')} <span className="text-[13px] font-black opacity-80">m³</span></p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  onClick={handleConfirmClosePeriod}
+                  className="w-full bg-rose-600 hover:bg-rose-700 text-white py-4 bg-rose-600 hover:bg-rose-700 text-white py-4.5 rounded-[2rem] font-black uppercase text-xs flex justify-center items-center gap-2 shadow-lg hover:shadow-rose-300 active:scale-95 border-b-4 border-rose-800 transition-all"
+                >
+                  Chốt kỳ & Qua tháng mới
+                </button>
+              </div>
+            </>
+          )}
         </motion.div>
       )}
 

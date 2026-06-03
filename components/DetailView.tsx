@@ -27,6 +27,8 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [pi, setPi] = useState(customer.paid > 0 ? Math.round(customer.paid).toString() : "");
   const [showPreview, setShowPreview] = useState(false);
   const [showQrInline, setShowQrInline] = useState(false);
+  const [isEditingInstallDate, setIsEditingInstallDate] = useState(false);
+  const [tempInstallDate, setTempInstallDate] = useState(customer.installDate || "");
 
   // QUAN TRONG: Reset o nhap lieu moi khi chuyen sang khach hang khac (customer.id thay doi)
   useEffect(() => {
@@ -34,6 +36,8 @@ export const DetailView: React.FC<DetailViewProps> = ({
     setPi(customer.paid > 0 ? Math.round(customer.paid).toString() : "");
     setShowPreview(false);
     setShowQrInline(false);
+    setIsEditingInstallDate(false);
+    setTempInstallDate(customer.installDate || "");
   }, [customer.id]);
 
   // Cap nhat du lieu len store khi nguoi dung nhap lieu
@@ -183,38 +187,105 @@ export const DetailView: React.FC<DetailViewProps> = ({
         </div>
 
         {/* Meter Replacement Tracking */}
-        <div className={`p-5 rounded-[2rem] border-2 shadow-md flex items-center gap-4 ${
-          getMeterStatus(customer.installDate).status === 'danger' ? 'bg-rose-50 border-rose-200' :
-          getMeterStatus(customer.installDate).status === 'warning' ? 'bg-amber-50 border-amber-200' :
-          'bg-emerald-50 border-emerald-200'
-        }`}>
-          <div className={`p-3 rounded-2xl ${
-            getMeterStatus(customer.installDate).status === 'danger' ? 'bg-rose-100 text-rose-600' :
-            getMeterStatus(customer.installDate).status === 'warning' ? 'bg-amber-100 text-amber-600' :
-            'bg-emerald-100 text-emerald-600'
-          }`}>
-            {getMeterStatus(customer.installDate).status === 'danger' ? <AlertTriangle size={24}/> : <Clock size={24}/>}
-          </div>
-          <div className="flex-1">
-            <p className="text-[10px] font-black uppercase text-slate-500 mb-0.5">Thời hạn thay đồng hồ (60 tháng)</p>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-xl font-black ${
-                getMeterStatus(customer.installDate).status === 'danger' ? 'text-rose-700' :
-                getMeterStatus(customer.installDate).status === 'warning' ? 'text-amber-700' :
-                'text-emerald-700'
-              }`}>
-                {getMeterStatus(customer.installDate).status === 'unknown' ? 'Chưa nhập ngày lắp' : 
-                 getMeterStatus(customer.installDate).monthsLeft <= 0 ? 'Đã quá hạn' : 
-                 `Còn ${getMeterStatus(customer.installDate).monthsLeft} tháng`}
-              </span>
-              {customer.installDate && (
-                <span className="text-[10px] font-bold text-slate-400 uppercase">
-                  (Lắp: {customer.installDate})
+        {!isEditingInstallDate ? (
+          <div 
+            onClick={() => {
+              setIsEditingInstallDate(true);
+              setTempInstallDate(customer.installDate || "");
+            }}
+            className={`p-5 rounded-[2rem] border-2 shadow-md flex items-center gap-4 cursor-pointer hover:opacity-95 active:scale-98 transition-all ${
+              getMeterStatus(customer.installDate).status === 'danger' ? 'bg-rose-50 border-rose-200' :
+              getMeterStatus(customer.installDate).status === 'warning' ? 'bg-amber-50 border-amber-200' :
+              'bg-emerald-50 border-emerald-200'
+            }`}
+          >
+            <div className={`p-3 rounded-2xl ${
+              getMeterStatus(customer.installDate).status === 'danger' ? 'bg-rose-100 text-rose-600' :
+              getMeterStatus(customer.installDate).status === 'warning' ? 'bg-amber-100 text-amber-600' :
+              'bg-emerald-100 text-emerald-600'
+            }`}>
+              {getMeterStatus(customer.installDate).status === 'danger' ? <AlertTriangle size={24}/> : <Clock size={24}/>}
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black uppercase text-slate-500 mb-0.5 flex justify-between items-center">
+                <span>Thời hạn thay đồng hồ (60 tháng)</span>
+                <span className="text-[9px] font-bold text-blue-600 capitalize underline">Chỉnh sửa</span>
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-xl font-black ${
+                  getMeterStatus(customer.installDate).status === 'danger' ? 'text-rose-700' :
+                  getMeterStatus(customer.installDate).status === 'warning' ? 'text-amber-700' :
+                  'text-emerald-700'
+                }`}>
+                  {getMeterStatus(customer.installDate).status === 'unknown' ? 'Chưa nhập ngày lắp' : 
+                   getMeterStatus(customer.installDate).monthsLeft <= 0 ? 'Đã quá hạn' : 
+                   `Còn ${getMeterStatus(customer.installDate).monthsLeft} tháng`}
                 </span>
-              )}
+                {customer.installDate && (
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">
+                    (Lắp: {customer.installDate})
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-5 rounded-[2rem] border-2 shadow-md bg-sky-50 border-sky-200 animate-in fade-in duration-200">
+            <div className="flex justify-between items-center mb-3">
+              <p className="text-[10px] font-black uppercase text-sky-800">Cài đặt ngày lắp đồng hồ</p>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditingInstallDate(false);
+                }}
+                className="p-1 hover:bg-sky-100 rounded-full text-sky-700"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+              <input 
+                type="month" 
+                className="w-full bg-white p-3 rounded-2xl border-2 border-sky-100 font-black text-slate-800 text-sm focus:outline-none focus:border-sky-500" 
+                value={tempInstallDate} 
+                onChange={e => setTempInstallDate(e.target.value)} 
+              />
+              
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => {
+                    onUpdate({ installDate: tempInstallDate });
+                    setIsEditingInstallDate(false);
+                  }}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] py-2.5 rounded-xl border-b-2 border-emerald-800 transition-all active:scale-95"
+                >
+                  Xác nhận
+                </button>
+                {customer.installDate && (
+                  <button 
+                    onClick={() => {
+                      if (confirm("Bạn có chắc chắn muốn xóa ngày lắp đặt của khách hàng này không?")) {
+                        onUpdate({ installDate: "" });
+                        setIsEditingInstallDate(false);
+                      }
+                    }}
+                    className="px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition-all active:scale-95 flex items-center justify-center"
+                    title="Xóa ngày lắp"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+                <button 
+                  onClick={() => setIsEditingInstallDate(false)}
+                  className="px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black uppercase text-[10px] py-2.5 rounded-xl transition-all active:scale-95"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

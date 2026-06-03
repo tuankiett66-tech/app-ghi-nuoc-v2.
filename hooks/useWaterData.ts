@@ -254,6 +254,32 @@ export const useWaterData = () => {
     }));
   };
 
+  const closeDailyPeriod = () => {
+    if (dailySupplyReadings.length === 0) {
+      alert("Chưa có ghi chép hằng ngày nào để chốt.");
+      return false;
+    }
+    
+    // Tìm phần tử có ngày lớn nhất (mới nhất) để làm số chốt ban đầu cho kỳ mới
+    const sorted = [...dailySupplyReadings].sort((a, b) => {
+      const dateTimeA = `${a.date} ${a.time || '00:00'}`;
+      const dateTimeB = `${b.date} ${b.time || '00:00'}`;
+      return dateTimeA.localeCompare(dateTimeB);
+    });
+    
+    const latest = sorted[sorted.length - 1];
+    
+    setConfig(prev => ({
+      ...prev,
+      master1Initial: latest.master1,
+      master2Initial: latest.master2,
+      masterInitialDate: latest.date
+    }));
+    
+    setDailySupplyReadings([]);
+    return true;
+  };
+
   const resetBankInfo = () => {
     const defaults = { 
       bankId: 'vcb', 
@@ -328,6 +354,7 @@ export const useWaterData = () => {
     deleteCustomer,
     addGroup, updateGroup, deleteGroup,
     closePeriod,
+    closeDailyPeriod,
     addLossRecord, deleteLossRecord, updateLossRecord,
     addDailyReading, deleteDailyReading, updateDailyReading,
     resetBankInfo
