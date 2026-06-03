@@ -153,6 +153,25 @@ export const getBillingMonthYear = () => {
   return `${m}/${year}`;
 };
 
+export const normalizeMonthYear = (monthStr: string): string => {
+  if (!monthStr) return '';
+  // Convert standard date string / ISO timestamp to local YYYY-MM-DD
+  const rawStr = String(monthStr).trim();
+  if (/^\d{2}\/\d{4}$/.test(rawStr)) {
+    return rawStr;
+  }
+  if (/^\d{1,2}\/\d{4}$/.test(rawStr)) {
+    const [m, y] = rawStr.split('/');
+    return `${m.padStart(2, '0')}/${y}`;
+  }
+  const normDate = normalizeDate(rawStr); // handles timezone to local YYYY-MM-DD
+  const parts = normDate.split('-');
+  if (parts.length === 3) {
+    return `${parts[1]}/${parts[0]}`; // MM/YYYY
+  }
+  return rawStr;
+};
+
 export const generateVietQrUrl = (bankId: string, accountNo: string, amount: number, customerName: string) => {
   const amountVnd = Math.max(0, Math.round(amount));
   const cleanName = normalizeString(customerName).toUpperCase();
@@ -475,27 +494,10 @@ export const exportLossPeriodReportToExcel = async (
   
   // Helper to extract month-year from reading date (supports YYYY-MM-DD or DD/MM/YYYY)
   const getMonthYearKeyForPeriod = (dateStr: string) => {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      return `${parts[1]}/${parts[0]}`; // MM/YYYY
-    }
-    if (dateStr.includes('/')) {
-      const partsSlash = dateStr.split('/');
-      if (partsSlash.length === 3) {
-        if (partsSlash[2].length === 4) {
-          return `${partsSlash[1].padStart(2, '0')}/${partsSlash[2]}`;
-        }
-      }
-    }
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) {
-      return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-    }
-    return '';
+    return normalizeMonthYear(dateStr);
   };
 
-  const monthKey = record.month;
+  const monthKey = normalizeMonthYear(record.month);
   // Filter readings that belong to the month of the record
   const filteredReadings = readings
     .filter(r => getMonthYearKeyForPeriod(r.date) === monthKey)

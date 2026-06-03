@@ -12,8 +12,8 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate } from './utils';
-import { Customer } from './types';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear } from './utils';
+import { Customer, LossRecord } from './types';
 
 const App: React.FC = () => {
   const { 
@@ -79,17 +79,52 @@ const App: React.FC = () => {
         // Restore loss records from top level or config fallback
         const rawLoss = result.lossRecords || extraData.lossRecords;
         if (Array.isArray(rawLoss)) {
-          const sanitizedLoss = rawLoss.map((r: any, idx: number) => ({
-            ...r,
-            id: r.id || `loss-sync-${Date.now()}-${idx}`,
-            createdAt: parseFloat(r.createdAt) || Date.now(),
-            master1New: parseFloat(r.master1New) || 0,
-            master1Old: parseFloat(r.master1Old) || 0,
-            master2New: parseFloat(r.master2New) || 0,
-            master2Old: parseFloat(r.master2Old) || 0,
-            list1Volume: parseFloat(r.list1Volume) || 0,
-            list2Volume: parseFloat(r.list2Volume) || 0
-          }));
+          const seenMonths = new Set<string>();
+          const sanitizedLoss: LossRecord[] = [];
+          
+          rawLoss.forEach((r: any, idx: number) => {
+            const rawMonth = r.month || '';
+            const normalizedMonth = normalizeMonthYear(rawMonth);
+            
+            if (normalizedMonth && seenMonths.has(normalizedMonth)) {
+              const existingIdx = sanitizedLoss.findIndex(item => item.month === normalizedMonth);
+              if (existingIdx !== -1) {
+                const existing = sanitizedLoss[existingIdx];
+                const cleanNewVol = (parseFloat(r.list1Volume) || 0) + (parseFloat(r.list2Volume) || 0);
+                const cleanOldVol = existing.list1Volume + existing.list2Volume;
+                if (cleanNewVol > cleanOldVol) {
+                  sanitizedLoss[existingIdx] = {
+                    ...existing,
+                    list1Volume: parseFloat(r.list1Volume) || 0,
+                    list2Volume: parseFloat(r.list2Volume) || 0,
+                    master1New: parseFloat(r.master1New) || existing.master1New,
+                    master1Old: parseFloat(r.master1Old) || existing.master1Old,
+                    master2New: parseFloat(r.master2New) || existing.master2New,
+                    master2Old: parseFloat(r.master2Old) || existing.master2Old,
+                  };
+                }
+              }
+              return;
+            }
+            
+            if (normalizedMonth) {
+              seenMonths.add(normalizedMonth);
+            }
+            
+            sanitizedLoss.push({
+              ...r,
+              id: r.id || `loss-sync-${Date.now()}-${idx}`,
+              createdAt: parseFloat(r.createdAt) || Date.now(),
+              month: normalizedMonth || rawMonth,
+              master1New: parseFloat(r.master1New) || 0,
+              master1Old: parseFloat(r.master1Old) || 0,
+              master2New: parseFloat(r.master2New) || 0,
+              master2Old: parseFloat(r.master2Old) || 0,
+              list1Volume: parseFloat(r.list1Volume) || 0,
+              list2Volume: parseFloat(r.list2Volume) || 0
+            });
+          });
+          
           setLossRecords(sanitizedLoss);
         }
 
