@@ -54,6 +54,25 @@ export const DetailView: React.FC<DetailViewProps> = ({
 
   const qrUrl = generateVietQrUrl(config.bankId, config.accountNo, customer.balance, customer.name);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onNavigate('next');
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      onNavigate('next');
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      onNavigate('next');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      onNavigate('prev');
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      onNavigate('prev');
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-white z-[150] flex flex-col p-4 pt-[calc(1rem+var(--sat))] animate-in slide-in-from-right duration-200">
       <header className="flex justify-between items-center mb-5 shrink-0 gap-1">
@@ -108,15 +127,20 @@ export const DetailView: React.FC<DetailViewProps> = ({
           </div>
         )}
 
-        <div className="bg-slate-100 rounded-[2rem] p-5 border-2 border-slate-200 shadow-inner grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <p className="text-[11px] font-black text-slate-700 uppercase ml-1">Số cũ</p>
-            <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 font-black text-2xl text-slate-400">{customer.oldIndex}</div>
+        <div className="bg-slate-100 rounded-[2rem] p-5 border-2 border-slate-200 shadow-inner">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-black text-slate-700 uppercase ml-1">Số cũ</p>
+              <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 font-black text-2xl text-slate-400">{customer.oldIndex}</div>
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-black text-blue-700 uppercase ml-1">Số mới</p>
+              <input autoFocus type="number" className="w-full bg-white p-4 rounded-2xl border-2 border-blue-200 font-black text-2xl text-blue-700 shadow-sm focus:border-blue-500 outline-none" value={ni} onChange={e => setNi(e.target.value)} onKeyDown={handleKeyDown} />
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <p className="text-[11px] font-black text-blue-700 uppercase ml-1">Số mới</p>
-            <input autoFocus type="number" className="w-full bg-white p-4 rounded-2xl border-2 border-blue-200 font-black text-2xl text-blue-700 shadow-sm focus:border-blue-500 outline-none" value={ni} onChange={e => setNi(e.target.value)} />
-          </div>
+          <p className="text-[10px] font-bold text-slate-500 text-center mt-3.5 flex items-center justify-center gap-1">
+            ⌨️ Phím tắt PC: Bấm <span className="font-black text-slate-800 bg-slate-200 px-1 py-0.5 rounded">Enter</span> hoặc phím <span className="font-black text-slate-800 bg-slate-200 px-1 py-0.5 rounded">Mũi tên ↑ ↓ → ←</span> để chuyển nhanh khách hàng
+          </p>
         </div>
 
         <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-5 shadow-md space-y-3">
@@ -147,7 +171,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
         <div className="grid grid-cols-12 gap-3">
           <div className="col-span-8 bg-emerald-50 rounded-2xl p-4 border-2 border-emerald-200 relative shadow-sm">
             <p className="text-[11px] font-black text-emerald-700 uppercase ml-1 mb-1">Khách trả tiền</p>
-            <input type="number" className="w-full bg-transparent text-3xl font-black text-emerald-700 outline-none" value={pi} onChange={e => setPi(e.target.value)} />
+            <input type="number" className="w-full bg-transparent text-3xl font-black text-emerald-700 outline-none" value={pi} onChange={e => setPi(e.target.value)} onKeyDown={handleKeyDown} />
             {pi && <button onClick={() => setPi('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-300 active:scale-90 p-1"><X size={20}/></button>}
           </div>
           <div className="col-span-4 flex flex-col gap-2">
