@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity, Save, Download } from 'lucide-react';
-import { LossRecord, Customer, DailySupplyReading } from '../types';
-import { formatCurrency, getBillingMonthYear, exportLossPeriodReportToExcel } from '../utils';
+import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity, Save, Download, RefreshCw } from 'lucide-react';
+import { LossRecord, Customer, DailySupplyReading, SystemConfig } from '../types';
+import { formatCurrency, getBillingMonthYear, exportLossPeriodReportToExcel, normalizeMonthYear } from '../utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -9,6 +9,7 @@ interface LossViewProps {
   records: LossRecord[];
   customers: Customer[];
   dailySupplyReadings: DailySupplyReading[];
+  config: SystemConfig;
   onBack: () => void;
   onAdd: (record: Omit<LossRecord, 'id' | 'createdAt'>) => void;
   onDelete: (id: string) => void;
@@ -16,7 +17,7 @@ interface LossViewProps {
   onShowDailyTracking: () => void;
 }
 
-export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySupplyReadings, onBack, onAdd, onDelete, onUpdate, onShowDailyTracking }) => {
+export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySupplyReadings, config, onBack, onAdd, onDelete, onUpdate, onShowDailyTracking }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [activeView, setActiveView] = useState<'table' | 'chart'>('table');
   
@@ -33,6 +34,105 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
   const [m2Old, setM2Old] = useState('');
   const [manualList1Vol, setManualList1Vol] = useState('');
   const [manualList2Vol, setManualList2Vol] = useState('');
+
+  const getAutoSyncValuesForMonth = (monthStr: string, recordId?: string) => {
+    const normMonth = normalizeMonthYear(monthStr);
+    
+    // Find daily records for this month
+    const filtered = dailySupplyReadings.filter(r => {
+      const rMonth = normalizeMonthYear(r.date);
+      return rMonth === normMonth;
+    });
+
+    if (filtered.length === 0) {
+      return null;
+    }
+
+    // Sort chronologically
+    const sorted = [...filtered].sort((a, b) => a.date.localeCompare(b.date));
+    const earliest = sorted[0];
+    const latest = sorted[sorted.length - 1];
+
+    let m1OldVal = config.master1Initial || 0;
+    let m2OldVal = config.master2Initial || 0;
+
+    // Check historical records to find the previous period's closing value as our opening value
+    const sortedRecords = [...records]
+      .filter(r => r.id !== recordId && r.month !== monthStr)
+      .sort((a, b) => {
+        const partsA = a.month.split('/');
+        const partsB = b.month.split('/');
+        return `${partsA[1]}${partsA[0]}`.localeCompare(`${partsB[1]}${partsB[0]}`);
+      });
+    
+    const prevRec = sortedRecords.reverse().find(r => {
+      const [rM, rY] = r.month.split('/').map(Number);
+      const [currM, currY] = normMonth.split('/').map(Number);
+      if (rY < currY) return true;
+      if (rY === currY && rM < currM) return true;
+      return false;
+    });
+
+    if (prevRec) {
+      m1OldVal = prevRec.master1New;
+      m2OldVal = prevRec.master2New;
+    } else {
+      m1OldVal = earliest.master1 - (earliest.consumption1 || 0);
+      m2OldVal = earliest.master2 - (earliest.consumption2 || 0);
+    }
+
+    const m1NewVal = latest.master1;
+    const m2NewVal = latest.master2;
+
+    return {
+      master1Old: m1OldVal,
+      master1New: m1NewVal,
+      master2Old: m2OldVal,
+      master2New: m2NewVal,
+      readingsCount: filtered.length
+    };
+  };
+
+  const handleSyncFromDaily = (recordId: string, monthStr: string) => {
+    const vals = getAutoSyncValuesForMonth(monthStr, recordId);
+    if (!vals) {
+      alert(`Không tìm thấy dữ liệu Ghi số nước hằng ngày cho Tháng ${monthStr} (${normalizeMonthYear(monthStr)}) để đồng bộ!`);
+      return;
+    }
+
+    onUpdate(recordId, {
+      master1Old: vals.master1Old,
+      master1New: vals.master1New,
+      master2Old: vals.master2Old,
+      master2New: vals.master2New
+    });
+
+    alert(`🎉 Đồng bộ số liệu Kỳ Tháng ${monthStr} thành công!\n(Tìm thấy ${vals.readingsCount} ngày ghi chép)\n\nĐỒNG HỒ 1 (Số cũ -> Số mới): ${vals.master1Old.toLocaleString('vi-VN')} ➔ ${vals.master1New.toLocaleString('vi-VN')} (${(vals.master1New - vals.master1Old).toLocaleString('vi-VN')} m³)\nĐỒNG HỒ 2 (Số cũ -> Số mới): ${vals.master2Old.toLocaleString('vi-VN')} ➔ ${vals.master2New.toLocaleString('vi-VN')} (${(vals.master2New - vals.master2Old).toLocaleString('vi-VN')} m³)`);
+  };
+
+  const handleAutoFillFromDaily = (monthStr: string, isForEdit: boolean) => {
+    const vals = getAutoSyncValuesForMonth(monthStr, isForEdit ? editingId || undefined : undefined);
+    if (!vals) {
+      alert(`Không tìm thấy dữ liệu Ghi số nước hằng ngày cho Tháng ${monthStr} trong ứng dụng!`);
+      return;
+    }
+
+    if (isForEdit) {
+      setEditData(prev => ({
+        ...prev,
+        master1Old: vals.master1Old,
+        master1New: vals.master1New,
+        master2Old: vals.master2Old,
+        master2New: vals.master2New
+      }));
+    } else {
+      setM1Old(vals.master1Old.toString());
+      setM1New(vals.master1New.toString());
+      setM2Old(vals.master2Old.toString());
+      setM2New(vals.master2New.toString());
+    }
+    alert(`💡 Đã lấy số liệu của ${vals.readingsCount} ngày ghi chép trong tháng ${monthStr} thành công!`);
+  };
 
   const currentStats = useMemo(() => {
     const list1 = customers.filter(c => c.listType === 'list1');
@@ -127,6 +227,18 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-3xl flex items-start gap-3 shadow-sm">
+            <div className="bg-indigo-100 text-indigo-700 p-2 rounded-xl mt-0.5">
+              <RefreshCw size={16} />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-indigo-900 uppercase">💡 Khôi phục sửa lỗi báo cáo</h4>
+              <p className="text-[11px] text-indigo-700 font-medium leading-relaxed mt-1">
+                Nếu số liệu Kỳ báo cáo (như Kỳ 5/2026) chưa hoàn tất hoặc bị sai do cập nhật muộn, bạn chỉ cần bấm nút <b>Sửa</b> (biểu tượng <b>Sấm sét màu xanh</b>) của kỳ đó, sau đó nhấp vào <b>"Tự động lấy số liệu từ Nhật ký hằng ngày"</b> để ứng dụng tự động đồng bộ lại chuẩn xác 100% từ nhật ký ghi nước hằng ngày!
+              </p>
+            </div>
+          </div>
+
           <button 
             onClick={() => {
               if (!showAdd) {
@@ -173,6 +285,14 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                       <input value={month} onChange={e => setMonth(e.target.value)} placeholder="VD: Dec-25" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-lg font-black outline-none focus:border-blue-500 shadow-inner" />
                     </div>
                   </div>
+
+                  <button 
+                    type="button" 
+                    onClick={() => handleAutoFillFromDaily(month, false)}
+                    className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-2xl text-indigo-700 font-bold text-xs uppercase flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-sm"
+                  >
+                    <RefreshCw size={14} /> Điền từ Nhật ký hằng ngày
+                  </button>
 
                   <div className="bg-slate-50 p-5 rounded-[2rem] space-y-3.5 border-2 border-slate-100/50 shadow-sm">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center italic">Đồng hồ tổng số 1</p>
@@ -285,6 +405,14 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                           <input value={editData.month || ''} onChange={e => setEditData({...editData, month: e.target.value})} className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black" />
                         </div>
                       </div>
+
+                      <button 
+                        type="button" 
+                        onClick={() => handleAutoFillFromDaily(editData.month || '', true)}
+                        className="w-full py-2 bg-indigo-100 hover:bg-indigo-200 rounded-xl text-indigo-700 font-bold text-[10px] uppercase flex items-center justify-center gap-1 active:scale-95 transition-all shadow-sm animate-pulse-slow"
+                      >
+                        <RefreshCw size={12} /> Tự động lấy số liệu từ Nhật ký hằng ngày
+                      </button>
                       
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
