@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity, FileDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity, FileDown } from 'lucide-react';
 import { DailySupplyReading, SystemConfig } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
@@ -78,30 +78,102 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
     setShowInitialSettings(false);
   };
 
+  // Helper to extract month-year from reading date (supports YYYY-MM-DD)
+  const getMonthYearKey = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[1]}/${parts[0]}`; // MM/YYYY
+    }
+    if (dateStr.includes('/')) {
+      const partsSlash = dateStr.split('/');
+      if (partsSlash.length === 3) {
+        if (partsSlash[2].length === 4) {
+          return `${partsSlash[1].padStart(2, '0')}/${partsSlash[2]}`;
+        }
+      }
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    }
+    return '';
+  };
+
+  const getCurrentMonthYear = () => {
+    const d = new Date();
+    return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  };
+
+  // Get list of unique months from readings, plus the current month, sorted chronologically:
+  const availableMonths = useMemo(() => {
+    const monthsSet = new Set<string>();
+    const curr = getCurrentMonthYear();
+    monthsSet.add(curr);
+    
+    readings.forEach(r => {
+      const key = getMonthYearKey(r.date);
+      if (key) monthsSet.add(key);
+    });
+    
+    // Sort chronologically (YYYYMM) descending
+    return Array.from(monthsSet).sort((a, b) => {
+      const [mA, yA] = a.split('/');
+      const [mB, yB] = b.split('/');
+      return `${yB}${mB}`.localeCompare(`${yA}${mA}`);
+    });
+  }, [readings]);
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const curr = getCurrentMonthYear();
+    return curr;
+  });
+
+  const filteredReadings = useMemo(() => {
+    return readings.filter(r => getMonthYearKey(r.date) === selectedMonth);
+  }, [readings, selectedMonth]);
+
+  const handlePrevMonth = () => {
+    const currentIndex = availableMonths.indexOf(selectedMonth);
+    if (currentIndex < availableMonths.length - 1) {
+      setSelectedMonth(availableMonths[currentIndex + 1]);
+    }
+  };
+
+  const handleNextMonth = () => {
+    const currentIndex = availableMonths.indexOf(selectedMonth);
+    if (currentIndex > 0) {
+      setSelectedMonth(availableMonths[currentIndex - 1]);
+    }
+  };
+
+  const prevMonthDisabled = availableMonths.indexOf(selectedMonth) >= availableMonths.length - 1;
+  const nextMonthDisabled = availableMonths.indexOf(selectedMonth) <= 0;
+
   const chartData = useMemo(() => {
-    return [...readings].reverse().map(r => ({
+    return [...filteredReadings].reverse().map(r => ({
       date: formatDateDisplay(r.date), // DD/MM
       'Tổng tiêu thụ': (r.consumption1 || 0) + (r.consumption2 || 0),
       'Đồng hồ 1': r.consumption1 || 0,
       'Đồng hồ 2': r.consumption2 || 0,
     }));
-  }, [readings]);
+  }, [filteredReadings]);
 
   const avgConsumption = useMemo(() => {
-    if (readings.length === 0) return 0;
-    const totals = readings.map(r => (r.consumption1 || 0) + (r.consumption2 || 0));
+    if (filteredReadings.length === 0) return 0;
+    const totals = filteredReadings.map(r => (r.consumption1 || 0) + (r.consumption2 || 0));
     return totals.reduce((a, b) => a + b, 0) / totals.length;
-  }, [readings]);
+  }, [filteredReadings]);
 
   const { totalM1Cons, totalM2Cons, grandTotalCons } = useMemo(() => {
-    const m1Sum = readings.reduce((sum, r) => sum + (r.consumption1 || 0), 0);
-    const m2Sum = readings.reduce((sum, r) => sum + (r.consumption2 || 0), 0);
+    const m1Sum = filteredReadings.reduce((sum, r) => sum + (r.consumption1 || 0), 0);
+    const m2Sum = filteredReadings.reduce((sum, r) => sum + (r.consumption2 || 0), 0);
     return {
       totalM1Cons: m1Sum,
       totalM2Cons: m2Sum,
       grandTotalCons: m1Sum + m2Sum
     };
-  }, [readings]);
+  }, [filteredReadings]);
 
   const handleConfirmClosePeriod = () => {
     const confirmMsg = "CẢNH BÁO: Bạn có chắc chắn muốn CHỐT KỲ nước hằng ngày?\n\n- Chỉ số cuối của kỳ hiện tại sẽ được lưu làm số chốt (số cũ) cho kỳ mới.\n- Toàn bộ danh sách ghi chép hằng ngày của kỳ này sẽ được xóa để sẵn sàng ghi kỳ mới.\n\n👉 KHUYÊN DÙNG: Hãy bấm nút xuất file Excel ở góc trên để lưu trữ trước khi chốt!";
@@ -126,8 +198,8 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
           <button onClick={() => setActiveTab('chart')} className={`p-2 rounded-xl transition-all ${activeTab === 'chart' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'}`}><Activity size={18}/></button>
           <div className="w-[1px] bg-slate-200 mx-0.5 my-1.5" />
           <button 
-            onClick={() => exportDailyToExcel(readings)} 
-            disabled={readings.length === 0}
+            onClick={() => exportDailyToExcel(filteredReadings, `Theo_Doi_Hang_Ngay_Thang_${selectedMonth.replace('/', '_')}`)} 
+            disabled={filteredReadings.length === 0}
             className="p-2 rounded-xl text-emerald-600 active:bg-white active:shadow-sm disabled:opacity-20 transition-all"
             title="Xuất Excel"
           >
@@ -135,6 +207,42 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
           </button>
         </div>
       </header>
+
+      {/* Month Selector Bar */}
+      {(activeTab === 'history' || activeTab === 'chart') && (
+        <div className="bg-white p-3.5 rounded-[1.8rem] border-2 border-slate-100 shadow-sm flex items-center justify-between mb-4">
+          <button 
+            type="button"
+            onClick={handlePrevMonth} 
+            disabled={prevMonthDisabled} 
+            className="p-2 px-3 bg-slate-50 hover:bg-slate-100 disabled:opacity-30 rounded-xl text-slate-800 disabled:pointer-events-none active:scale-95 transition-all text-[11px] font-black uppercase flex items-center justify-center gap-0.5 border border-slate-100"
+          >
+            <ChevronLeft size={12} /> Trước
+          </button>
+          
+          <div className="flex flex-col items-center">
+            <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest leading-none mb-1">Kỳ xem dữ liệu</span>
+            <select 
+              value={selectedMonth} 
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="text-[15px] font-black text-blue-600 bg-transparent border-none focus:ring-0 cursor-pointer text-center p-0 outline-none"
+            >
+              {availableMonths.map(m => (
+                <option key={m} value={m}>Tháng {m}</option>
+              ))}
+            </select>
+          </div>
+
+          <button 
+            type="button"
+            onClick={handleNextMonth} 
+            disabled={nextMonthDisabled} 
+            className="p-2 px-3 bg-slate-50 hover:bg-slate-100 disabled:opacity-30 rounded-xl text-slate-800 disabled:pointer-events-none active:scale-95 transition-all text-[11px] font-black uppercase flex items-center justify-center gap-0.5 border border-slate-100"
+          >
+            Sau <ChevronRight size={12} />
+          </button>
+        </div>
+      )}
 
       {activeTab === 'record' && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
@@ -245,7 +353,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                 </tr>
               </thead>
               <tbody>
-                {readings.length === 0 ? (
+                {filteredReadings.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-20 text-center text-slate-300">
                       <History size={48} className="mx-auto mb-3 opacity-20" />
@@ -253,9 +361,9 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                     </td>
                   </tr>
                 ) : (
-                  readings.map((r, idx) => {
+                  filteredReadings.map((r, idx) => {
                     const totalCons = (r.consumption1 || 0) + (r.consumption2 || 0);
-                    const isHigh = totalCons > avgConsumption * 1.5 && readings.length > 3;
+                    const isHigh = totalCons > avgConsumption * 1.5 && filteredReadings.length > 3;
                     const isEditing = editingId === r.id;
                     
                     return (
@@ -341,11 +449,11 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
             <div className="h-10 w-px bg-white/10 mx-2"></div>
             <div className="text-right">
                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5 mt-1">Số ngày ghi</p>
-               <p className="text-xl font-black text-blue-400">{readings.length} <span className="text-[10px] font-black text-slate-500">NGÀY</span></p>
+               <p className="text-xl font-black text-blue-400">{filteredReadings.length} <span className="text-[10px] font-black text-slate-500">NGÀY</span></p>
             </div>
           </div>
 
-          {readings.length > 0 && (
+          {filteredReadings.length > 0 && (
             <>
               <div className="bg-blue-950 text-white p-5 rounded-[2.5rem] shadow-xl space-y-4 border border-blue-900/40">
                 <div className="flex justify-between items-center border-b border-white/10 pb-2">
@@ -417,7 +525,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
              <div className="bg-white p-5 rounded-[2rem] border-2 border-slate-100 text-center">
                 <p className="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Cao nhất</p>
                 <p className="text-2xl font-black text-rose-500">
-                  {readings.length > 0 ? Math.max(...readings.map(r => (r.consumption1 || 0) + (r.consumption2 || 0))) : 0} 
+                  {filteredReadings.length > 0 ? Math.max(...filteredReadings.map(r => (r.consumption1 || 0) + (r.consumption2 || 0))) : 0} 
                   <span className="text-xs uppercase opacity-50 ml-1">m3</span>
                 </p>
              </div>
