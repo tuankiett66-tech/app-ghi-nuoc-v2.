@@ -440,6 +440,37 @@ export const useWaterData = () => {
     recalculateDailyConsumption(updated);
   };
 
+  const importDailyReadings = (imported: Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>[]) => {
+    const existingMap = new Map<string, DailySupplyReading>();
+    dailySupplyReadings.forEach(r => {
+      existingMap.set(`${r.date} ${r.time || '00:00'}`, r);
+    });
+
+    imported.forEach(imp => {
+      const key = `${imp.date} ${imp.time || '00:00'}`;
+      const existing = existingMap.get(key);
+      if (existing) {
+        existingMap.set(key, {
+          ...existing,
+          master1: imp.master1,
+          master2: imp.master2,
+          notes: imp.notes || existing.notes,
+          updatedAt: Date.now()
+        });
+      } else {
+        const newRec: DailySupplyReading = {
+          ...imp,
+          id: `supply-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          updatedAt: Date.now()
+        };
+        existingMap.set(key, newRec);
+      }
+    });
+
+    const mergedList = Array.from(existingMap.values());
+    recalculateDailyConsumption(mergedList);
+  };
+
   const recalculateDailyConsumption = (allReadings: DailySupplyReading[]) => {
     const sorted = [...allReadings].map(r => ({ ...r, date: r.date.split('T')[0] })).sort((a, b) => {
       const dateTimeA = `${a.date} ${a.time || '00:00'}`;
@@ -625,7 +656,7 @@ export const useWaterData = () => {
     closePeriod,
     closeDailyPeriod,
     addLossRecord, deleteLossRecord, updateLossRecord,
-    addDailyReading, deleteDailyReading, updateDailyReading,
+    addDailyReading, deleteDailyReading, updateDailyReading, importDailyReadings,
     resetBankInfo
   };
 };

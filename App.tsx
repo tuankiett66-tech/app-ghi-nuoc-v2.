@@ -22,7 +22,7 @@ const App: React.FC = () => {
     config, setConfig, 
     activeTab, setActiveTab, 
     lossRecords, setLossRecords, addLossRecord, deleteLossRecord, updateLossRecord,
-    dailySupplyReadings, setDailySupplyReadings, addDailyReading, deleteDailyReading, updateDailyReading,
+    dailySupplyReadings, setDailySupplyReadings, addDailyReading, deleteDailyReading, updateDailyReading, importDailyReadings,
     updateCustomer, addCustomer, deleteCustomer, closePeriod, closeDailyPeriod, resetBankInfo
   } = useWaterData();
   
@@ -747,6 +747,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onDelete={deleteDailyReading}
           onUpdate={updateDailyReading}
           onClosePeriod={closeDailyPeriod}
+          onImport={importDailyReadings}
         />
       )}
 

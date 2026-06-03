@@ -386,6 +386,145 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
   });
 };
 
+export const parseDailySupplyExcelFile = async (file: File): Promise<Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>[]> => {
+  const XLSX = await getXLSX();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const ws = workbook.Sheets[workbook.SheetNames[0]];
+        const json: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+        
+        let headerRowIndex = -1;
+        let colMap = {
+          date: -1,
+          time: -1,
+          master1: -1,
+          master2: -1,
+          notes: -1
+        };
+
+        // Tim hang tieu de va tu dong mapping cot theo ten
+        for (let r = 0; r < Math.min(20, json.length); r++) {
+          const row = json[r];
+          if (row && row.some(cell => {
+            const t = String(cell || "").toUpperCase();
+            return t.includes("NGÀY") || t.includes("CHỈ SỐ") || t.includes("ĐỒNG HỒ");
+          })) {
+            headerRowIndex = r;
+            row.forEach((cell, idx) => {
+              const text = String(cell || "").trim().toUpperCase();
+              if (text === "NGÀY" || text === "DATE" || text.includes("NGÀY / GIỜ") || text.includes("NGÀY/GIỜ")) {
+                colMap.date = idx;
+              } else if (text === "GIỜ" || text === "TIME") {
+                colMap.time = idx;
+              } else if (text.includes("CHỈ SỐ ĐH1") || text.includes("ĐH1") || text.includes("M1") || text.includes("ĐỒNG HỒ 1") || text.includes("SỐ 1") || (text.includes("CHỈ SỐ") && (text.includes("1") || text.includes("I")))) {
+                if (colMap.master1 === -1) colMap.master1 = idx;
+              } else if (text.includes("CHỈ SỐ ĐH2") || text.includes("ĐH2") || text.includes("M2") || text.includes("ĐỒNG HỒ 2") || text.includes("SỐ 2") || (text.includes("CHỈ SỐ") && (text.includes("2") || text.includes("II")))) {
+                if (colMap.master2 === -1) colMap.master2 = idx;
+              } else if (text.includes("GHI CHÚ") || text.includes("NOTE") || text.includes("NOTES")) {
+                colMap.notes = idx;
+              }
+            });
+            break;
+          }
+        }
+
+        // Fallback standard columns if header not found explicitly:
+        if (colMap.date === -1) colMap.date = 0;
+        if (colMap.time === -1) colMap.time = 1;
+        if (colMap.master1 === -1) colMap.master1 = 2;
+        if (colMap.master2 === -1) colMap.master2 = 4;
+        if (colMap.notes === -1) colMap.notes = 7;
+
+        const start = headerRowIndex !== -1 ? headerRowIndex + 1 : 1;
+        const res: Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>[] = [];
+        
+        for (let i = start; i < json.length; i++) {
+          const row = json[i];
+          if (!row || row.length === 0) continue;
+          
+          let rawDateVal = row[colMap.date];
+          let rawTimeVal = colMap.time !== -1 ? row[colMap.time] : "";
+          
+          if (!rawDateVal) continue;
+          
+          let parsedDate = "";
+          let parsedTime = "";
+          const dateStr = String(rawDateVal).trim();
+          
+          if (dateStr.toUpperCase().includes("TỔNG") || dateStr.toUpperCase().includes("CỘNG") || dateStr.toUpperCase() === "NGÀY") {
+            continue;
+          }
+
+          const dateTimeMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+          if (dateTimeMatch) {
+            const day = dateTimeMatch[1].padStart(2, '0');
+            const month = dateTimeMatch[2].padStart(2, '0');
+            const year = dateTimeMatch[3];
+            parsedDate = `${year}-${month}-${day}`;
+            parsedTime = `${dateTimeMatch[4].padStart(2, '0')}:${dateTimeMatch[5]}`;
+          } else {
+            parsedDate = parseExcelDate(rawDateVal);
+            parsedTime = rawTimeVal ? normalizeTime(rawTimeVal) : "";
+          }
+
+          if (!parsedDate) continue;
+
+          const m1Val = parseSafe(row[colMap.master1]);
+          const m2Val = parseSafe(row[colMap.master2]);
+          const notesVal = colMap.notes !== -1 ? String(row[colMap.notes] || "").trim() : "";
+
+          if (m1Val === 0 && m2Val === 0) continue;
+
+          res.push({
+            date: parsedDate,
+            time: parsedTime || "00:00",
+            master1: m1Val,
+            master2: m2Val,
+            notes: notesVal
+          });
+        }
+        resolve(res);
+      } catch (err) { reject(err); }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+const parseExcelDate = (val: any): string => {
+  if (!val) return "";
+  const str = String(val).trim();
+  
+  const dmYMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmYMatch) {
+    const day = dmYMatch[1].padStart(2, '0');
+    const month = dmYMatch[2].padStart(2, '0');
+    const year = dmYMatch[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  const ymdMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (ymdMatch) {
+    const year = ymdMatch[1];
+    const month = ymdMatch[2].padStart(2, '0');
+    const day = ymdMatch[3].padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  return "";
+};
+
 export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> => {
   const XLSX = await getXLSX();
   return new Promise((resolve, reject) => {

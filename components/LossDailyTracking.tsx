@@ -1,10 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity, FileDown } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity, FileDown, FileUp } from 'lucide-react';
 import { DailySupplyReading, SystemConfig } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
-import { formatCurrency, formatDateDisplay, normalizeDate, normalizeTime, exportDailyToExcel } from '../utils';
+import { formatCurrency, formatDateDisplay, normalizeDate, normalizeTime, exportDailyToExcel, parseDailySupplyExcelFile } from '../utils';
 
 interface LossDailyTrackingProps {
   readings: DailySupplyReading[];
@@ -15,9 +15,10 @@ interface LossDailyTrackingProps {
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<DailySupplyReading>) => void;
   onClosePeriod: () => boolean;
+  onImport: (newReadings: Omit<DailySupplyReading, 'id' | 'updatedAt' | 'consumption1' | 'consumption2'>[]) => void;
 }
 
-export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, config, setConfig, onBack, onAdd, onDelete, onUpdate, onClosePeriod }) => {
+export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, config, setConfig, onBack, onAdd, onDelete, onUpdate, onClosePeriod, onImport }) => {
   const [activeTab, setActiveTab] = useState<'record' | 'history' | 'chart'>('history');
   
   // Form state
@@ -35,6 +36,31 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
   const [tempM1Init, setTempM1Init] = useState(config.master1Initial?.toString() || '0');
   const [tempM2Init, setTempM2Init] = useState(config.master2Initial?.toString() || '0');
   const [tempDateInit, setTempDateInit] = useState(config.masterInitialDate || new Date().toISOString().split('T')[0]);
+
+  const dailyFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const parsed = await parseDailySupplyExcelFile(file);
+      if (parsed.length === 0) {
+        alert("Không tìm thấy dòng dữ liệu hợp lệ trong file Excel. Vui lòng kiểm tra lại tiêu đề cột (NGÀY, GIỜ, CHỈ SỐ ĐH1, CHỈ SỐ ĐH2...).");
+        return;
+      }
+
+      onImport(parsed);
+      alert(`🎉 Đã nhập thành công ${parsed.length} dòng dữ liệu cấp nước hằng ngày từ file Excel!`);
+      
+      if (dailyFileInputRef.current) {
+        dailyFileInputRef.current.value = "";
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Đã xảy ra lỗi khi đọc file Excel. Vui lòng đảm bảo file không có mật khẩu bảo vệ và đúng định dạng bảng biểu.");
+    }
+  };
 
   const handleAdd = () => {
     if (!m1 && !m2) {
@@ -205,6 +231,20 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
           >
             <FileDown size={18}/>
           </button>
+          <button 
+            onClick={() => dailyFileInputRef.current?.click()} 
+            className="p-2 rounded-xl text-indigo-600 active:bg-white active:shadow-sm transition-all"
+            title="Nhập Excel"
+          >
+            <FileUp size={18}/>
+          </button>
+          <input 
+            type="file" 
+            ref={dailyFileInputRef} 
+            onChange={handleImportExcel} 
+            className="hidden" 
+            accept=".xlsx, .xls" 
+          />
         </div>
       </header>
 
@@ -241,6 +281,22 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
           >
             Sau <ChevronRight size={12} />
           </button>
+        </div>
+      )}
+
+      {/* Excel Import Clarification banner */}
+      {(activeTab === 'history') && (
+        <div className="bg-indigo-50 border-2 border-indigo-100 p-4 rounded-3xl flex items-start gap-3 shadow-sm mb-4">
+          <div className="bg-indigo-100 text-indigo-700 p-2 rounded-xl mt-0.5 shrink-0">
+            <FileUp size={16} />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-indigo-900 uppercase tracking-tight">📈 KHẮC PHỤC SAI LỆCH SỐ LIỆU CŨ</h4>
+            <p className="text-[11px] text-indigo-700 font-medium leading-relaxed mt-1">
+              Bạn có thể nhập bổ sung dữ liệu viết tay từ các tháng trước để bù đắp số liệu cũ bị thiếu giúp báo cáo tự động tính toán chính xác tuyệt đối. 
+              Hãy bấm vào biểu tượng <span className="font-black text-indigo-950 inline-flex items-center gap-0.5 bg-indigo-200/50 px-1 py-0.5 rounded-md leading-none"><FileUp size={11} /> Nhập Excel</span> ở góc phải thanh tiêu đề để bắt đầu tải file lên.
+            </p>
+          </div>
         </div>
       )}
 
@@ -355,9 +411,16 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
               <tbody>
                 {filteredReadings.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-20 text-center text-slate-300">
-                      <History size={48} className="mx-auto mb-3 opacity-20" />
-                      <p className="font-black uppercase text-[10px] tracking-widest leading-loose">Chưa có dữ liệu hàng ngày</p>
+                    <td colSpan={5} className="py-20 text-center text-slate-300 px-4">
+                      <History size={48} className="mx-auto mb-3 opacity-20 text-indigo-400" />
+                      <p className="font-black uppercase text-xs tracking-wider text-slate-500 mb-4">Chưa có dữ liệu cấp nước kỳ này</p>
+                      <button 
+                        type="button"
+                        onClick={() => dailyFileInputRef.current?.click()}
+                        className="mx-auto px-6 py-3 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-2xl text-xs font-black uppercase flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-sm border border-indigo-100/50"
+                      >
+                        <FileUp size={14} /> Nhập số liệu từ File Excel
+                      </button>
                     </td>
                   </tr>
                 ) : (
