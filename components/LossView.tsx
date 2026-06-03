@@ -1,14 +1,14 @@
-
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity, Save } from 'lucide-react';
-import { LossRecord, Customer } from '../types';
-import { formatCurrency, getBillingMonthYear } from '../utils';
+import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity, Save, Download } from 'lucide-react';
+import { LossRecord, Customer, DailySupplyReading } from '../types';
+import { formatCurrency, getBillingMonthYear, exportLossPeriodReportToExcel } from '../utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface LossViewProps {
   records: LossRecord[];
   customers: Customer[];
+  dailySupplyReadings: DailySupplyReading[];
   onBack: () => void;
   onAdd: (record: Omit<LossRecord, 'id' | 'createdAt'>) => void;
   onDelete: (id: string) => void;
@@ -16,7 +16,7 @@ interface LossViewProps {
   onShowDailyTracking: () => void;
 }
 
-export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, onAdd, onDelete, onUpdate, onShowDailyTracking }) => {
+export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySupplyReadings, onBack, onAdd, onDelete, onUpdate, onShowDailyTracking }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [activeView, setActiveView] = useState<'table' | 'chart'>('table');
   
@@ -149,7 +149,7 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
               }
               setShowAdd(!showAdd);
             }}
-            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase flex justify-center items-center gap-2 shadow-lg active:scale-95 border-b-4 border-blue-800"
+            className="w-full bg-blue-600 text-white py-4 rounded-xl font-black uppercase flex justify-center items-center gap-2 shadow-lg active:scale-95 border-b-4 border-blue-800"
           >
             <Plus size={20}/> {showAdd ? 'Đóng form' : 'Ghi nhận kỳ mới'}
           </button>
@@ -234,24 +234,40 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                     </div>
                     <div className="flex gap-2">
                        {isEditing ? (
-                         <div className="flex gap-1 animate-in fade-in zoom-in duration-200">
-                            <button 
-                              onClick={() => {
-                                onUpdate(r.id, editData);
-                                setEditingId(null);
-                              }} 
-                              className="p-2 bg-emerald-500 text-white rounded-xl shadow-sm active:scale-95"
-                            ><Save size={18}/></button>
-                            <button onClick={() => setEditingId(null)} className="p-2 bg-slate-100 text-slate-400 rounded-xl active:scale-90 font-black text-[10px] uppercase px-3">Hủy</button>
-                         </div>
+                          <div className="flex gap-1 animate-in fade-in zoom-in duration-200">
+                             <button 
+                               onClick={() => {
+                                 onUpdate(r.id, editData);
+                                 setEditingId(null);
+                               }} 
+                               className="p-2 bg-emerald-500 text-white rounded-xl shadow-sm active:scale-95"
+                             ><Save size={18}/></button>
+                             <button onClick={() => setEditingId(null)} className="p-2 bg-slate-100 text-slate-400 rounded-xl active:scale-90 font-black text-[10px] uppercase px-3">Hủy</button>
+                          </div>
                        ) : (
-                         <button 
-                           onClick={() => {
-                             setEditingId(r.id);
-                             setEditData({ ...r });
-                           }} 
-                           className="p-2 text-blue-600 bg-blue-50 rounded-xl active:scale-90"
-                         ><Activity size={18}/></button>
+                          <>
+                             <button 
+                               onClick={async () => {
+                                 try {
+                                   await exportLossPeriodReportToExcel(r, dailySupplyReadings);
+                                 } catch (err) {
+                                   alert("Có lỗi khi xuất Excel!");
+                                   console.error(err);
+                                 }
+                               }}
+                               className="p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl active:scale-90 flex items-center gap-1 text-[10px] font-black uppercase px-2.5 shadow-sm border border-emerald-100"
+                               title="Xuất báo cáo thất thoát nước chi tiết kèm nhật ký hằng ngày"
+                             >
+                               <Download size={14}/> Báo cáo
+                             </button>
+                             <button 
+                               onClick={() => {
+                                 setEditingId(r.id);
+                                 setEditData({ ...r });
+                               }} 
+                               className="p-2 text-blue-600 bg-blue-50 rounded-xl active:scale-90"
+                             ><Activity size={18}/></button>
+                          </>
                        )}
                        <button onClick={() => onDelete(r.id)} className="p-2 text-slate-200 hover:text-rose-500 transition-colors active:scale-90"><Trash2 size={18}/></button>
                     </div>
@@ -307,7 +323,7 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, onBack, 
                         <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Tiêu thụ</p>
                         <p className="text-xl font-black text-slate-900 leading-none">{totalConsumption} <span className="text-[10px]">m³</span></p>
                       </div>
-                      <div className={`${loss > 0 ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'} border-2 p-3 rounded-[2rem] text-center shadow-md animate-pulse-slow`}>
+                      <div className={`${loss > 0 ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'} border-2 p-3 rounded-[2rem] text-center shadow-md`}>
                         <p className="text-[10px] font-black uppercase mb-1 tracking-widest">Hao hụt</p>
                         <p className="text-xl font-black leading-none">{loss} <span className="text-[10px]">m³</span></p>
                       </div>

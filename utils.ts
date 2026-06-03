@@ -1,5 +1,5 @@
 
-import { Customer, GroupMember, DailySupplyReading } from './types';
+import { Customer, GroupMember, DailySupplyReading, LossRecord } from './types';
 
 // Helper to load XLSX dynamically
 const getXLSX = async () => {
@@ -464,4 +464,331 @@ export const suggestNextMaKH = (customers: Customer[], listType: 'list1' | 'list
   const lastCharCode = lastSuffix.charCodeAt(lastSuffix.length - 1);
   const nextChar = String.fromCharCode(lastCharCode + 1);
   return baseNum + nextChar;
+};
+
+export const exportLossPeriodReportToExcel = async (
+  record: LossRecord,
+  readings: DailySupplyReading[],
+  fileName: string = 'Bao_Cao_That_Thoat'
+) => {
+  const XLSX = await getXLSX();
+  
+  // Helper to extract month-year from reading date (supports YYYY-MM-DD or DD/MM/YYYY)
+  const getMonthYearKeyForPeriod = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[1]}/${parts[0]}`; // MM/YYYY
+    }
+    if (dateStr.includes('/')) {
+      const partsSlash = dateStr.split('/');
+      if (partsSlash.length === 3) {
+        if (partsSlash[2].length === 4) {
+          return `${partsSlash[1].padStart(2, '0')}/${partsSlash[2]}`;
+        }
+      }
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    }
+    return '';
+  };
+
+  const monthKey = record.month;
+  // Filter readings that belong to the month of the record
+  const filteredReadings = readings
+    .filter(r => getMonthYearKeyForPeriod(r.date) === monthKey)
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
+
+  const supply1 = record.master1New - record.master1Old;
+  const supply2 = record.master2New - record.master2Old;
+  const totalSupply = supply1 + supply2;
+  const totalConsumption = record.list1Volume + record.list2Volume;
+  const lossVolume = totalSupply - totalConsumption;
+  const lossPercent = totalSupply > 0 ? (lossVolume / totalSupply) * 100 : 0;
+
+  // Let's build styles
+  const sTitle = {
+    font: { name: "Arial", size: 14, bold: true, color: { rgb: "1E3A8A" } },
+    alignment: { horizontal: "center", vertical: "center" }
+  };
+  const sSub = {
+    font: { name: "Arial", size: 10, italic: true, color: { rgb: "475569" } },
+    alignment: { horizontal: "center", vertical: "center" }
+  };
+  const sSection = {
+    font: { name: "Arial", size: 11, bold: true, color: { rgb: "1E3A8A" } },
+    fill: { fgColor: { rgb: "EFF6FF" } },
+    alignment: { vertical: "center" }
+  };
+  const sHeader = {
+    font: { name: "Arial", size: 10, bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "1E3A8A" } },
+    alignment: { horizontal: "center", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "475569" } },
+      bottom: { style: "thin", color: { rgb: "475569" } },
+      left: { style: "thin", color: { rgb: "475569" } },
+      right: { style: "thin", color: { rgb: "475569" } }
+    }
+  };
+  const sHeaderAccent = {
+    font: { name: "Arial", size: 10, bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "0F766E" } }, // Teal-700
+    alignment: { horizontal: "center", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "042F2E" } },
+      bottom: { style: "thin", color: { rgb: "042F2E" } },
+      left: { style: "thin", color: { rgb: "042F2E" } },
+      right: { style: "thin", color: { rgb: "042F2E" } }
+    }
+  };
+  const sNormal = {
+    font: { name: "Arial", size: 10 },
+    alignment: { vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "CBD5E1" } },
+      bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+      left: { style: "thin", color: { rgb: "CBD5E1" } },
+      right: { style: "thin", color: { rgb: "CBD5E1" } }
+    }
+  };
+  const sBold = {
+    font: { name: "Arial", size: 10, bold: true },
+    alignment: { vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "94A3B8" } },
+      bottom: { style: "thin", color: { rgb: "94A3B8" } },
+      left: { style: "thin", color: { rgb: "94A3B8" } },
+      right: { style: "thin", color: { rgb: "94A3B8" } }
+    }
+  };
+  const sRight = {
+    font: { name: "Arial", size: 10 },
+    alignment: { horizontal: "right", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "CBD5E1" } },
+      bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+      left: { style: "thin", color: { rgb: "CBD5E1" } },
+      right: { style: "thin", color: { rgb: "CBD5E1" } }
+    }
+  };
+  const sRightBold = {
+    font: { name: "Arial", size: 10, bold: true },
+    alignment: { horizontal: "right", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "94A3B8" } },
+      bottom: { style: "thin", color: { rgb: "94A3B8" } },
+      left: { style: "thin", color: { rgb: "94A3B8" } },
+      right: { style: "thin", color: { rgb: "94A3B8" } }
+    }
+  };
+  const sCenter = {
+    font: { name: "Arial", size: 10 },
+    alignment: { horizontal: "center", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "CBD5E1" } },
+      bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+      left: { style: "thin", color: { rgb: "CBD5E1" } },
+      right: { style: "thin", color: { rgb: "CBD5E1" } }
+    }
+  };
+  const sLossAlert = {
+    font: { name: "Arial", size: 10, bold: true, color: { rgb: "991B1B" } },
+    fill: { fgColor: { rgb: "FEF2F2" } },
+    alignment: { horizontal: "right", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "FCA5A5" } },
+      bottom: { style: "thin", color: { rgb: "FCA5A5" } },
+      left: { style: "thin", color: { rgb: "FCA5A5" } },
+      right: { style: "thin", color: { rgb: "FCA5A5" } }
+    }
+  };
+  const sLossOK = {
+    font: { name: "Arial", size: 10, bold: true, color: { rgb: "065F46" } },
+    fill: { fgColor: { rgb: "ECFDF5" } },
+    alignment: { horizontal: "right", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "A7F3D0" } },
+      bottom: { style: "thin", color: { rgb: "A7F3D0" } },
+      left: { style: "thin", color: { rgb: "A7F3D0" } },
+      right: { style: "thin", color: { rgb: "A7F3D0" } }
+    }
+  };
+
+  const rows: any[] = [];
+  const merges: any[] = [];
+
+  // TITLE ROW (Row 0)
+  rows.push([
+    { v: `BÁO CÁO THẤT THOÁT NƯỚC KỲ ${record.period} - THÁNG ${record.month}`, s: sTitle },
+    "", "", "", "", "", "", ""
+  ]);
+  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } });
+
+  // SUBTITLE ROW (Row 1)
+  rows.push([
+    { v: `Thời gian xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')} ${new Date().toLocaleTimeString('vi-VN')} | Đơn vị: m³`, s: sSub },
+    "", "", "", "", "", "", ""
+  ]);
+  merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 7 } });
+
+  rows.push(["", "", "", "", "", "", "", ""]); // Spacing (Row 2)
+
+  // SECTION I: HAO HỤT CHUNG (Row 3)
+  rows.push([
+    { v: "  I. TỔNG QUAN HAO HỤT CHUNG", s: sSection },
+    "", "", "", "", "", "", ""
+  ]);
+  merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: 7 } });
+
+  // Columns for Summary Stats Header (Row 4)
+  rows.push([
+    { v: "Chỉ số đánh giá", s: sHeader },
+    { v: "Giá trị (m³)", s: sHeader },
+    { v: "Tỷ lệ (%)", s: sHeader },
+    { v: "Ghi chú thành phần", s: sHeader },
+    "", "", "", ""
+  ]);
+  merges.push({ s: { r: 4, c: 3 }, e: { r: 4, c: 7 } });
+
+  const customLossStyle = lossPercent > 10 ? sLossAlert : sLossOK;
+
+  // Data rows (Row 5 - 7)
+  rows.push([
+    { v: "Tổng lượng nước cấp vào hệ thống (Đồng hồ tổng)", s: sNormal },
+    { v: totalSupply, s: sRightBold },
+    { v: "100%", s: sCenter },
+    { v: `Đồng hồ 1: ${supply1} m³ | Đồng hồ 2: ${supply2} m³`, s: sNormal },
+    "", "", "", ""
+  ]);
+  merges.push({ s: { r: 5, c: 3 }, e: { r: 5, c: 7 } });
+
+  rows.push([
+    { v: "Tổng lượng nước tiêu thụ danh bộ (Thu khách hàng)", s: sNormal },
+    { v: totalConsumption, s: sRightBold },
+    { v: totalSupply > 0 ? `${((totalConsumption / totalSupply) * 100).toFixed(1)}%` : "0%", s: sCenter },
+    { v: `Bộ 01: ${record.list1Volume} m³ | Bộ 02: ${record.list2Volume} m³`, s: sNormal },
+    "", "", "", ""
+  ]);
+  merges.push({ s: { r: 6, c: 3 }, e: { r: 6, c: 7 } });
+
+  rows.push([
+    { v: "Tổng lượng hao hụt (Thất thoát hệ thống)", s: sBold },
+    { v: lossVolume, s: customLossStyle },
+    { v: `${lossPercent.toFixed(1)}%`, s: customLossStyle },
+    { v: lossPercent > 10 ? "⚠️ Tỷ lệ thất thoát cao vượt ngưỡng an toàn (10%)" : "✅ Tỷ lệ thất thoát hoạt động an toàn", s: customLossStyle },
+    "", "", "", ""
+  ]);
+  merges.push({ s: { r: 7, c: 3 }, e: { r: 7, c: 7 } });
+
+  rows.push(["", "", "", "", "", "", "", ""]); // Spacing (Row 8)
+
+  // SECTION II: SỐ LIỆU ĐỒNG HỒ TỔNG (Row 9)
+  rows.push([
+    { v: "  II. SỐ LIỆU ĐỒNG HỒ TỔNG", s: sSection },
+    "", "", "", "", "", "", ""
+  ]);
+  merges.push({ s: { r: 9, c: 0 }, e: { r: 9, c: 7 } });
+
+  // Meter table headers (Row 10)
+  rows.push([
+    { v: "Đồng hồ tổng", s: sHeaderAccent },
+    { v: "Chỉ số CŨ", s: sHeaderAccent },
+    { v: "Chỉ số MỚI", s: sHeaderAccent },
+    { v: "Tổng cấp (m³)", s: sHeaderAccent },
+    { v: "Mô tả vị trí & Mục đích sử dụng", s: sHeaderAccent },
+    "", "", ""
+  ]);
+  merges.push({ s: { r: 10, c: 4 }, e: { r: 10, c: 7 } });
+
+  // Meter 1 Data (Row 11)
+  rows.push([
+    { v: "ĐỒNG HỒ TỔNG SỐ 1", s: sBold },
+    { v: record.master1Old, s: sRight },
+    { v: record.master1New, s: sRightBold },
+    { v: supply1, s: sRightBold },
+    { v: "Đo lưu lượng cấp khu vực Bộ 01 (Nhánh 1 chính)", s: sNormal },
+    "", "", ""
+  ]);
+  merges.push({ s: { r: 11, c: 4 }, e: { r: 11, c: 7 } });
+
+  // Meter 2 Data (Row 12)
+  rows.push([
+    { v: "ĐỒNG HỒ TỔNG SỐ 2", s: sBold },
+    { v: record.master2Old, s: sRight },
+    { v: record.master2New, s: sRightBold },
+    { v: supply2, s: sRightBold },
+    { v: "Đo lưu lượng cấp khu vực Bộ 02 (Nhánh 2 phụ)", s: sNormal },
+    "", "", ""
+  ]);
+  merges.push({ s: { r: 12, c: 4 }, e: { r: 12, c: 7 } });
+
+  rows.push(["", "", "", "", "", "", "", ""]); // Spacing (Row 13)
+
+  // SECTION III: GHI CHÉP CHI TIẾT HẰNG NGÀY (Row 14)
+  rows.push([
+    { v: `  III. NHẬT KÝ THEO DÕI GHI NƯỚC HẰNG NGÀY (THÁNG ${record.month})`, s: sSection },
+    "", "", "", "", "", "", ""
+  ]);
+  merges.push({ s: { r: 14, c: 0 }, e: { r: 14, c: 7 } });
+
+  // Table headers for Daily (Row 15)
+  rows.push([
+    { v: "NGÀY GHI", s: sHeader },
+    { v: "GIỜ GHI", s: sHeader },
+    { v: "CHỈ SỐ ĐH1", s: sHeader },
+    { v: "TIÊU THỤ ĐH1 (m³)", s: sHeader },
+    { v: "CHỈ SỐ ĐH2", s: sHeader },
+    { v: "TIÊU THỤ ĐH2 (m³)", s: sHeader },
+    { v: "TỔNG CẤP KỲ (m³)", s: sHeader },
+    { v: "GHI CHÚ / SỰ KIỆN", s: sHeader }
+  ]);
+
+  const baseRowIdx = 16;
+  if (filteredReadings.length === 0) {
+    rows.push([
+      { v: "Không có dữ liệu nhật ký ghi nước hằng ngày nào trong kỳ này.", s: sCenter },
+      "", "", "", "", "", "", ""
+    ]);
+    merges.push({ s: { r: baseRowIdx, c: 0 }, e: { r: baseRowIdx, c: 7 } });
+  } else {
+    filteredReadings.forEach((r) => {
+      const dailyTotal = (r.consumption1 || 0) + (r.consumption2 || 0);
+      rows.push([
+        { v: formatDateDisplay(r.date), s: sCenter },
+        { v: normalizeTime(r.time), s: sCenter },
+        { v: r.master1 || 0, s: sRight },
+        { v: r.consumption1 || 0, s: sRight },
+        { v: r.master2 || 0, s: sRight },
+        { v: r.consumption2 || 0, s: sRight },
+        { v: dailyTotal, s: sRightBold },
+        { v: r.notes || "", s: sNormal }
+      ]);
+    });
+  }
+
+  // Convert to worksheet
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!merges'] = merges;
+
+  // Configure column widths
+  ws['!cols'] = [
+    { wch: 30 }, // A
+    { wch: 12 }, // B
+    { wch: 15 }, // C
+    { wch: 18 }, // D
+    { wch: 15 }, // E
+    { wch: 18 }, // F
+    { wch: 20 }, // G
+    { wch: 35 }  // H
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Báo cáo");
+  
+  // Format safe file name
+  const safeFilename = `${fileName}_Ky_${record.period}_Thang_${record.month.replace('/', '_')}.xlsx`;
+  XLSX.writeFile(wb, safeFilename);
 };

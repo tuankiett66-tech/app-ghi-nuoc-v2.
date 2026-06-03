@@ -692,6 +692,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         <LossView 
           records={lossRecords}
           customers={customers}
+          dailySupplyReadings={dailySupplyReadings}
           onBack={() => navigateTo('list')}
           onAdd={addLossRecord}
           onDelete={deleteLossRecord}
