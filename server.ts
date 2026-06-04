@@ -89,7 +89,7 @@ Yêu cầu trích xuất:
 
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
-        contents: [imagePart, { text: promptText }],
+        contents: { parts: [imagePart, { text: promptText }] },
         config: {
           responseMimeType: "application/json",
           responseSchema: {

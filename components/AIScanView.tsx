@@ -33,19 +33,78 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
   // Filter customers of active list to pass to Gemini API matching context
   const activeCustomers = customers.filter(c => c.listType === activeTab);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressAndResizeImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (readerEvent) => {
+        const image = new Image();
+        image.onload = () => {
+          const maxWidth = 1600;
+          const maxHeight = 1600;
+          let width = image.width;
+          let height = image.height;
+
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(readerEvent.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(image, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          resolve(dataUrl);
+        };
+        image.onerror = (err) => {
+          reject(err);
+        };
+        image.src = readerEvent.target?.result as string;
+      };
+      reader.onerror = (err) => {
+        reject(err);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setError(null);
     setResults([]);
     setScanStats(null);
+    setIsAnalyzing(true);
+    setLoadingStep("⚙️ Đang xử lý và tối ưu dung lượng ảnh...");
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedDataUrl = await compressAndResizeImage(file);
+      setImagePreview(compressedDataUrl);
+    } catch (err) {
+      console.error("Error compressing image:", err);
+      // Fallback
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsAnalyzing(false);
+      setLoadingStep('');
+    }
   };
 
   const handleStartAnalysis = async () => {
