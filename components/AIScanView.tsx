@@ -155,13 +155,19 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
 
       clearInterval(stepInterval);
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseErr) {
+        throw new Error(`Không thể phân giải phản hồi từ máy chủ (Mã: ${response.status}). Phản hồi nhận được: ${responseText.slice(0, 150)}`);
+      }
 
       if (!response.ok) {
-        if (data.error === "GEMINI_API_KEY_MISSING") {
+        if (data && data.error === "GEMINI_API_KEY_MISSING") {
           throw new Error("API_KEY_MISSING");
         }
-        throw new Error(data.message || "Đã xảy ra lỗi khi phân tích hình ảnh.");
+        throw new Error(data?.message || `Lỗi máy chủ (${response.status}): ${responseText.slice(0, 150)}`);
       }
 
       if (data.success && Array.isArray(data.results)) {
