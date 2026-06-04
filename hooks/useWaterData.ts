@@ -172,122 +172,9 @@ export const useWaterData = () => {
     recalculateDailyConsumption(dailySupplyReadings);
   }, [config.master1Initial, config.master2Initial, config.masterInitialDate]);
 
-  // 1. Tự động GHI NHẬN KỲ 5/2026 nếu chưa tồn tại
-  useEffect(() => {
-    const hasMay2026 = lossRecords.some(r => r.period === "5" || r.month === "05/2026" || r.month.includes("5/2026"));
-    if (!hasMay2026) {
-      const l1Vol = customers.filter(c => c.listType === 'list1').reduce((sum, c) => sum + (c.volume || 0), 0);
-      const l2Vol = customers.filter(c => c.listType === 'list2').reduce((sum, c) => sum + (c.volume || 0), 0);
+  // Đã loại bỏ hoàn toàn các chức năng tự động nhận diện / tạo kỳ mới của Thất thoát
+  // Người dùng điều khiển ghi nhận thủ công hoàn toàn qua biểu mẫu của ứng dụng
 
-      const autoMayRecord: LossRecord = {
-        id: `loss-may-2026-auto-${Date.now()}`,
-        period: "5",
-        month: "05/2026",
-        master1Old: 47320,
-        master1New: 65064, // 47320 + 17744 (Đồng hồ 1 trong ảnh)
-        master2Old: 58348,
-        master2New: 70885, // 58348 + 12537 (Đồng hồ 2 trong ảnh)
-        list1Volume: l1Vol || 20146,
-        list2Volume: l2Vol || 10659,
-        createdAt: Date.now()
-      };
-      setLossRecords(prev => {
-        const checkAgain = prev.some(r => r.period === "5" || r.month === "05/2026" || r.month.includes("5/2026"));
-        if (checkAgain) return prev;
-        return [autoMayRecord, ...prev];
-      });
-    }
-  }, [customers, lossRecords]);
-
-  // 2. Tự động tạo kỳ mới khi cập nhật đủ số ngày trong bất kỳ tháng nào
-  useEffect(() => {
-    if (dailySupplyReadings.length === 0) return;
-
-    // Phân nhóm các ghi chép hằng ngày theo tháng (MM/YYYY)
-    const grouped: Record<string, DailySupplyReading[]> = {};
-    dailySupplyReadings.forEach(r => {
-      const key = getMonthYearKey(r.date);
-      if (key) {
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(r);
-      }
-    });
-
-    let hasChanges = false;
-    let newRecords = [...lossRecords];
-
-    Object.entries(grouped).forEach(([monthKey, monthReadings]) => {
-      const expectedDays = getDaysInMonth(monthKey);
-      
-      // Nếu số ngày ghi nhận của tháng đó lớn hơn hoặc bằng số ngày thực tế trong tháng đó
-      if (monthReadings.length >= expectedDays) {
-        const alreadyExists = newRecords.some(r => r.month === monthKey || r.month.includes(monthKey));
-        if (!alreadyExists) {
-          const [mStr, yStr] = monthKey.split('/');
-          const periodNum = parseInt(mStr).toString();
-
-          const sortedReadings = [...monthReadings].sort((a, b) => a.date.localeCompare(b.date));
-          const earliest = sortedReadings[0];
-
-          const m1ConsSum = sortedReadings.reduce((sum, r) => sum + (r.consumption1 || 0), 0);
-          const m2ConsSum = sortedReadings.reduce((sum, r) => sum + (r.consumption2 || 0), 0);
-
-          let m1OldVal = config.master1Initial || 0;
-          let m2OldVal = config.master2Initial || 0;
-
-          const sortedHistory = [...newRecords].sort((a, b) => {
-            const [mA, yA] = a.month.split('/');
-            const [mB, yB] = b.month.split('/');
-            return `${yA}${mA}`.localeCompare(`${yB}${mB}`);
-          });
-
-          const previousRecord = sortedHistory.reverse().find(r => {
-            const [rM, rY] = r.month.split('/').map(Number);
-            const [currM, currY] = monthKey.split('/').map(Number);
-            if (rY < currY) return true;
-            if (rY === currY && rM < currM) return true;
-            return false;
-          });
-
-          if (previousRecord) {
-            m1OldVal = previousRecord.master1New;
-            m2OldVal = previousRecord.master2New;
-          } else if (sortedReadings.length > 0) {
-            m1OldVal = earliest.master1 - (earliest.consumption1 || 0);
-            m2OldVal = earliest.master2 - (earliest.consumption2 || 0);
-          }
-
-          const m1NewVal = m1OldVal + m1ConsSum;
-          const m2NewVal = m2OldVal + m2ConsSum;
-
-          const l1Vol = customers.filter(c => c.listType === 'list1').reduce((sum, c) => sum + (c.volume || 0), 0);
-          const l2Vol = customers.filter(c => c.listType === 'list2').reduce((sum, c) => sum + (c.volume || 0), 0);
-
-          const autoLossRecord: LossRecord = {
-            id: `loss-auto-${monthKey.replace('/', '-')}-${Date.now()}`,
-            period: periodNum,
-            month: monthKey,
-            master1Old: m1OldVal,
-            master1New: m1NewVal,
-            master2Old: m2OldVal,
-            master2New: m2NewVal,
-            list1Volume: l1Vol || 18000,
-            list2Volume: l2Vol || 11000,
-            createdAt: Date.now()
-          };
-
-          newRecords = [autoLossRecord, ...newRecords];
-          hasChanges = true;
-
-          alert(`🎉 Kỳ hằng ngày tháng ${monthKey} đã ghi đủ số ngày (${monthReadings.length}/${expectedDays} ngày).\nỨng dụng đã tự động tạo Ghi nhận thất thoát mới cho Kỳ ${periodNum} thành công!`);
-        }
-      }
-    });
-
-    if (hasChanges) {
-      setLossRecords(newRecords);
-    }
-  }, [dailySupplyReadings, customers, lossRecords, config.master1Initial, config.master2Initial]);
 
   // 3. Tự động đồng bộ sản lượng nước tiêu thụ thực tế từ 2 Danh bộ vào Kỳ báo cáo của thất thoát
   useEffect(() => {
@@ -508,67 +395,6 @@ export const useWaterData = () => {
     
     const latest = sorted[sorted.length - 1];
 
-    // TỰ ĐỘNG TẠO BẢN GHI THẤT THOÁT MỚI KHI CHỐT KỲ
-    const monthKey = getMonthYearKey(latest.date);
-    if (monthKey) {
-      const alreadyExists = lossRecords.some(r => r.month === monthKey || r.month.includes(monthKey));
-      if (!alreadyExists) {
-        const [mStr, yStr] = monthKey.split('/');
-        const periodNum = parseInt(mStr).toString();
-        
-        const m1ConsVal = sorted.reduce((sum, r) => sum + (r.consumption1 || 0), 0);
-        const m2ConsVal = sorted.reduce((sum, r) => sum + (r.consumption2 || 0), 0);
-        
-        let m1Old = config.master1Initial || 0;
-        let m2Old = config.master2Initial || 0;
-        
-        // Find latest previous loss record
-        const sortedPrevRecords = [...lossRecords].sort((a, b) => {
-          const [mA, yA] = a.month.split('/');
-          const [mB, yB] = b.month.split('/');
-          return `${yA}${mA}`.localeCompare(`${yB}${mB}`);
-        });
-        
-        const previousRecord = sortedPrevRecords.reverse().find(r => {
-          const [rM, rY] = r.month.split('/').map(Number);
-          const [currM, currY] = monthKey.split('/').map(Number);
-          if (rY < currY) return true;
-          if (rY === currY && rM < currM) return true;
-          return false;
-        });
-        
-        if (previousRecord) {
-          m1Old = previousRecord.master1New;
-          m2Old = previousRecord.master2New;
-        } else if (sorted.length > 0) {
-          m1Old = sorted[0].master1 - (sorted[0].consumption1 || 0);
-          m2Old = sorted[0].master2 - (sorted[0].consumption2 || 0);
-        }
-        
-        const m1New = m1Old + m1ConsVal;
-        const m2New = m2Old + m2ConsVal;
-        
-        const list1Volume = customers.filter(c => c.listType === 'list1').reduce((sum, c) => sum + (c.volume || 0), 0);
-        const list2Volume = customers.filter(c => c.listType === 'list2').reduce((sum, c) => sum + (c.volume || 0), 0);
-        
-        const newLossRecord: LossRecord = {
-          id: `loss-auto-close-${monthKey.replace('/', '-')}-${Date.now()}`,
-          period: periodNum,
-          month: monthKey,
-          master1Old: m1Old,
-          master1New: m1New,
-          master2Old: m2Old,
-          master2New: m2New,
-          list1Volume: list1Volume || 18000,
-          list2Volume: list2Volume || 11000,
-          createdAt: Date.now()
-        };
-        
-        setLossRecords(prev => [newLossRecord, ...prev]);
-        alert(`🎉 Chốt kỳ thành công!\nHệ thống tự động biên soạn và tạo Bản ghi thất thoát mới cho Kỳ ${periodNum} thành công!`);
-      }
-    }
-    
     setConfig(prev => ({
       ...prev,
       master1Initial: latest.master1,
@@ -577,6 +403,7 @@ export const useWaterData = () => {
     }));
     
     setDailySupplyReadings([]);
+    alert("🎉 Chốt kỳ thành công! Chỉ số chốt cuối kỳ hằng ngày đã được lưu làm chỉ số ban đầu cho kỳ tiếp theo.");
     return true;
   };
 
