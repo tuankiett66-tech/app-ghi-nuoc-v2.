@@ -30,6 +30,21 @@ export const Header: React.FC<HeaderProps> = ({
   const [showHistory, setShowHistory] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Handle horizontal scrolling on PC with mouse wheel
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
 
   // Load history from localStorage
   useEffect(() => {
@@ -121,7 +136,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
-        <div className="flex gap-0.5 items-center overflow-x-auto no-scrollbar pr-1">
+        <div 
+          ref={scrollRef}
+          className="flex gap-1 items-center overflow-x-auto sm:overflow-visible sm:flex-wrap sm:justify-end no-scrollbar pr-1 max-w-[65%] sm:max-w-none"
+        >
           <button 
             onClick={() => setIsSearchExpanded(!isSearchExpanded)} 
             title="Tìm kiếm" 

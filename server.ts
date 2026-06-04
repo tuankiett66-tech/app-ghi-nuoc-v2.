@@ -4,14 +4,15 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 
 let aiInstance: GoogleGenAI | null = null;
+const GEMINI_KEY = process.env.GEMINI_API_KEY || "AIzaSyBQltxpLD8jLySSv0OcSd15CxTdGnpkET0";
+
 function getGenAI(): GoogleGenAI {
   if (!aiInstance) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    if (!GEMINI_KEY) {
       throw new Error("GEMINI_API_KEY environment variable is required. Please set GEMINI_API_KEY in Settings > Secrets.");
     }
     aiInstance = new GoogleGenAI({
-      apiKey,
+      apiKey: GEMINI_KEY,
       httpOptions: {
         headers: {
           'User-Agent': 'aistudio-build',
@@ -43,8 +44,7 @@ async function startServer() {
       }
 
       // Check if API key exists
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
+      if (!GEMINI_KEY) {
         return res.status(400).json({
           error: "GEMINI_API_KEY_MISSING",
           message: "Chưa cấu hình API Key cho Gemini. Vui lòng thêm GEMINI_API_KEY trong biểu tượng bánh răng bên dưới (Settings -> Secrets) để có thể dùng tính năng quét ảnh thông minh này."
