@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Save, Check, DollarSign } from 'lucide-react';
+import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Save, Check, DollarSign, Sparkles } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -20,10 +20,11 @@ interface HeaderProps {
   lastSyncTime?: number;
   onShowVerify: () => void;
   onShowGroups: () => void;
+  onShowScan?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, lastSyncTime, onShowVerify, onShowGroups
+  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, lastSyncTime, onShowVerify, onShowGroups, onShowScan
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -129,6 +130,11 @@ export const Header: React.FC<HeaderProps> = ({
             <Search size={20}/>
           </button>
           <button onClick={onShowVerify} title="Kiểm tra" className="p-2 text-emerald-600 active:scale-90 touch-manipulation shrink-0"><ClipboardCheck size={20}/></button>
+          {onShowScan && (
+            <button onClick={onShowScan} title="Quét ghi tay AI" className="p-2 text-indigo-600 active:scale-90 touch-manipulation shrink-0">
+              <Sparkles className="animate-pulse" size={20}/>
+            </button>
+          )}
           <button onClick={onShowMsgTemplate} title="Mẫu tin" className="p-2 text-amber-600 active:scale-90 touch-manipulation shrink-0"><MessageSquareQuote size={20}/></button>
           <button onClick={onToggleZaloFilter} title="Lọc chưa Zalo" className={`p-2 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyNonZalo ? 'text-blue-700 bg-blue-100' : 'text-slate-600'}`}><MessageCircle size={20}/></button>
           <button onClick={onToggleUnpaidFilter} title="Lọc chưa thu" className={`p-2 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnpaid ? 'text-rose-600 bg-rose-100' : 'text-slate-600'}`}><DollarSign size={20}/></button>

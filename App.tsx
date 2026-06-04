@@ -12,6 +12,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
+import { AIScanView } from './components/AIScanView';
 import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear } from './utils';
 import { Customer, LossRecord } from './types';
 
@@ -547,6 +548,17 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
     }
   };
 
+  const handleImportAIScanResults = (results: { id: string; newIndex: number }[]) => {
+    setCustomers(prev => prev.map(c => {
+      const match = results.find(r => r.id === c.id);
+      if (match) {
+        const merged = { ...c, newIndex: match.newIndex, updatedAt: Date.now() };
+        return calculateRow(merged, config.waterRate);
+      }
+      return c;
+    }));
+  };
+
   const [groupQrData, setGroupQrData] = useState<{bankId: string, accountNo: string, amount: number, name: string} | null>(null);
 
   const navigateTo = (newView: string, resetSearch: boolean = true) => {
@@ -588,6 +600,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             lastSyncTime={config.lastSyncTime}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
+            onShowScan={() => navigateTo('ai_scan')}
           />
           <ListView 
             customers={filtered} 
@@ -650,6 +663,15 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           }}
           onSendZalo={handleSendZalo}
           generateMsg={generateMsg}
+        />
+      )}
+
+      {view === 'ai_scan' && (
+        <AIScanView 
+          customers={customers}
+          activeTab={activeTab}
+          onBack={() => navigateTo('list')}
+          onImport={handleImportAIScanResults}
         />
       )}
 
