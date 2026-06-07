@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity, FileDown, FileUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar, TrendingUp, AlertCircle, Save, History, Activity, FileDown, FileUp, Camera, FileImage, Sparkles, Loader2, Check, Info, RefreshCw, X, Edit2 } from 'lucide-react';
 import { DailySupplyReading, SystemConfig } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
@@ -38,6 +38,214 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
   const [tempDateInit, setTempDateInit] = useState(config.masterInitialDate || new Date().toISOString().split('T')[0]);
 
   const dailyFileInputRef = useRef<HTMLInputElement>(null);
+
+  // AI Daily Scan states
+  const [showDailyScan, setShowDailyScan] = useState(false);
+  const [dailyImagePreview, setDailyImagePreview] = useState<string | null>(null);
+  const [isAnalyzingDaily, setIsAnalyzingDaily] = useState(false);
+  const [dailyLoadingStep, setDailyLoadingStep] = useState('');
+  const [dailyError, setDailyError] = useState<string | null>(null);
+  const [dailyScanResults, setDailyScanResults] = useState<{
+    day: number;
+    time: string;
+    master1: number;
+    master2: number;
+    notes: string;
+    isSelected: boolean;
+  }[]>([]);
+
+  const dailyCameraRef = useRef<HTMLInputElement>(null);
+  const dailyImageFileRef = useRef<HTMLInputElement>(null);
+
+  const compressAndResizeImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (readerEvent) => {
+        const image = new Image();
+        image.onload = () => {
+          const maxWidth = 1600;
+          const maxHeight = 1600;
+          let width = image.width;
+          let height = image.height;
+
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(readerEvent.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(image, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          resolve(dataUrl);
+        };
+        image.onerror = (err) => {
+          reject(err);
+        };
+        image.src = readerEvent.target?.result as string;
+      };
+      reader.onerror = (err) => {
+        reject(err);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleDailyFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setDailyError(null);
+    setDailyScanResults([]);
+    setIsAnalyzingDaily(true);
+    setDailyLoadingStep("⚙️ Đang tối ưu dung lượng ảnh...");
+
+    try {
+      const compressedDataUrl = await compressAndResizeImage(file);
+      setDailyImagePreview(compressedDataUrl);
+    } catch (err) {
+      console.error("Error compressing image:", err);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDailyImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsAnalyzingDaily(false);
+      setDailyLoadingStep('');
+    }
+  };
+
+  const handleStartDailyAnalysis = async () => {
+    if (!dailyImagePreview) return;
+
+    setIsAnalyzingDaily(true);
+    setDailyError(null);
+    setDailyScanResults([]);
+
+    const steps = [
+      "🔄 Đang truyền dữ liệu ảnh...",
+      "🧠 Kích hoạt Google Gemini 3.5 phân tích biểu mẫu hằng ngày...",
+      "🔍 Đọc số ngày 1-31 & các cột ĐH 1, ĐH 2...",
+      "⚡ Đang đối soát và khử nhiễu sai chỉ số..."
+    ];
+
+    let stepIndex = 0;
+    setDailyLoadingStep(steps[0]);
+    const stepInterval = setInterval(() => {
+      if (stepIndex < steps.length - 1) {
+        stepIndex++;
+        setDailyLoadingStep(steps[stepIndex]);
+      }
+    }, 1500);
+
+    try {
+      const response = await fetch("/api/scan-daily", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          image: dailyImagePreview,
+          monthYear: selectedMonth
+        })
+      });
+
+      clearInterval(stepInterval);
+
+      const responseText = await response.text();
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseErr) {
+        throw new Error(`Mã lỗi máy chủ ${response.status}. Lỗi đọc JSON.`);
+      }
+
+      if (!response.ok) {
+        if (data && data.error === "GEMINI_API_KEY_MISSING") {
+          throw new Error("API_KEY_MISSING");
+        }
+        throw new Error(data?.message || `Lỗi máy chủ (${response.status})`);
+      }
+
+      if (data.success && Array.isArray(data.results)) {
+        const mappedResults = data.results.map((item: any) => ({
+          day: item.day,
+          time: item.time || "07:00",
+          master1: item.master1 || 0,
+          master2: item.master2 || 0,
+          notes: item.notes || "",
+          isSelected: true
+        }));
+
+        setDailyScanResults(mappedResults);
+        if (mappedResults.length === 0) {
+          setDailyError("Không trích xuất được dòng số liệu nào từ ảnh chụp. Hãy đảm bảo bạn chụp ảnh rõ nét và biểu mẫu tương thích dạng bảng cấp nước hằng ngày.");
+        }
+      } else {
+        throw new Error("AI không trả về cấu trúc mảng đúng quy chuẩn.");
+      }
+    } catch (err: any) {
+      clearInterval(stepInterval);
+      console.error(err);
+      if (err.message === "API_KEY_MISSING") {
+        setDailyError("API_KEY_MISSING");
+      } else {
+        setDailyError(err.message || "Không thể phân tích ảnh sổ. Hãy thử chụp lại sáng và nét hơn!");
+      }
+    } finally {
+      setIsAnalyzingDaily(false);
+    }
+  };
+
+  const handleApplyDailyScan = () => {
+    const selected = dailyScanResults.filter(r => r.isSelected);
+    if (selected.length === 0) {
+      alert("Vui lòng chọn ít nhất 1 dòng kết quả để áp dụng.");
+      return;
+    }
+
+    const [mStr, yStr] = selectedMonth.split('/');
+    
+    selected.forEach(item => {
+      const dateStr = `${yStr}-${mStr}-${String(item.day).padStart(2, '0')}`;
+      const existing = readings.find(r => r.date === dateStr);
+      if (existing) {
+        onUpdate(existing.id, {
+          time: item.time,
+          master1: item.master1,
+          master2: item.master2,
+          notes: item.notes || existing.notes
+        });
+      } else {
+        onAdd({
+          date: dateStr,
+          time: item.time,
+          master1: item.master1,
+          master2: item.master2,
+          notes: item.notes
+        });
+      }
+    });
+
+    alert(`🎉 Đã cập nhật thành công ${selected.length} ngày cấp nước từ ảnh chụp vào danh mục!`);
+    setShowDailyScan(false);
+    setDailyImagePreview(null);
+    setDailyScanResults([]);
+  };
 
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -238,12 +446,35 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
           >
             <FileUp size={18}/>
           </button>
+          <button 
+            onClick={() => setShowDailyScan(true)} 
+            className="p-2 rounded-xl text-indigo-600 hover:text-indigo-800 active:bg-white active:shadow-sm transition-all flex items-center justify-center gap-1 bg-indigo-50/70 border border-indigo-150"
+            title="AI Quét Sổ Ghi Tay"
+          >
+            <Sparkles size={18}/>
+            <span className="text-[9px] font-black uppercase hidden sm:inline-block">Quét AI</span>
+          </button>
           <input 
             type="file" 
             ref={dailyFileInputRef} 
             onChange={handleImportExcel} 
             className="hidden" 
             accept=".xlsx, .xls" 
+          />
+          <input 
+            type="file" 
+            ref={dailyImageFileRef} 
+            onChange={handleDailyFileChange} 
+            className="hidden" 
+            accept="image/*" 
+          />
+          <input 
+            type="file" 
+            ref={dailyCameraRef} 
+            onChange={handleDailyFileChange} 
+            className="hidden" 
+            accept="image/*" 
+            capture="environment" 
           />
         </div>
       </header>
@@ -604,6 +835,270 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
           </p>
         </div>
       </div>
+
+      {/* AI Scan Overlay */}
+      <AnimatePresence>
+        {showDailyScan && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/60 z-[999] backdrop-blur-sm flex flex-col justify-end sm:justify-center p-0 sm:p-4 md:p-6"
+          >
+            <motion.div 
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="bg-white max-w-3xl w-full mx-auto rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white z-10">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-50 text-indigo-600 rounded-2xl">
+                    <Sparkles size={20} className="animate-pulse" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black uppercase text-slate-900 tracking-tight leading-tight">AI Quét Sổ Hằng Ngày</h2>
+                    <p className="text-[10px] font-bold text-slate-400 italic">Quét chữ số viết tay của đồng hồ tổng</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowDailyScan(false);
+                    setDailyImagePreview(null);
+                    setDailyScanResults([]);
+                    setDailyError(null);
+                  }}
+                  className="p-2 bg-slate-50 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-all active:scale-95"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                {dailyError === "API_KEY_MISSING" ? (
+                  <div className="bg-rose-50 border-2 border-rose-100 text-rose-800 p-5 rounded-3xl flex gap-4">
+                    <AlertCircle size={28} className="text-rose-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-black uppercase tracking-tight text-rose-900 mb-1">Chưa cấu hình API Key</h4>
+                      <p className="text-xs font-bold leading-relaxed opacity-90">
+                        Tính năng quét bọc sách bằng AI cần khóa API Gemini để thực hiện OCR viết tay phức tạp.
+                      </p>
+                      <p className="text-[11px] mt-2 italic font-semibold leading-relaxed">
+                        Bạn vui lòng mở <span className="font-extrabold uppercase text-slate-800">Settings &gt; Secrets (Biêu tượng bánh răng ở góc dưới)</span> và thiết lập khoá <span className="font-extrabold text-rose-900">GEMINI_API_KEY</span> để mở khóa tính năng này!
+                      </p>
+                    </div>
+                  </div>
+                ) : dailyError ? (
+                  <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex gap-3">
+                    <AlertCircle size={20} className="text-rose-500 shrink-0 mt-0.5" />
+                    <p className="text-xs font-bold leading-relaxed">{dailyError}</p>
+                  </div>
+                ) : null}
+
+                {!dailyImagePreview ? (
+                  /* Step 1: Upload or Capture */
+                  <div className="space-y-4">
+                    <div className="border-4 border-dashed border-slate-100 rounded-[2.5rem] p-8 text-center bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col items-center justify-center min-h-[220px]">
+                      <div className="p-4 bg-indigo-50/70 text-indigo-500 rounded-3xl mb-3">
+                        <Camera size={36} />
+                      </div>
+                      <h3 className="text-sm font-black text-slate-800 tracking-tight">Kéo thả hoặc tải lên ảnh chụp sổ</h3>
+                      <p className="text-[10px] font-bold text-slate-400 mt-1 max-w-sm leading-relaxed">
+                        Chụp ảnh thẳng góc, sáng rõ toàn bộ 31 ngày ghi của đồng hồ 1 và 2 để Gemini đọc chính xác nhất.
+                      </p>
+                      <div className="flex gap-2.5 mt-5">
+                        <button 
+                          type="button"
+                          onClick={() => dailyCameraRef.current?.click()}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                        >
+                          <Camera size={14} /> Chụp Ảnh Trực Tiếp
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => dailyImageFileRef.current?.click()}
+                          className="px-4 py-2 bg-slate-950 hover:bg-slate-900 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                        >
+                          <FileImage size={14} /> Chọn Ảnh Từ Máy
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-3xl p-4 flex gap-3 text-slate-700">
+                      <Info size={18} className="text-blue-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[11px] font-black uppercase tracking-tight mb-0.5 text-slate-900">Tính năng tiện lợi:</p>
+                        <p className="text-[10px] font-bold leading-relaxed opacity-80">
+                          AI hỗ trợ tìm các cột ngày từ 1-31 và các cột chỉ số nước của 2 đồng hồ tương ứng, sau đó nạp số vào biểu để so sánh thất thoát.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Step 2: Image Preview & Results display */
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                    {/* Left/Top: Image Preview */}
+                    <div className="md:col-span-5 bg-slate-50 p-2.5 border border-slate-100 rounded-3xl space-y-2">
+                      <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-black border relative flex items-center justify-center">
+                        <img 
+                          src={dailyImagePreview} 
+                          alt="Bút tích cấp nước" 
+                          className="max-h-full max-w-full object-contain" 
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-center">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setDailyImagePreview(null);
+                            setDailyScanResults([]);
+                            setDailyError(null);
+                          }}
+                          className="p-1 px-3 border border-slate-200 hover:bg-slate-100 active:scale-95 text-slate-500 text-[10px] font-black uppercase rounded-lg transition-all flex items-center gap-1"
+                        >
+                          <RefreshCw size={10} /> Đổi ảnh khác
+                        </button>
+                        {!isAnalyzingDaily && dailyScanResults.length === 0 && (
+                          <button 
+                            type="button"
+                            onClick={handleStartDailyAnalysis}
+                            className="p-1 px-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[10px] font-black uppercase rounded-lg"
+                          >
+                            <Sparkles size={10} /> Quét
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right/Bottom: Analyzing / Results display */}
+                    <div className="md:col-span-7 space-y-3">
+                      {isAnalyzingDaily ? (
+                        <div className="py-12 text-center bg-slate-50/50 rounded-3xl border border-slate-100 flex flex-col items-center justify-center min-h-[220px]">
+                          <Loader2 size={36} className="text-indigo-600 animate-spin mb-3" />
+                          <p className="text-xs font-black text-slate-700 animate-pulse">{dailyLoadingStep || "Đang xử lý..."}</p>
+                          <p className="text-[10px] font-bold text-slate-400 mt-1">Đang thực hiện phân tích biểu mẫu...</p>
+                        </div>
+                      ) : dailyScanResults.length > 0 ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between bg-emerald-50 border border-emerald-100 p-2 px-3 rounded-2xl">
+                            <span className="text-[10px] font-black text-emerald-800 uppercase flex items-center gap-1">
+                              <Check size={14} /> Quét thành công
+                            </span>
+                            <span className="text-[10px] font-black text-emerald-950 bg-emerald-100 p-0.5 px-2 rounded-full">
+                              {dailyScanResults.length} dòng
+                            </span>
+                          </div>
+
+                          <div className="border border-slate-150 rounded-2xl overflow-hidden max-h-[280px] overflow-y-auto bg-white/50 shadow-inner">
+                            <table className="w-full text-left text-xs border-collapse">
+                              <thead className="bg-slate-100 text-[10px] font-black text-slate-500 uppercase sticky top-0 z-10 border-b border-slate-200">
+                                <tr>
+                                  <th className="p-2 py-2 text-center w-10">Hiệu</th>
+                                  <th className="p-2">Ngày</th>
+                                  <th className="p-2 text-center">ĐH1</th>
+                                  <th className="p-2 text-center">ĐH2</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {dailyScanResults.map((row, index) => (
+                                  <tr 
+                                    key={index} 
+                                    className={`border-b last:border-b-0 hover:bg-slate-50/80 transition-all ${row.isSelected ? 'bg-indigo-50/20' : 'opacity-45'}`}
+                                  >
+                                    <td className="p-2 text-center">
+                                      <input 
+                                        type="checkbox" 
+                                        checked={row.isSelected}
+                                        onChange={() => {
+                                          const copy = [...dailyScanResults];
+                                          copy[index].isSelected = !copy[index].isSelected;
+                                          setDailyScanResults(copy);
+                                        }}
+                                        className="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                                      />
+                                    </td>
+                                    <td className="p-2 font-black text-slate-700">Ngày {row.day}</td>
+                                    <td className="p-1">
+                                      <input 
+                                        type="number" 
+                                        value={row.master1 === 0 ? '' : row.master1} 
+                                        onChange={(e) => {
+                                          const value = parseInt(e.target.value) || 0;
+                                          const copy = [...dailyScanResults];
+                                          copy[index].master1 = value;
+                                          setDailyScanResults(copy);
+                                        }}
+                                        className="w-full bg-white font-black text-blue-600 border border-slate-200 rounded-lg py-1 px-1 text-center text-xs focus:ring-2 focus:ring-indigo-500"
+                                      />
+                                    </td>
+                                    <td className="p-1">
+                                      <input 
+                                        type="number" 
+                                        value={row.master2 === 0 ? '' : row.master2} 
+                                        onChange={(e) => {
+                                          const value = parseInt(e.target.value) || 0;
+                                          const copy = [...dailyScanResults];
+                                          copy[index].master2 = value;
+                                          setDailyScanResults(copy);
+                                        }}
+                                        className="w-full bg-white font-black text-rose-500 border border-slate-200 rounded-lg py-1 px-1 text-center text-xs focus:ring-2 focus:ring-indigo-500"
+                                      />
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-12 text-center bg-slate-50/50 rounded-3xl border border-slate-100 flex flex-col items-center justify-center min-h-[220px]">
+                          <Sparkles size={28} className="text-slate-300 mb-2" />
+                          <p className="text-xs font-bold text-slate-400">Click Quét để bắt đầu nhận diện tự động</p>
+                          <button 
+                            type="button"
+                            onClick={handleStartDailyAnalysis}
+                            className="mt-4 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase rounded-xl transition-all shadow-md flex items-center gap-1.5"
+                          >
+                            <Sparkles size={14} /> Quét Biểu Mẫu
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-5 border-t border-slate-100 bg-slate-50 sticky bottom-0 flex gap-3 justify-end text-right">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setShowDailyScan(false);
+                    setDailyImagePreview(null);
+                    setDailyScanResults([]);
+                    setDailyError(null);
+                  }}
+                  className="px-5 py-3 border border-slate-200 hover:bg-slate-100 rounded-xl text-slate-500 text-xs font-black uppercase transition-all"
+                >
+                  Đóng
+                </button>
+                {dailyScanResults.length > 0 && (
+                  <button 
+                    type="button"
+                    onClick={handleApplyDailyScan}
+                    className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase transition-all shadow-md flex items-center justify-center gap-1.5"
+                  >
+                    <Check size={16} /> Áp dụng {dailyScanResults.filter(r => r.isSelected).length} Ngày
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
