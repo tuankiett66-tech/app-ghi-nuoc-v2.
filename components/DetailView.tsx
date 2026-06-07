@@ -58,18 +58,6 @@ export const DetailView: React.FC<DetailViewProps> = ({
     if (e.key === 'Enter') {
       e.preventDefault();
       onNavigate('next');
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      onNavigate('next');
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      onNavigate('next');
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      onNavigate('prev');
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      onNavigate('prev');
     }
   };
 
@@ -139,7 +127,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
             </div>
           </div>
           <p className="text-[10px] font-bold text-slate-500 text-center mt-3.5 flex items-center justify-center gap-1">
-            ⌨️ Phím tắt PC: Bấm <span className="font-black text-slate-800 bg-slate-200 px-1 py-0.5 rounded">Enter</span> hoặc phím <span className="font-black text-slate-800 bg-slate-200 px-1 py-0.5 rounded">Mũi tên ↑ ↓ → ←</span> để chuyển nhanh khách hàng
+            ⌨️ Phím tắt PC: Bấm <span className="font-black text-slate-800 bg-slate-200 px-1 py-0.5 rounded">Enter</span> để chuyển nhanh khách hàng
           </p>
         </div>
 
