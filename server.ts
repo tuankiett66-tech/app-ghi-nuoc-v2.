@@ -33,6 +33,83 @@ function getGenAI(): GoogleGenAI {
   return aiInstance;
 }
 
+// Robust custom helper to make robust Gemini requests with automatic retries & fallback models
+async function generateContentWithRetryAndFallback(
+  ai: GoogleGenAI,
+  params: {
+    contents: any;
+    config: any;
+  }
+) {
+  // We prioritize gemini-3.5-flash but fall back automatically to gemini-flash-latest on high load (503/UNAVAILABLE)
+  const modelsToTry = ["gemini-3.5-flash", "gemini-flash-latest"];
+  let lastError: any = null;
+
+  for (const model of modelsToTry) {
+    const maxRetries = 2;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`[Gemini API] Querying model: ${model} (attempt ${attempt}/${maxRetries})...`);
+        const response = await ai.models.generateContent({
+          model: model,
+          contents: params.contents,
+          config: params.config,
+        });
+        return response;
+      } catch (err: any) {
+        lastError = err;
+        const errStr = String(err.message || err);
+        console.warn(`[Gemini API] Warn: Error querying ${model} (attempt ${attempt}/${maxRetries}):`, errStr);
+
+        // Treat temporary overloads or Google server outages as transient
+        const isTransient = 
+          errStr.includes("503") || 
+          errStr.includes("UNAVAILABLE") || 
+          errStr.includes("demand") || 
+          errStr.includes("429") || 
+          errStr.includes("RESOURCE_EXHAUSTED") || 
+          errStr.includes("overloaded") ||
+          errStr.includes("timeout") ||
+          errStr.includes("Socket") ||
+          errStr.includes("fetch");
+
+        if (!isTransient) {
+          // If the model name is incorrect or not found in their subscription/deployment, proceed to fallback model
+          if (errStr.includes("model") || errStr.includes("not found") || errStr.includes("supported")) {
+            console.log(`[Gemini API] Model ${model} is not supported or not found. Falling back to the next model...`);
+            break; 
+          }
+          throw err;
+        }
+
+        // Wait before retrying
+        if (attempt < maxRetries) {
+          const delay = attempt * 1200 + Math.random() * 500;
+          console.log(`[Gemini API] Transient issue detected. Retrying in ${Math.round(delay)}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+  }
+
+  throw lastError || new Error("Không thể kết nối đến máy chủ AI của Google (Gemini). Vui lòng thử lại sau.");
+}
+
+// Clean translator to format raw API errors into user-friendly instructions in Vietnamese
+function formatGeminiError(error: any): string {
+  const errStr = typeof error === 'string' ? error : (error.message || String(error));
+  if (errStr.includes("503") || errStr.includes("UNAVAILABLE") || errStr.includes("experience high demand") || errStr.includes("overloaded")) {
+    return "Hệ thống AI của Google đang bị quá tải tạm thời (Lỗi 503). Hệ thống đã tự động thử lại 4 lần nhưng chưa thành công. Bạn vui lòng bấm nút 'QUÉT' lại một lần nữa hoặc đợi 5-10 giây để máy chủ rảnh hơn nhé!";
+  }
+  if (errStr.includes("429") || errStr.includes("RESOURCE_EXHAUSTED") || errStr.includes("Rate limit")) {
+    return "Yêu cầu chụp quét hiện đạt giới hạn tối đa của khoá API (Lỗi 429). Bạn vui lòng đợi khoảng 1 phút rồi thử quét lại nhé!";
+  }
+  if (errStr.includes("API key not valid") || errStr.includes("API_KEY_INVALID") || errStr.includes("invalid key")) {
+    return "Khoá API Gemini (GEMINI_API_KEY) của bạn không chính xác hoặc không hoạt động. Vui lòng kiểm tra lại cấu hình khoá trong thiết lập Secrets (Settings -> Secrets) ở góc màn hình!";
+  }
+  return errStr;
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -97,8 +174,7 @@ Yêu cầu trích xuất:
 4. Trả về kết quả dưới dạng danh sách JSON đúng Schema cấu trúc quy định.
 `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+      const response = await generateContentWithRetryAndFallback(ai, {
         contents: { parts: [imagePart, { text: promptText }] },
         config: {
           responseMimeType: "application/json",
@@ -142,7 +218,7 @@ Yêu cầu trích xuất:
       console.error("Error in scan-handwritten API:", error);
       res.status(500).json({ 
         error: "SERVER_ERROR", 
-        message: error.message || "Đã xảy ra lỗi hệ thống khi xử lý hình ảnh." 
+        message: formatGeminiError(error)
       });
     }
   });
@@ -199,8 +275,7 @@ Yêu cầu trích xuất:
 5. Trả về kết quả dưới dạng danh sách JSON đúng Schema cấu trúc quy định.
 `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+      const response = await generateContentWithRetryAndFallback(ai, {
         contents: { parts: [imagePart, { text: promptText }] },
         config: {
           responseMimeType: "application/json",
@@ -248,7 +323,7 @@ Yêu cầu trích xuất:
       console.error("Error in scan-daily API:", error);
       res.status(500).json({ 
         error: "SERVER_ERROR", 
-        message: error.message || "Đã xảy ra lỗi thực thi khi xử lý ảnh bảng hằng ngày." 
+        message: formatGeminiError(error)
       });
     }
   });
