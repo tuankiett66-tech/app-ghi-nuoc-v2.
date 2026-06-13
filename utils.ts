@@ -48,12 +48,33 @@ export const normalizeDate = (dateStr: any): string => {
     const now = new Date();
     return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
   }
-  const str = String(dateStr);
+  const str = String(dateStr).trim();
   
   // Nếu là chuỗi chính xác YYYY-MM-DD (độ dài 10), trả về luôn
   // Tránh parse Date vì có thể bị lệch múi giờ nếu máy khách có cấu hình lạ
   if (/^\d{4}-\d{2}-\d{2}$/.test(str) && str.length === 10) return str;
   
+  // Đối sánh thủ công định dạng ngày tháng của VN (DD/MM/YYYY hoặc DD/MM/YY) để tránh parse sai trên các môi trường máy khách khác nhau
+  const dmYMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (dmYMatch) {
+    const day = dmYMatch[1].padStart(2, '0');
+    const month = dmYMatch[2].padStart(2, '0');
+    let year = dmYMatch[3];
+    if (year.length === 2) {
+      year = "20" + year;
+    }
+    return `${year}-${month}-${day}`;
+  }
+
+  // Đối sánh định dạng chỉ có ngày/tháng (DD/MM), tự động gán năm hiện tại (ví dụ: "01/05" -> "2026-05-01")
+  const dmMatch = str.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (dmMatch) {
+    const day = dmMatch[1].padStart(2, '0');
+    const month = dmMatch[2].padStart(2, '0');
+    const year = new Date().getFullYear();
+    return `${year}-${month}-${day}`;
+  }
+
   // Nếu là chuỗi ISO (có chữ T) hoặc các định dạng khác
   // Phải parse bằng new Date() và lấy ngày theo giờ ĐỊA PHƯƠNG (Local Time)
   // để bù đắp các chuỗi UTC từ Google Sheets/Excel (ví dụ: 2026-04-29T17:00:00Z là sáng ngày 30/04)
@@ -279,8 +300,10 @@ export const exportDailyToExcel = async (readings: DailySupplyReading[], fileNam
   const sorted = [...readings].sort((a, b) => b.date.localeCompare(a.date) || (b.time || "").localeCompare(a.time || ""));
 
   const data = sorted.map(r => {
+    const parts = r.date.split('-');
+    const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : r.date;
     return [
-      formatDateDisplay(r.date),
+      dateFormatted,
       normalizeTime(r.time),
       r.master1 || 0,
       r.consumption1 || 0,
@@ -497,32 +520,8 @@ export const parseDailySupplyExcelFile = async (file: File): Promise<Omit<DailyS
 const parseExcelDate = (val: any): string => {
   if (!val) return "";
   const str = String(val).trim();
-  
-  const dmYMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (dmYMatch) {
-    const day = dmYMatch[1].padStart(2, '0');
-    const month = dmYMatch[2].padStart(2, '0');
-    const year = dmYMatch[3];
-    return `${year}-${month}-${day}`;
-  }
-
-  const ymdMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (ymdMatch) {
-    const year = ymdMatch[1];
-    const month = ymdMatch[2].padStart(2, '0');
-    const day = ymdMatch[3].padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  const d = new Date(str);
-  if (!isNaN(d.getTime())) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
-  return "";
+  if (!str) return "";
+  return normalizeDate(str);
 };
 
 export const parseGroupExcelFile = async (file: File): Promise<GroupMember[]> => {
