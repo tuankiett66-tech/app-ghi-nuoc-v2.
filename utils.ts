@@ -7,12 +7,83 @@ const getXLSX = async () => {
   return await import('xlsx-js-style');
 };
 
+export const parseStringOrDateToNumber = (val: any): number => {
+  if (val === undefined || val === null || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const str = String(val).trim();
+  if (!str) return 0;
+
+  // 1. If it's a simple integer/decimal, parse directly
+  if (/^\d+$/.test(str)) {
+    return parseInt(str, 10);
+  }
+  if (/^\d+\.\d+$/.test(str)) {
+    return parseFloat(str);
+  }
+
+  // 2. Parse date-like patterns
+  let dateObj: Date | null = null;
+  
+  // ISO date strings or date string with timezone/UTC stamp
+  if (str.includes('T') && (str.includes('Z') || str.includes('+') || /[-+]\d{2}:\d{2}$/.test(str))) {
+    const parsed = new Date(str);
+    if (parsed && !isNaN(parsed.getTime())) {
+      dateObj = parsed;
+    }
+  }
+
+  // Standard Vietnamese DD/MM/YYYY format
+  const dmyMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    // Use local Date constructor
+    dateObj = new Date(year, month, day);
+  }
+
+  // Month/Year format (e.g. "11/2079", "3/3136")
+  const myMatch = str.match(/^(\d{1,2})\/(\d{4})$/);
+  if (myMatch) {
+    const month = parseInt(myMatch[1], 10) - 1;
+    const year = parseInt(myMatch[2], 10);
+    // Usually Google Sheets treats MM/YYYY cell formats as 1st of that month
+    dateObj = new Date(year, month, 1);
+  }
+
+  if (dateObj && !isNaN(dateObj.getTime())) {
+    // Base Excel date (Dec 30, 1899)
+    const baseDate = new Date(1899, 11, 30);
+    const diffMs = dateObj.getTime() - baseDate.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      return diffDays;
+    }
+  }
+
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
+};
+
 // Ham xu ly so tu Excel mot cach an toan (Xoa moi dau phay, dau cham phan cach hang ngan)
 export const parseSafe = (val: any): number => {
-  if (typeof val === 'number') return val;
-  if (!val) return 0;
+  if (val === undefined || val === null || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const str = String(val).trim();
+  if (!str) return 0;
+
+  // Intercept Excel Date Auto-Formatting bug (like "11/2079", "3/3136" or ISO timestamps)
+  if (str.includes('/') && /^\d{1,2}\/\d{2,4}/.test(str)) {
+    const recovered = parseStringOrDateToNumber(str);
+    if (recovered > 0) return recovered;
+  }
+  if (str.includes('T') && (str.includes('Z') || str.includes('+'))) {
+    const recovered = parseStringOrDateToNumber(str);
+    if (recovered > 0) return recovered;
+  }
+
   // Loai bo tat ca ky tu khong phai so hoac dau cham/phay de xu ly chuoi
-  const clean = String(val).replace(/[.,\s]/g, '').replace(/[^0-9-]/g, '');
+  const clean = str.replace(/[.,\s]/g, '').replace(/[^0-9-]/g, '');
   return parseInt(clean) || 0;
 };
 

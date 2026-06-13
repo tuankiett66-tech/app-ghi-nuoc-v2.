@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Customer, SystemConfig, WaterGroup, GroupMember, LossRecord, DailySupplyReading } from '../types';
-import { calculateRow, normalizeMonthYear } from '../utils';
+import { calculateRow, normalizeMonthYear, parseStringOrDateToNumber } from '../utils';
 
 // Helper functions for automatic period / calendar creation
 const getDaysInMonth = (monthKey: string): number => {
@@ -66,10 +66,10 @@ export const useWaterData = () => {
                 ...existing,
                 list1Volume: parseFloat(r.list1Volume) || 0,
                 list2Volume: parseFloat(r.list2Volume) || 0,
-                master1New: parseFloat(r.master1New) || existing.master1New,
-                master1Old: parseFloat(r.master1Old) || existing.master1Old,
-                master2New: parseFloat(r.master2New) || existing.master2New,
-                master2Old: parseFloat(r.master2Old) || existing.master2Old,
+                master1New: parseStringOrDateToNumber(r.master1New) || existing.master1New,
+                master1Old: parseStringOrDateToNumber(r.master1Old) || existing.master1Old,
+                master2New: parseStringOrDateToNumber(r.master2New) || existing.master2New,
+                master2Old: parseStringOrDateToNumber(r.master2Old) || existing.master2Old,
               };
             }
           }

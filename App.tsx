@@ -13,7 +13,7 @@ import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
 import { AIScanView } from './components/AIScanView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber } from './utils';
 import { Customer, LossRecord } from './types';
 
 const App: React.FC = () => {
@@ -71,8 +71,8 @@ const App: React.FC = () => {
         setConfig(prev => ({ 
           ...prev, 
           ...result.config, 
-          master1Initial: parseFloat(result.config.master1Initial) || result.config.master1Initial || 0,
-          master2Initial: parseFloat(result.config.master2Initial) || result.config.master2Initial || 0,
+          master1Initial: parseStringOrDateToNumber(result.config.master1Initial) || 0,
+          master2Initial: parseStringOrDateToNumber(result.config.master2Initial) || 0,
           masterInitialDate: normalizeDate(result.config.masterInitialDate),
           lastSyncTime: Date.now() 
         }));
@@ -98,10 +98,10 @@ const App: React.FC = () => {
                     ...existing,
                     list1Volume: parseFloat(r.list1Volume) || 0,
                     list2Volume: parseFloat(r.list2Volume) || 0,
-                    master1New: parseFloat(r.master1New) || existing.master1New,
-                    master1Old: parseFloat(r.master1Old) || existing.master1Old,
-                    master2New: parseFloat(r.master2New) || existing.master2New,
-                    master2Old: parseFloat(r.master2Old) || existing.master2Old,
+                    master1New: parseStringOrDateToNumber(r.master1New) || existing.master1New,
+                    master1Old: parseStringOrDateToNumber(r.master1Old) || existing.master1Old,
+                    master2New: parseStringOrDateToNumber(r.master2New) || existing.master2New,
+                    master2Old: parseStringOrDateToNumber(r.master2Old) || existing.master2Old,
                   };
                 }
               }
@@ -117,10 +117,10 @@ const App: React.FC = () => {
               id: r.id || `loss-sync-${Date.now()}-${idx}`,
               createdAt: parseFloat(r.createdAt) || Date.now(),
               month: normalizedMonth || rawMonth,
-              master1New: parseFloat(r.master1New) || 0,
-              master1Old: parseFloat(r.master1Old) || 0,
-              master2New: parseFloat(r.master2New) || 0,
-              master2Old: parseFloat(r.master2Old) || 0,
+              master1New: parseStringOrDateToNumber(r.master1New) || 0,
+              master1Old: parseStringOrDateToNumber(r.master1Old) || 0,
+              master2New: parseStringOrDateToNumber(r.master2New) || 0,
+              master2Old: parseStringOrDateToNumber(r.master2Old) || 0,
               list1Volume: parseFloat(r.list1Volume) || 0,
               list2Volume: parseFloat(r.list2Volume) || 0
             });
@@ -136,8 +136,8 @@ const App: React.FC = () => {
             ...r,
             id: r.id || `supply-sync-${Date.now()}-${idx}`,
             updatedAt: parseFloat(r.updatedAt) || Date.now(),
-            master1: parseFloat(r.master1) || 0,
-            master2: parseFloat(r.master2) || 0,
+            master1: parseStringOrDateToNumber(r.master1) || 0,
+            master2: parseStringOrDateToNumber(r.master2) || 0,
             consumption1: parseFloat(r.consumption1) || 0,
             consumption2: parseFloat(r.consumption2) || 0,
             date: normalizeDate(r.date),
