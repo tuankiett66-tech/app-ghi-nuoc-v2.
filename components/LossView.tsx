@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity, Save, Download, RefreshCw } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, TrendingDown, BarChart3, Table as TableIcon, Droplets, AlertTriangle, Activity, Save, Download, RefreshCw, Edit2 } from 'lucide-react';
 import { LossRecord, Customer, DailySupplyReading, SystemConfig } from '../types';
 import { formatCurrency, getBillingMonthYear, exportLossPeriodReportToExcel, normalizeMonthYear } from '../utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
@@ -95,8 +95,8 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
 
   const handleSyncFromDaily = (recordId: string, monthStr: string) => {
     const vals = getAutoSyncValuesForMonth(monthStr, recordId);
-    if (!vals) {
-      alert(`Không tìm thấy dữ liệu Ghi số nước hằng ngày cho Tháng ${monthStr} (${normalizeMonthYear(monthStr)}) để đồng bộ!`);
+    if (!vals || vals.readingsCount === 0) {
+      alert(`⚠️ Không tìm thấy dữ liệu ghi chép hằng ngày nào cho Tháng ${monthStr} trong hệ thống!\n\nHệ thống không thể tự động đồng bộ cho kỳ này vì nhật ký hằng ngày rỗng (có thể bạn đã nhấn "Chốt kỳ hằng ngày" làm sạch nhật ký). Vui lòng nhấn nút "Sửa" và nhập trực tiếp các chỉ số đúng bằng tay!`);
       return;
     }
 
@@ -112,8 +112,8 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
 
   const handleAutoFillFromDaily = (monthStr: string, isForEdit: boolean) => {
     const vals = getAutoSyncValuesForMonth(monthStr, isForEdit ? editingId || undefined : undefined);
-    if (!vals) {
-      alert(`Không tìm thấy dữ liệu Ghi số nước hằng ngày cho Tháng ${monthStr} trong ứng dụng!`);
+    if (!vals || vals.readingsCount === 0) {
+      alert(`⚠️ Không tìm thấy dữ liệu ghi chép hằng ngày cho Tháng ${monthStr} trong hệ thống!\n\nNhật ký hằng ngày của tháng này hiện đang rỗng (hoặc đã bị xóa sau khi Chốt kỳ). Để tránh làm hỏng hoặc mất các số liệu cũ của bạn, hệ thống khuyên bạn tự nhập trực tiếp bằng tay số cũ & mới!`);
       return;
     }
 
@@ -385,8 +385,8 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                                  setEditingId(r.id);
                                  setEditData({ ...r });
                                }} 
-                               className="p-2 text-blue-600 bg-blue-50 rounded-xl active:scale-90"
-                             ><Activity size={18}/></button>
+                               className="p-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl active:scale-90 flex items-center gap-1 text-[10px] font-black uppercase px-2.5 shadow-sm border border-blue-100"
+                             ><Edit2 size={12}/> Sửa số liệu</button>
                           </>
                        )}
                        <button onClick={() => onDelete(r.id)} className="p-2 text-slate-200 hover:text-rose-500 transition-colors active:scale-90"><Trash2 size={18}/></button>
