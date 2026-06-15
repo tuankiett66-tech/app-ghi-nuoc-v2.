@@ -60,12 +60,10 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
     const scrollToIndex = (index: number) => {
       if (index >= 0 && index < customers.length) {
         const custId = customers[index].id;
-        setTimeout(() => {
-          const el = document.getElementById(`cust-${custId}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
-        }, 30);
+        const el = document.getElementById(`cust-${custId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+        }
       }
     };
 
@@ -76,7 +74,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
   }, [customers, focusedIndex, onSelect]);
 
   return (
-    <div id="main-list-container" className="flex-1 overflow-y-auto px-3 space-y-3 pb-40 scroll-smooth bg-slate-50">
+    <div id="main-list-container" className="flex-1 overflow-y-auto px-3 space-y-3 pb-40 bg-slate-50">
       {customers.map((c, idx) => {
         const isFocused = idx === focusedIndex;
         return (
@@ -85,9 +83,9 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
             id={`cust-${c.id}`} 
             onClick={() => onSelect(c.id)} 
             onMouseEnter={() => setFocusedIndex(idx)}
-            className={`bg-white p-4 rounded-[1.8rem] shadow-md border-2 transition-all duration-200 cursor-pointer ${
+            className={`bg-white p-4 rounded-[1.8rem] shadow-md border-2 transition-all duration-75 cursor-pointer ${
               isFocused 
-                ? 'ring-4 ring-blue-500/80 ring-offset-1 scale-[1.01] border-blue-500 shadow-xl z-10' 
+                ? 'border-blue-500 bg-blue-50/20' 
                 : c.isProcessed ? 'border-emerald-500 bg-emerald-50/10' : 
                   c.isZaloFriend ? 'border-blue-600 bg-blue-50/20' : 
                   c.isZalo ? 'border-indigo-400 bg-indigo-50/10' : 
