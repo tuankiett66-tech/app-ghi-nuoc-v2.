@@ -17,6 +17,7 @@ interface ListViewProps {
 
 export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall, onCopyMsg, onCopyName, onAddAfter, onCollectFull }) => {
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+  const lastScrollTimeRef = React.useRef<number>(0);
 
   // Reset focus when the lists or search filter changes
   useEffect(() => {
@@ -58,11 +59,36 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
     };
 
     const scrollToIndex = (index: number) => {
-      if (index >= 0 && index < customers.length) {
-        const custId = customers[index].id;
-        const el = document.getElementById(`cust-${custId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+      if (index < 0 || index >= customers.length) return;
+      const container = document.getElementById('main-list-container');
+      const el = document.getElementById(`cust-${customers[index].id}`);
+      if (!container || !el) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+
+      // Check if the element is out of the scrollable viewport (with safety margins)
+      const isBelow = elRect.bottom > containerRect.bottom - 16;
+      const isAbove = elRect.top < containerRect.top + 16;
+
+      if (isBelow || isAbove) {
+        const now = Date.now();
+        // Throttle to once every 120ms to allow smooth gentle scrolling without blocking main thread
+        if (now - lastScrollTimeRef.current > 120) {
+          lastScrollTimeRef.current = now;
+          const containerScrollTop = container.scrollTop;
+          let targetScrollTop = containerScrollTop;
+
+          if (isBelow) {
+            targetScrollTop = containerScrollTop + (elRect.bottom - containerRect.bottom) + 32;
+          } else if (isAbove) {
+            targetScrollTop = containerScrollTop + (elRect.top - containerRect.top) - 32;
+          }
+
+          container.scrollTo({
+            top: targetScrollTop,
+            behavior: 'smooth'
+          });
         }
       }
     };
@@ -85,7 +111,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
             onMouseEnter={() => setFocusedIndex(idx)}
             className={`bg-white p-4 rounded-[1.8rem] shadow-md border-2 transition-all duration-75 cursor-pointer ${
               isFocused 
-                ? 'border-blue-500 bg-blue-50/20' 
+                ? 'border-slate-800 bg-slate-100/50 shadow-md' 
                 : c.isProcessed ? 'border-emerald-500 bg-emerald-50/10' : 
                   c.isZaloFriend ? 'border-blue-600 bg-blue-50/20' : 
                   c.isZalo ? 'border-indigo-400 bg-indigo-50/10' : 
