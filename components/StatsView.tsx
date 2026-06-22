@@ -11,11 +11,16 @@ interface StatsViewProps {
   onBack: () => void;
   onClosePeriod: () => void;
   onExport: () => void;
+  onSelectCustomer?: (id: string) => void;
 }
 
-export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBack, onClosePeriod, onExport }) => {
+export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBack, onClosePeriod, onExport, onSelectCustomer }) => {
   const [masterMeter, setMasterMeter] = useState<string>('');
   const [compareMode, setCompareMode] = useState<'current' | 'all'>('all');
+
+  const unrecordedList = useMemo(() => {
+    return customers.filter(c => c.listType === activeTab && c.newIndex === 0);
+  }, [customers, activeTab]);
 
   const stats = useMemo(() => {
     const list = customers.filter(c => c.listType === activeTab);
@@ -155,6 +160,36 @@ export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBa
           )}
         </div>
       </div>
+
+      {/* Unrecorded Customers List */}
+      {unrecordedList.length > 0 && (
+        <div className="bg-amber-50 border-2 border-amber-200 p-4 rounded-[2rem] shadow-sm mb-3">
+          <div className="flex items-center justify-between mb-2 pb-1 border-b border-amber-200">
+            <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest flex items-center gap-1.5">
+              <AlertTriangle size={14} className="text-amber-600 animate-pulse"/> DANH SÁCH {unrecordedList.length} HỘ CHƯA GHI SỐ
+            </p>
+          </div>
+          <div className="max-h-[160px] overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
+            {unrecordedList.map(c => (
+              <div key={c.id} className="bg-white px-3 py-2 rounded-xl flex items-center justify-between border border-amber-100 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded-md min-w-[28px] text-center">{c.maKH}</span>
+                    <span className="text-[11px] font-black text-slate-800 uppercase truncate max-w-[120px]">{c.name}</span>
+                  </div>
+                  <p className="text-[9px] text-slate-500 font-bold mt-0.5">ĐC: {c.address || '---'}</p>
+                </div>
+                <button 
+                  onClick={() => onSelectCustomer?.(c.id)}
+                  className="bg-amber-600 text-white text-[9px] font-black px-2.5 py-1.5 rounded-lg uppercase shadow-xs active:scale-95"
+                >
+                  Ghi ngay
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Meter Replacement Summary */}
       <div className="bg-white border-2 border-slate-200 p-4 space-y-2 rounded-[2rem] shadow-sm mb-3">

@@ -15,6 +15,7 @@ import { VerifyView } from './components/VerifyView';
 import { AIScanView } from './components/AIScanView';
 import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber } from './utils';
 import { Customer, LossRecord } from './types';
+import { AlertTriangle } from 'lucide-react';
 
 const App: React.FC = () => {
   const { 
@@ -34,6 +35,7 @@ const App: React.FC = () => {
   const [afterMaKH, setAfterMaKH] = useState<string | undefined>(undefined);
   const [onlyNonZalo, setOnlyNonZalo] = useState(false);
   const [onlyUnpaid, setOnlyUnpaid] = useState(false);
+  const [onlyUnrecorded, setOnlyUnrecorded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -461,10 +463,15 @@ const App: React.FC = () => {
       
       const zaloMatch = onlyNonZalo ? !c.isZalo : true;
       const unpaidMatch = onlyUnpaid ? (c.status === 'unpaid' && c.newIndex > 0 && c.volume > 0) : true;
+      const unrecordedMatch = onlyUnrecorded ? (c.newIndex === 0) : true;
       
-      return match && zaloMatch && unpaidMatch;
+      return match && zaloMatch && unpaidMatch && unrecordedMatch;
     }).sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
-  }, [customers, activeTab, searchQuery, onlyNonZalo, onlyUnpaid]);
+  }, [customers, activeTab, searchQuery, onlyNonZalo, onlyUnpaid, onlyUnrecorded]);
+
+  const unrecordedCount = useMemo(() => {
+    return customers.filter(c => c.listType === activeTab && c.newIndex === 0).length;
+  }, [customers, activeTab]);
 
   const handleCollectFull = (id: string) => {
     const cust = customers.find(c => c.id === id);
@@ -597,11 +604,39 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               setOnlyUnpaid(newVal);
               showToast(newVal ? "Đang hiện KH CHƯA THU" : "Hiện tất cả (Đã thu + Chưa thu)");
             }}
+            onlyUnrecorded={onlyUnrecorded} onToggleUnrecordedFilter={() => {
+              const newVal = !onlyUnrecorded;
+              setOnlyUnrecorded(newVal);
+              showToast(newVal ? "Đang hiện hộ CHƯA GHI SỐ" : "Hiện tất cả");
+            }}
             lastSyncTime={config.lastSyncTime}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
             onShowScan={() => navigateTo('ai_scan')}
           />
+          {unrecordedCount > 0 && (
+            <div className="mx-3 my-2 bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 flex items-center justify-between shadow-xs shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="bg-amber-100 text-amber-600 p-2 rounded-xl">
+                  <AlertTriangle size={18} className="animate-pulse" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-amber-800 uppercase">Còn {unrecordedCount} hộ chưa ghi số!</p>
+                  <p className="text-[10px] text-amber-600 font-bold leading-tight">Tránh bỏ sót các hộ ghi sau.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  const newVal = !onlyUnrecorded;
+                  setOnlyUnrecorded(newVal);
+                  showToast(newVal ? "Đang lọc hộ CHƯA GHI" : "Hiện tất cả");
+                }}
+                className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase shadow-xs transition-colors ${onlyUnrecorded ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-800'}`}
+              >
+                {onlyUnrecorded ? "Tất cả" : "Lọc chưa ghi"}
+              </button>
+            </div>
+          )}
           <ListView 
             customers={filtered} 
             onSelect={(id) => { 
@@ -740,8 +775,34 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         <StatsView 
           customers={customers} activeTab={activeTab}
           onBack={() => navigateTo('list')}
-          onClosePeriod={async () => { if(!confirm("Chot ky?")) return; const res = closePeriod(); await exportToExcel(res, 'Ky_Moi'); showToast("Da chot ky!"); navigateTo('list'); }}
-          onExport={async () => await exportToExcel(customers.filter(c => c.listType === activeTab), 'Bao_Cao')}
+          onClosePeriod={async () => { 
+            const unrecorded = customers.filter(c => c.listType === activeTab && c.newIndex === 0);
+            if (unrecorded.length > 0) {
+              const listNames = unrecorded.slice(0, 5).map(c => `- ${c.maKH}: ${c.name}`).join('\n');
+              const moreSuffix = unrecorded.length > 5 ? `\n... và ${unrecorded.length - 5} hộ khác.` : '';
+              const confirmClose = confirm(
+                `⚠️ CẢNH BÁO CHƯA GHI HẾT NƯỚC!\nCó ${unrecorded.length} hộ chưa được ghi số nước kì này:\n${listNames}${moreSuffix}\n\nNếu chốt kì, các hộ này sẽ không có mức tiêu thụ kì này (Chỉ số cũ của kì mới sau sẽ bị lệch).\n\nBạn vẫn muốn CHỐT KỲ mới?`
+              );
+              if (!confirmClose) return;
+            } else {
+              if(!confirm("Bạn có muốn chốt kì hiện tại và mở kì mới?")) return;
+            }
+            const res = closePeriod(); 
+            await exportToExcel(res, 'Ky_Moi'); 
+            showToast("Đã chốt kì và tạo kì mới!"); 
+            navigateTo('list'); 
+          }}
+          onExport={async () => {
+            const unrecorded = customers.filter(c => c.listType === activeTab && c.newIndex === 0);
+            if (unrecorded.length > 0) {
+              if (!confirm(`⚠️ Có ${unrecorded.length} hộ chưa ghi nước. Bạn có chắc chắn muốn xuất báo cáo Excel?`)) return;
+            }
+            await exportToExcel(customers.filter(c => c.listType === activeTab), 'Bao_Cao');
+          }}
+          onSelectCustomer={(id) => {
+            setSelectedId(id);
+            navigateTo('detail');
+          }}
         />
       )}
 
