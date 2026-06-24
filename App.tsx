@@ -462,7 +462,7 @@ const App: React.FC = () => {
                     balanceStr.includes(cleanSearchPrice);
       
       const zaloMatch = onlyNonZalo ? !c.isZalo : true;
-      const unpaidMatch = onlyUnpaid ? (c.status === 'unpaid' && c.newIndex > 0 && c.volume > 0) : true;
+      const unpaidMatch = onlyUnpaid ? (c.balance > 0) : true;
       const unrecordedMatch = onlyUnrecorded ? (c.newIndex === 0) : true;
       
       return match && zaloMatch && unpaidMatch && unrecordedMatch;
@@ -602,7 +602,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             onlyUnpaid={onlyUnpaid} onToggleUnpaidFilter={() => {
               const newVal = !onlyUnpaid;
               setOnlyUnpaid(newVal);
-              showToast(newVal ? "Đang hiện KH CHƯA THU" : "Hiện tất cả (Đã thu + Chưa thu)");
+              showToast(newVal ? "Đang hiện KH CÒN NỢ ĐỌNG" : "Hiện tất cả (Đã thu + Chưa thu)");
             }}
             onlyUnrecorded={onlyUnrecorded} onToggleUnrecordedFilter={() => {
               const newVal = !onlyUnrecorded;
