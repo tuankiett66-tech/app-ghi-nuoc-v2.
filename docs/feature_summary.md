@@ -6,7 +6,7 @@
 | **PWA & Offline** | Hỗ trợ chạy không mạng, cài đặt icon màn hình chính. | `sw.js`, `manifest.json` | Hoàn thành | Hoạt động 100% offline. |
 | **Quản Lý Bộ 01/02** | Phân tách danh sách theo tab, chuyển đổi linh hoạt. | `App.tsx` | Hoàn thành | Lưu trữ độc lập qua localStorage. |
 | **Đồng Bộ Đa Thiết Bị** | Tự động tải dữ liệu khi mở App, tự động sao lưu sau khi thay đổi (Debounce). | `App.tsx`, `useWaterData.ts` | Hoàn thành | Hiển thị thời gian đồng bộ cuối trên Header. |
-| **Lọc Thông Minh** | Lọc KH chưa có Zalo, lọc KH CHƯA THU TIỀN (ẩn hộ 0m3/chưa ghi). | `Header.tsx`, `App.tsx` | Hoàn thành | Bấm icon đồng tiền màu đỏ để ẩn các hộ đã thu hoặc không dùng nước. |
+| **Lọc Thông Minh** | Lọc KH chưa có Zalo, lọc KH CÒN NỢ ĐỌNG (`balance > 0`). | `Header.tsx`, `App.tsx` | Hoàn thành | Bấm icon đồng tiền màu đỏ để ẩn các hộ đã thu đủ, chỉ hiện các hộ còn nợ đọng. |
 | **Thu Tiền Nhanh** | Nút "Thu đủ" ngay tại danh sách không cần vào chi tiết. | `ListView.tsx`, `App.tsx` | Hoàn thành | Giúp xử lý nhanh khi khách trả đúng số tiền nợ. |
 | **Tìm Kiếm Thông Minh** | Dropdown lịch sử, Voice Search, Auto-clear sau khi chọn KH. | `Header.tsx`, `App.tsx` | Tối ưu | Đã fix lỗi kẹt bộ lọc. |
 | **Ghi Chỉ Số & Thu Tiền** | Ghi số mới, nhập tiền khách trả, tính tiền nợ còn lại. | `DetailView.tsx`, `utils.ts` | Hoàn thành | **Đã fix**: Hỗ trợ số dư âm (khách trả thừa). |
@@ -16,7 +16,7 @@
 | **Quản Lý Thất Thoát** | Theo dõi lịch sử hao hụt qua từng kỳ, so sánh đồng hồ tổng và hộ dân. | `LossView.tsx` | Hoàn thành | **Mới**: Có biểu đồ xu hướng và bảng lịch sử chi tiết. |
 | **Hai Tài Khoản Thu** | Hỗ trợ 2 STK riêng biệt: Tài khoản 1 (Thu chung) và Tài khoản 2 (Thu Nhóm). | `ConfigView.tsx` | Hoàn thành | **Mới**: Tự động đổi STK khi gửi Bill Nhóm hoặc Bill lẻ. |
 | **Báo Cáo & Chốt Kỳ** | Thống kê doanh thu, nợ tồn, chốt kỳ chuyển nợ sang kỳ mới. | `StatsView.tsx` | Hoàn thành | **Mới**: Đánh giá thất thoát linh hoạt (Toàn hệ thống hoặc từng Bộ). |
-| **Dữ Liệu Cloud** | Đồng bộ Google Sheets qua API Script riêng cho từng bộ. | `App.tsx`, `ConfigView.tsx` | Hoàn thành | Hỗ trợ Fetch (GET) và Backup (POST). |
+| **Dữ Liệu Cloud** | Đồng bộ Google Sheets qua API Script riêng cho từng bộ. | `App.tsx`, `ConfigView.tsx` | Hoàn thành | Hỗ trợ Fetch (GET) và Backup (POST) không mất lịch sử (`updatedAt`) & Ngày thay ĐH (`installDate`). |
 | **Nhập/Xuất Excel** | Hỗ trợ file 12 cột chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành | **Mới**: Thêm dòng **TỔNG CỘNG** cuối file Excel báo cáo. |
 | **Quản lý KH** | Sửa thông tin, xóa SĐT, theo dõi thời hạn đồng hồ. | `Modals.tsx`, `useWaterData.ts` | Hoàn thành | **Đã fix**: Cho phép xóa trắng SĐT và lưu thành công. |
 | **Giao diện Chi tiết** | Hiện QR trực tiếp, nút Copy tên, tối ưu nút bấm mobile. | `DetailView.tsx` | Hoàn thành | **Mới**: Nút QR ưu tiên, QR hiện inline không cần Modal. |

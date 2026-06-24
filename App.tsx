@@ -59,9 +59,9 @@ const App: React.FC = () => {
       const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}action=get_all&t=${Date.now()}`);
       const result = await res.json();
       
+      let extraData: any = {};
       if (result.config) {
         // Safe parsing for extra sync data from script fallback
-        let extraData: any = {};
         if (result.config.extra_sync_data) {
           try {
             extraData = JSON.parse(result.config.extra_sync_data);
@@ -224,7 +224,8 @@ const App: React.FC = () => {
             isZaloFriend: !!item.isZaloFriend,
             isProcessed: !!item.isProcessed,
             installDate: item.installDate || "",
-            note: String(item.note || "").replace(/^'/, "")
+            note: String(item.note || "").replace(/^'/, ""),
+            updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
           }, result.config?.waterRate || config.waterRate);
         });
         allCustomers = [...allCustomers, ...mapped1];
@@ -271,7 +272,8 @@ const App: React.FC = () => {
             isZaloFriend: !!item.isZaloFriend,
             isProcessed: !!item.isProcessed,
             installDate: item.installDate || "",
-            note: String(item.note || "").replace(/^'/, "")
+            note: String(item.note || "").replace(/^'/, ""),
+            updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
           }, result.config?.waterRate || config.waterRate);
         });
         allCustomers = [...allCustomers, ...mapped2];
@@ -323,7 +325,8 @@ const App: React.FC = () => {
       isZaloFriend: !!c.isZaloFriend,
       isProcessed: !!c.isProcessed,
       installDate: c.installDate || "",
-      note: "'" + (c.note || "")
+      note: "'" + (c.note || ""),
+      updatedAt: c.updatedAt || 0
     }));
 
     const data2 = sortedCustomers.filter(c => c.listType === 'list2').map(c => ({
@@ -342,7 +345,8 @@ const App: React.FC = () => {
       isZaloFriend: !!c.isZaloFriend,
       isProcessed: !!c.isProcessed,
       installDate: c.installDate || "",
-      note: "'" + (c.note || "")
+      note: "'" + (c.note || ""),
+      updatedAt: c.updatedAt || 0
     }));
 
     if (!silent) setIsSyncing(true);
@@ -373,7 +377,13 @@ const App: React.FC = () => {
             extra_sync_data: JSON.stringify({
               groups,
               lossRecords,
-              dailySupplyReadings
+              dailySupplyReadings,
+              updatedAtMap: customers.reduce((acc, c) => {
+                if (c.updatedAt) {
+                  acc[c.maKH] = c.updatedAt;
+                }
+                return acc;
+              }, {} as Record<string, number>)
             })
           },
           list1: data1,

@@ -30,6 +30,8 @@
 - **Excel Parsing**: Hàm `parseExcelFile` trong `utils.ts` sử dụng logic mapping ưu tiên "NỢ" trước "CŨ" để tránh nhầm lẫn cột.
 - **Excel Export**: Sử dụng thư viện `xlsx-js-style` để hỗ trợ định dạng **BOLD** cho tên khách hàng và dòng **TỔNG CỘNG**.
 - **Water Loss**: Hỗ trợ 2 chế độ so sánh: (Đồng hồ tổng vs Toàn hệ thống) hoặc (Đồng hồ tổng vs Từng bộ riêng biệt). Lịch sử thất thoát được lưu trữ riêng biệt và hiển thị qua biểu đồ `recharts`.
+- **Lọc Nợ Đọng**: Bộ lọc nợ đọng ("Chưa thu" -> "Nợ đọng") lọc theo điều kiện thực tế `balance > 0` thay vì điều kiện cũ để đảm bảo theo dõi chính xác tất cả khách hàng còn tiền nợ (kể cả nợ cũ).
+- **Sao Lưu & Đồng Bộ Không Mất Lịch Sử**: Sử dụng Google Apps Script V4.2 đồng bộ lưu trữ và giữ lại lịch sử ghi chỉ số (`updatedAt` thông qua map dữ liệu bổ trợ `updatedAtMap`) và ngày thay đồng hồ (`installDate`) ở 2 cột N (14) và O (15) trên Google Sheets.
 
 ## 3. Nhật Ký Phiên Bản (Version Log)
 | Phiên bản | Ngày | Nội dung | Ghi chú |
@@ -37,3 +39,5 @@
 | **V4.3** | 2026-04-08 | **Flexible Loss Assessment**: Hỗ trợ nhập 1 đồng hồ tổng cho cả 2 danh bộ hoặc từng bộ riêng. | **UX Improved** |
 | **V4.4** | 2026-04-11 | **Loss Management Tab**: Thêm tab quản lý thất thoát chuyên sâu với biểu đồ xu hướng và lịch sử. | **Major Update** |
 | **V4.5** | 2026-04-11 | **Dual Bank Accounts**: Hỗ trợ 2 tài khoản thu riêng biệt cho khách lẻ và khách nhóm. | **New Feature** |
+| **V4.6** | 2026-06-24 | **Lọc Nợ Đọng Thực Tế**: Bộ lọc Chưa thu được chuyển sang lọc nợ đọng chính xác tất cả khách hàng còn nợ tiền (`balance > 0`). | **UX Optimization** |
+| **V4.7** | 2026-06-24 | **Bảo Toàn Lịch Sử & Ngày Thay ĐH**: Cập nhật Google Apps Script V4.2 và logic đồng bộ giúp giữ lại lịch sử sử dụng (`updatedAt`) và ngày thay đồng hồ (`installDate`) khi tải về và sao lưu. | **Data Integrity** |
