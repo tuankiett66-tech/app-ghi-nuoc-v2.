@@ -3,24 +3,6 @@ import { useState, useEffect } from 'react';
 import { Customer, SystemConfig, WaterGroup, GroupMember, LossRecord, DailySupplyReading } from '../types';
 import { calculateRow, normalizeMonthYear, parseStringOrDateToNumber } from '../utils';
 
-// Helper functions for automatic period / calendar creation
-const getDaysInMonth = (monthKey: string): number => {
-  if (!monthKey) return 30;
-  const parts = monthKey.split('/');
-  if (parts.length === 2) {
-    const m = parseInt(parts[0]);
-    const y = parseInt(parts[1]);
-    if (!isNaN(m) && !isNaN(y)) {
-      return new Date(y, m, 0).getDate();
-    }
-  }
-  return 30;
-};
-
-const getMonthYearKey = (dateStr: string): string => {
-  return normalizeMonthYear(dateStr);
-};
-
 export const useWaterData = () => {
   const [customers, setCustomers] = useState<Customer[]>(() => {
     try {
@@ -175,38 +157,6 @@ export const useWaterData = () => {
   // Đã loại bỏ hoàn toàn các chức năng tự động nhận diện / tạo kỳ mới của Thất thoát
   // Người dùng điều khiển ghi nhận thủ công hoàn toàn qua biểu mẫu của ứng dụng
 
-
-  // 3. Tự động đồng bộ sản lượng nước tiêu thụ thực tế từ 2 Danh bộ vào Kỳ báo cáo của thất thoát
-  useEffect(() => {
-    const l1Vol = customers.filter(c => c.listType === 'list1').reduce((sum, c) => sum + (c.volume || 0), 0);
-    const l2Vol = customers.filter(c => c.listType === 'list2').reduce((sum, c) => sum + (c.volume || 0), 0);
-
-    setLossRecords(prev => {
-      if (prev.length === 0) return prev;
-
-      // Tìm bản ghi thất thoát đang hoạt động (gần nhất hoặc khớp với chu kỳ ngày)
-      let activeIndex = 0; // Mặc định là bản ghi mới nhất
-      if (dailySupplyReadings.length > 0) {
-        const sortedReadings = [...dailySupplyReadings].sort((a, b) => b.date.localeCompare(a.date));
-        const latestReading = sortedReadings[0];
-        const latestMonthKey = getMonthYearKey(latestReading.date);
-        if (latestMonthKey) {
-          const idx = prev.findIndex(r => r.month === latestMonthKey || normalizeMonthYear(r.month) === latestMonthKey);
-          if (idx !== -1) {
-            activeIndex = idx;
-          }
-        }
-      }
-
-      const activeRecord = prev[activeIndex];
-      if (activeRecord.list1Volume === l1Vol && activeRecord.list2Volume === l2Vol) {
-        return prev; // Giữ nguyên tham chiếu để ngắt vòng lặp re-render
-      }
-
-      // Trả về mảng đã cập nhật
-      return prev.map((r, i) => i === activeIndex ? { ...r, list1Volume: l1Vol, list2Volume: l2Vol } : r);
-    });
-  }, [customers, dailySupplyReadings]);
 
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
     setCustomers(prev => prev.map(c => {
