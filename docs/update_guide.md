@@ -42,3 +42,4 @@
 | **V4.6** | 2026-06-24 | **Lọc Nợ Đọng Thực Tế**: Bộ lọc Chưa thu được chuyển sang lọc nợ đọng chính xác tất cả khách hàng còn nợ tiền (`balance > 0`). | **UX Optimization** |
 | **V4.7** | 2026-06-24 | **Bảo Toàn Lịch Sử & Ngày Thay ĐH**: Cập nhật Google Apps Script V4.2 và logic đồng bộ giúp giữ lại lịch sử sử dụng (`updatedAt`) và ngày thay đồng hồ (`installDate`) khi tải về và sao lưu. | **Data Integrity** |
 | **V4.8** | 2026-06-27 | **Cập nhật Tiêu Đề Zalo**: Thay đổi tiêu đề tin nhắn Zalo từ "KỲ NƯỚC THÁNG MM/YYYY" sang định dạng chính xác thực tế "Tiền nước Kỳ [Kỳ]_Ghi ngày 1/[Tháng]/[Năm]" để tránh nhầm lẫn thời gian. | **Zalo Billing Header** |
+| **V4.9** | 2026-06-27 | **Bảo Vệ Lịch Sử Thay Đổi**: Tách biệt cập nhật thông tin bổ trợ (gửi tin nhắn, Zalo, địa chỉ, SĐT...) khỏi việc đổi thời gian (`updatedAt`). Lịch sử làm việc chỉ lưu thời điểm thay đổi số nước hoặc thu tiền thực tế. | **History Integrity** |

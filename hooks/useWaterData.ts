@@ -211,7 +211,18 @@ export const useWaterData = () => {
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
     setCustomers(prev => prev.map(c => {
       if (c.id === id) {
-        const merged = { ...c, ...updates, updatedAt: Date.now() };
+        // Chỉ cập nhật updatedAt khi thực sự có thay đổi về chỉ số hoặc số tiền nước/nợ
+        const isCoreDataChanged = 
+          (updates.newIndex !== undefined && updates.newIndex !== c.newIndex) ||
+          (updates.oldIndex !== undefined && updates.oldIndex !== c.oldIndex) ||
+          (updates.oldDebt !== undefined && updates.oldDebt !== c.oldDebt) ||
+          (updates.paid !== undefined && updates.paid !== c.paid);
+
+        const merged = { 
+          ...c, 
+          ...updates, 
+          updatedAt: isCoreDataChanged ? Date.now() : (c.updatedAt || 0) 
+        };
         if (updates.phoneTenant !== undefined) merged.phone = updates.phoneTenant;
         return calculateRow(merged, config.waterRate);
       }
