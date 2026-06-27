@@ -259,11 +259,13 @@ export const getZaloBillingHeader = () => {
   }
   
   let ky = month - 1;
+  let kyYear = year;
   if (ky === 0) {
     ky = 12;
+    kyYear = year - 1;
   }
   
-  return `Tiền nước Kỳ ${ky}_Ghi ngày 1/${month}/${year}`;
+  return `Tiền nước  KỲ ${ky}/${kyYear}_Ngày ghi chỉ số:1/${month}/${year}.`;
 };
 
 export const normalizeMonthYear = (monthStr: string): string => {

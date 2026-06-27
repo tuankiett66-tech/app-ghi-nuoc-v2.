@@ -30,7 +30,7 @@
 
 5. **Zalo Message Logic**:
    - Include "ĐÃ THANH TOÁN: -[số tiền]" in the message if `paid` > 0 to clearly show the deduction.
-   - Use the dynamic period-based format for the header: `Tiền nước Kỳ [Kỳ]_Ghi ngày 1/[Tháng]/[Năm]` (e.g., `Tiền nước Kỳ 6_Ghi ngày 1/7/2026`).
+   - Use the dynamic period-based format for the header: `Tiền nước  KỲ [Kỳ]/[Năm]_Ngày ghi chỉ số:1/[Tháng]/[Năm].` (e.g., `Tiền nước  KỲ 6/2026_Ngày ghi chỉ số:1/7/2026.`).
 
 ## Synchronization
 - The app uses a Google Apps Script for cloud backup.
