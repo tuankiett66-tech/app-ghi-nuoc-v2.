@@ -245,6 +245,27 @@ export const getBillingMonthYear = () => {
   return `${m}/${year}`;
 };
 
+export const getZaloBillingHeader = () => {
+  const d = new Date();
+  let year = d.getFullYear();
+  let month = d.getMonth() + 1; // 1 to 12
+  
+  if (d.getDate() >= 25) {
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+  
+  let ky = month - 1;
+  if (ky === 0) {
+    ky = 12;
+  }
+  
+  return `Tiền nước Kỳ ${ky}_Ghi ngày 1/${month}/${year}`;
+};
+
 export const normalizeMonthYear = (monthStr: string): string => {
   if (!monthStr) return '';
   // Convert standard date string / ISO timestamp to local YYYY-MM-DD

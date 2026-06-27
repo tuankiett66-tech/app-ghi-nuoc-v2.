@@ -1,34 +1,102 @@
 /**
  * GOOGLE APPS SCRIPT - HỆ THỐNG QUẢN LÝ NƯỚC TẬP TRUNG (V4.2)
  * Cập nhật: Lưu và giữ lại Lịch sử sử dụng (updatedAt) và Ngày thay đồng hồ (installDate)
- * Cột bổ sung ở cuối Sheet Danh bộ:
- * - Cột N (14): Ngày thay ĐH (installDate)
- * - Cột O (15): Lịch sử cập nhật (updatedAt)
+ * Định dạng các Cột trên Google Sheets (Từ Cột A đến Cột Q):
+ * - Cột A (1): Mã KH
+ * - Cột B (2): Tên
+ * - Cột C (3): Địa chỉ
+ * - Cột D (4): SĐT
+ * - Cột E (5): Chỉ số mới
+ * - Cột F (6): Chỉ số cũ
+ * - Cột G (7): Tiêu thụ
+ * - Cột H (8): Thành tiền
+ * - Cột I (9): Nợ cũ
+ * - Cột J (10): Đã trả
+ * - Cột K (11): Còn nợ
+ * - Cột L (12): Zalo (Checkbox TRUE/FALSE)
+ * - Cột M (13): Zalo Bạn (Checkbox TRUE/FALSE)
+ * - Cột N (14): Đã gửi Bill (Checkbox TRUE/FALSE)
+ * - Cột O (15): Ngày thay ĐH (installDate)
+ * - Cột P (16): Lịch sử cập nhật (updatedAt)
+ * - Cột Q (17): Ghi chú (note)
  */
 
 const SHEET_KEYS = {
-  LIST1: ["1_Danh bo 1", "Danh bo 1", "DANH BỘ 1"],
-  LIST2: ["2_Danh bo 2", "Danh bo 2", "DANH BỘ 2"],
-  CONFIG: ["3_Cai dat", "Cai dat", "CAI DAT"]
+  LIST1: ["List1", "List 1", "1_Danh bo 1", "Danh bo 1", "DANH BỘ 1", "DanhBo1"],
+  LIST2: ["List2", "List 2", "2_Danh bo 2", "Danh bo 2", "DANH BỘ 2", "DanhBo2"],
+  CONFIG: ["Config", "3_Cai dat", "Cai dat", "CAI DAT", "Cài đặt"]
 };
 
 function findSheet(ss, keys) {
+  // 1. Tìm theo khớp chính xác trước (case-sensitive)
   for (var i = 0; i < keys.length; i++) {
     var sheet = ss.getSheetByName(keys[i]);
     if (sheet) return sheet;
+  }
+  
+  // 2. Tìm theo khớp không phân biệt chữ hoa chữ thường
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var name = sheets[i].getName().toUpperCase().trim();
+    for (var j = 0; j < keys.length; j++) {
+      if (name === keys[j].toUpperCase().trim()) {
+        return sheets[i];
+      }
+    }
+  }
+  
+  // 3. Fallback thông minh: Tìm trang tính chứa từ khóa đặc trưng
+  for (var i = 0; i < sheets.length; i++) {
+    var name = sheets[i].getName().toUpperCase().trim();
+    
+    // Nếu tìm kiếm sheet 1
+    if (keys[0].toUpperCase().includes("LIST1") || keys[0].toUpperCase().includes("DANH BO 1")) {
+      if (name.includes("LIST1") || name.includes("LIST 1") || name.includes("DANH BO 1") || name.includes("DANHBO1") || (name.includes("DANH BỘ") && name.includes("1"))) {
+        return sheets[i];
+      }
+    }
+    
+    // Nếu tìm kiếm sheet 2
+    if (keys[0].toUpperCase().includes("LIST2") || keys[0].toUpperCase().includes("DANH BO 2")) {
+      if (name.includes("LIST2") || name.includes("LIST 2") || name.includes("DANH BO 2") || name.includes("DANHBO2") || (name.includes("DANH BỘ") && name.includes("2"))) {
+        return sheets[i];
+      }
+    }
+    
+    // Nếu tìm cấu hình
+    if (keys[0].toUpperCase().includes("CONFIG") || keys[0].toUpperCase().includes("CAI DAT")) {
+      if (name.includes("CONFIG") || name.includes("CAI DAT") || name.includes("CAIDAT") || name.includes("CÀI ĐẶT")) {
+        return sheets[i];
+      }
+    }
   }
   return null;
 }
 
 function doGet(e) {
-  const action = e.parameter.action;
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (action === 'get_all') {
-    return ContentService.createTextOutput(JSON.stringify({
-      list1: getSheetData(findSheet(ss, SHEET_KEYS.LIST1)),
-      list2: getSheetData(findSheet(ss, SHEET_KEYS.LIST2)),
-      config: getConfigData(findSheet(ss, SHEET_KEYS.CONFIG))
-    })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const action = e.parameter.action;
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (action === 'get_all') {
+      const sheet1 = findSheet(ss, SHEET_KEYS.LIST1);
+      const sheet2 = findSheet(ss, SHEET_KEYS.LIST2);
+      
+      if (!sheet1 && !sheet2) {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "error",
+          message: "Không tìm thấy trang tính Danh bộ 1 hoặc Danh bộ 2 trong file Google Sheets. Vui lòng kiểm tra lại tên trang tính."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        list1: getSheetData(sheet1),
+        list2: getSheetData(sheet2),
+        config: getConfigData(findSheet(ss, SHEET_KEYS.CONFIG))
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.message}))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -39,9 +107,16 @@ function doPost(e) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
     if (action === 'update_all') {
+      const sheet1 = findSheet(ss, SHEET_KEYS.LIST1);
+      const sheet2 = findSheet(ss, SHEET_KEYS.LIST2);
+      
+      if (!sheet1 && !sheet2) {
+        throw new Error("Không tìm thấy trang tính Danh bộ 1 hoặc Danh bộ 2 trong file Google Sheets. Vui lòng kiểm tra tên trang tính.");
+      }
+      
       updateConfig(findSheet(ss, SHEET_KEYS.CONFIG), postData.config);
-      const count1 = updateOrInsertData(findSheet(ss, SHEET_KEYS.LIST1), postData.list1);
-      const count2 = updateOrInsertData(findSheet(ss, SHEET_KEYS.LIST2), postData.list2);
+      const count1 = updateOrInsertData(sheet1, postData.list1);
+      const count2 = updateOrInsertData(sheet2, postData.list2);
       
       return ContentService.createTextOutput(JSON.stringify({
         status: "success", 
@@ -56,6 +131,13 @@ function doPost(e) {
 
 function getSheetData(sheet) {
   if (!sheet) return [];
+  
+  // Đảm bảo trang tính có tối thiểu 17 cột để tránh lỗi chỉ số vượt giới hạn
+  var maxCols = sheet.getMaxColumns();
+  if (maxCols < 17) {
+    sheet.insertColumnsAfter(maxCols, 17 - maxCols);
+  }
+  
   const data = sheet.getDataRange().getValues();
   const rows = [];
   if (data.length < 5) return [];
@@ -63,22 +145,46 @@ function getSheetData(sheet) {
     var row = data[i];
     var maKH = String(row[0] || "").trim();
     if (!maKH || maKH === "0" || maKH.toUpperCase().includes("CỘNG")) continue;
-    var rawZalo = row[11];
+    
+    // Column L (index 11): isZalo
+    var rawZalo = row.length > 11 ? row[11] : false;
     var zaloVal = String(rawZalo || "").toUpperCase();
+    var isZalo = zaloVal === "X" || zaloVal === "F" || rawZalo === true || zaloVal === "TRUE";
+    
+    // Column M (index 12): isZaloFriend
+    var rawZaloFriend = row.length > 12 ? row[12] : false;
+    var zaloFriendVal = String(rawZaloFriend || "").toUpperCase();
+    var isZaloFriend = zaloFriendVal === "F" || rawZaloFriend === true || zaloFriendVal === "TRUE";
+    
+    // Column N (index 13): isProcessed
+    var rawProcessed = row.length > 13 ? row[13] : false;
+    var processedVal = String(rawProcessed || "").toUpperCase();
+    var isProcessed = rawProcessed === true || processedVal === "TRUE" || processedVal === "X";
+    
+    // Column O (index 14): installDate
+    var installDate = (row.length > 14 && row[14]) ? String(row[14]) : "";
+    
+    // Column P (index 15): updatedAt
+    var updatedAt = (row.length > 15 && row[15]) ? Number(row[15]) : 0;
+    
+    // Column Q (index 16): note
+    var note = (row.length > 16 && row[16]) ? String(row[16]) : "";
+    
     rows.push({
       maKH: maKH, 
       name: String(row[1] || ""), 
       address: String(row[2] || ""),
       phoneTenant: String(row[3] || ""), 
-      newIndex: row[4], 
-      oldIndex: row[5],
-      oldDebt: row[8], 
-      paid: row[9], 
-      isZalo: zaloVal === "X" || zaloVal === "F" || rawZalo === true || zaloVal === "TRUE",
-      isZaloFriend: zaloVal === "F",
-      note: row[12] || "",
-      installDate: row[13] ? String(row[13]) : "",
-      updatedAt: row[14] ? Number(row[14]) : 0
+      newIndex: row.length > 4 ? row[4] : 0, 
+      oldIndex: row.length > 5 ? row[5] : 0,
+      oldDebt: row.length > 8 ? row[8] : 0, 
+      paid: row.length > 9 ? row[9] : 0, 
+      isZalo: isZalo,
+      isZaloFriend: isZaloFriend,
+      isProcessed: isProcessed,
+      installDate: installDate,
+      updatedAt: updatedAt,
+      note: note
     });
   }
   return rows;
@@ -87,42 +193,46 @@ function getSheetData(sheet) {
 function updateOrInsertData(sheet, dataToUpdate) {
   if (!sheet || !dataToUpdate) return 0;
   
+  // Đảm bảo trang tính có tối thiểu 17 cột trước khi xóa hoặc ghi dữ liệu
+  var maxCols = sheet.getMaxColumns();
+  if (maxCols < 17) {
+    sheet.insertColumnsAfter(maxCols, 17 - maxCols);
+  }
+  
   // 1. Lấy toàn bộ dữ liệu hiện tại để xóa (từ dòng 5 trở đi)
   var lastRow = sheet.getLastRow();
   if (lastRow >= 5) {
-    // Xóa nội dung từ cột A đến O (15 cột) để đảm bảo sạch sẽ trước khi ghi mới
-    sheet.getRange(5, 1, lastRow - 4, 15).clearContent();
+    // Xóa nội dung từ cột A đến Q (17 cột) để đảm bảo sạch sẽ trước khi ghi mới
+    sheet.getRange(5, 1, lastRow - 4, 17).clearContent();
   }
   
   if (dataToUpdate.length === 0) return 0;
   
   // 2. Chuẩn bị mảng 2 chiều để ghi một lần (setValues) - Nhanh hơn gấp nhiều lần
   var values = dataToUpdate.map(function(item) {
-    var zaloVal = "";
-    if (item.isZaloFriend === true) zaloVal = "F";
-    else if (item.isZalo === true) zaloVal = "X";
-    
     return [
-      String(item.maKH || ""),      // Cột A: Mã KH
-      String(item.name || ""),      // Cột B: Tên
-      String(item.address || ""),   // Cột C: Địa chỉ
-      String(item.phoneTenant || ""), // Cột D: SĐT
-      item.newIndex || 0,           // Cột E: Chỉ số mới
-      item.oldIndex || 0,           // Cột F: Chỉ số cũ
-      item.consumption || 0,        // Cột G: Tiêu thụ
-      item.amount || 0,             // Cột H: Thành tiền
-      item.oldDebt || 0,            // Cột I: Nợ cũ
-      item.paid || 0,               // Cột J: Đã trả
-      item.remainingDebt || 0,      // Cột K: Còn nợ
-      zaloVal,                      // Cột L: Zalo (X/F)
-      item.note || "",              // Cột M: Ghi chú
-      item.installDate || "",       // Cột N: Ngày thay ĐH (14)
-      item.updatedAt || 0           // Cột O: Lịch sử cập nhật (15)
+      String(item.maKH || ""),        // Cột A: Mã KH
+      String(item.name || ""),        // Cột B: Tên
+      String(item.address || ""),     // Cột C: Địa chỉ
+      String(item.phoneTenant || ""),   // Cột D: SĐT
+      item.newIndex || 0,             // Cột E: Chỉ số mới
+      item.oldIndex || 0,             // Cột F: Chỉ số cũ
+      item.consumption || 0,          // Cột G: Tiêu thụ
+      item.amount || 0,               // Cột H: Thành tiền
+      item.oldDebt || 0,              // Cột I: Nợ cũ
+      item.paid || 0,                 // Cột J: Đã trả
+      item.remainingDebt || 0,        // Cột K: Còn nợ
+      item.isZalo === true,           // Cột L: Zalo (Checkbox)
+      item.isZaloFriend === true,     // Cột M: Zalo Bạn (Checkbox)
+      item.isProcessed === true,      // Cột N: Đã gửi (Checkbox)
+      item.installDate || "",         // Cột O: Ngày thay ĐH
+      item.updatedAt || 0,            // Cột P: Lịch sử cập nhật
+      item.note || ""                 // Cột Q: Ghi chú
     ];
   });
   
   // 3. Ghi toàn bộ dữ liệu xuống Sheet từ dòng 5
-  sheet.getRange(5, 1, values.length, 15).setValues(values);
+  sheet.getRange(5, 1, values.length, 17).setValues(values);
   
   return dataToUpdate.length;
 }
@@ -138,26 +248,12 @@ function writeRow(sheet, rowNum, item) {
   if (item.oldDebt !== undefined) sheet.getRange(rowNum, 9).setValue(item.oldDebt);
   if (item.paid !== undefined) sheet.getRange(rowNum, 10).setValue(item.paid);
   if (item.remainingDebt !== undefined) sheet.getRange(rowNum, 11).setValue(item.remainingDebt);
-  if (item.isZaloFriend !== undefined || item.isZalo !== undefined) {
-    var range = sheet.getRange(rowNum, 12);
-    var val = "";
-    if (item.isZaloFriend === true) val = "F";
-    else if (item.isZalo === true) val = "X";
-    
-    try {
-      var rule = range.getDataValidation();
-      if (rule && rule.getCriteriaType() == SpreadsheetApp.DataValidationCriteria.CHECKBOX) {
-        range.setValue(item.isZalo === true);
-      } else {
-        range.setValue(val);
-      }
-    } catch(e) {
-      range.setValue(val);
-    }
-  }
-  if (item.note !== undefined) sheet.getRange(rowNum, 13).setValue(item.note);
-  if (item.installDate !== undefined) sheet.getRange(rowNum, 14).setValue(item.installDate);
-  if (item.updatedAt !== undefined) sheet.getRange(rowNum, 15).setValue(item.updatedAt);
+  if (item.isZalo !== undefined) sheet.getRange(rowNum, 12).setValue(item.isZalo === true);
+  if (item.isZaloFriend !== undefined) sheet.getRange(rowNum, 13).setValue(item.isZaloFriend === true);
+  if (item.isProcessed !== undefined) sheet.getRange(rowNum, 14).setValue(item.isProcessed === true);
+  if (item.installDate !== undefined) sheet.getRange(rowNum, 15).setValue(item.installDate);
+  if (item.updatedAt !== undefined) sheet.getRange(rowNum, 16).setValue(item.updatedAt);
+  if (item.note !== undefined) sheet.getRange(rowNum, 17).setValue(item.note);
 }
 
 function getConfigData(sheet) {

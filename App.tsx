@@ -13,7 +13,7 @@ import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
 import { AIScanView } from './components/AIScanView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
 
@@ -499,14 +499,13 @@ const App: React.FC = () => {
     const subtotal = Math.round(amt + c.oldDebt);
     const remaining = subtotal - pi; 
     
-    const monthYear = getBillingMonthYear();
     const cleanName = normalizeString(c.name).toUpperCase();
 
     const bankId = isGroup ? (config.groupBankId || config.bankId) : config.bankId;
     const accountNo = isGroup ? (config.groupAccountNo || config.accountNo) : config.accountNo;
     const accountName = isGroup ? (config.groupAccountName || config.accountName) : config.accountName;
     
-    let msg = `KỲ NƯỚC THÁNG ${monthYear}
+    let msg = `${getZaloBillingHeader()}
 MÃ KH: ${c.maKH}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
