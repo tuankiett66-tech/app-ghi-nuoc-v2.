@@ -910,33 +910,33 @@ export const exportLossPeriodReportToExcel = async (
 
   // Data rows (Row 5 - 7)
   rows.push([
-    { v: "Tổng lượng nước cấp vào hệ thống (Đồng hồ tổng)", s: sNormal },
+    { v: "Tổng cấp vào hệ thống (ĐH tổng)", s: sNormal },
     "", "",
     { v: totalSupply, s: sRightBold },
     { v: "100%", s: sCenter },
-    { v: `Đồng hồ 1: ${supply1} m³ | Đồng hồ 2: ${supply2} m³`, s: sNormal },
+    { v: `ĐH1: ${supply1} m³ | ĐH2: ${supply2} m³`, s: sNormal },
     "", ""
   ]);
   merges.push({ s: { r: 5, c: 0 }, e: { r: 5, c: 2 } });
   merges.push({ s: { r: 5, c: 5 }, e: { r: 5, c: 7 } });
 
   rows.push([
-    { v: "Tổng lượng nước tiêu thụ danh bộ (Thu khách hàng)", s: sNormal },
+    { v: "Tổng tiêu thụ danh bộ (Thu khách hàng)", s: sNormal },
     "", "",
     { v: totalConsumption, s: sRightBold },
     { v: totalSupply > 0 ? `${((totalConsumption / totalSupply) * 100).toFixed(1)}%` : "0%", s: sCenter },
-    { v: `Bộ 01: ${record.list1Volume} m³ | Bộ 02: ${record.list2Volume} m³`, s: sNormal },
+    { v: `Bộ 1: ${record.list1Volume} m³ | Bộ 2: ${record.list2Volume} m³`, s: sNormal },
     "", ""
   ]);
   merges.push({ s: { r: 6, c: 0 }, e: { r: 6, c: 2 } });
   merges.push({ s: { r: 6, c: 5 }, e: { r: 6, c: 7 } });
 
   rows.push([
-    { v: "Tổng lượng hao hụt (Thất thoát hệ thống)", s: sBold },
+    { v: "Hao hụt thất thoát hệ thống", s: sBold },
     "", "",
     { v: lossVolume, s: customLossStyle },
     { v: `${lossPercent.toFixed(1)}%`, s: customLossStyle },
-    { v: lossPercent > 10 ? "⚠️ Tỷ lệ thất thoát cao vượt ngưỡng an toàn (10%)" : "✅ Tỷ lệ thất thoát hoạt động an toàn", s: customLossStyle },
+    { v: lossPercent > 10 ? "⚠️ Tỷ lệ thất thoát cao vượt ngưỡng (10%)" : "✅ Tỷ lệ thất thoát hoạt động an toàn", s: customLossStyle },
     "", ""
   ]);
   merges.push({ s: { r: 7, c: 0 }, e: { r: 7, c: 2 } });
@@ -954,35 +954,41 @@ export const exportLossPeriodReportToExcel = async (
   // Meter table headers (Row 10)
   rows.push([
     { v: "Đồng hồ tổng", s: sHeader },
+    "", // B merged
     { v: "Chỉ số CŨ", s: sHeader },
     { v: "Chỉ số MỚI", s: sHeader },
     { v: "Tổng cấp (m³)", s: sHeader },
     { v: "Mô tả vị trí & Mục đích sử dụng", s: sHeader },
-    "", "", ""
+    "", "" // G, H merged
   ]);
-  merges.push({ s: { r: 10, c: 4 }, e: { r: 10, c: 7 } });
+  merges.push({ s: { r: 10, c: 0 }, e: { r: 10, c: 1 } });
+  merges.push({ s: { r: 10, c: 5 }, e: { r: 10, c: 7 } });
 
   // Meter 1 Data (Row 11)
   rows.push([
     { v: "ĐỒNG HỒ TỔNG SỐ 1", s: sBold },
+    "", // B merged
     { v: record.master1Old, s: sRight },
     { v: record.master1New, s: sRightBold },
     { v: supply1, s: sRightBold },
     { v: "Đo lưu lượng cấp khu vực Bộ 01 (Nhánh 1 chính)", s: sNormal },
-    "", "", ""
+    "", "" // G, H merged
   ]);
-  merges.push({ s: { r: 11, c: 4 }, e: { r: 11, c: 7 } });
+  merges.push({ s: { r: 11, c: 0 }, e: { r: 11, c: 1 } });
+  merges.push({ s: { r: 11, c: 5 }, e: { r: 11, c: 7 } });
 
   // Meter 2 Data (Row 12)
   rows.push([
     { v: "ĐỒNG HỒ TỔNG SỐ 2", s: sBold },
+    "", // B merged
     { v: record.master2Old, s: sRight },
     { v: record.master2New, s: sRightBold },
     { v: supply2, s: sRightBold },
     { v: "Đo lưu lượng cấp khu vực Bộ 02 (Nhánh 2 phụ)", s: sNormal },
-    "", "", ""
+    "", "" // G, H merged
   ]);
-  merges.push({ s: { r: 12, c: 4 }, e: { r: 12, c: 7 } });
+  merges.push({ s: { r: 12, c: 0 }, e: { r: 12, c: 1 } });
+  merges.push({ s: { r: 12, c: 5 }, e: { r: 12, c: 7 } });
 
   rows.push(["", "", "", "", "", "", "", ""]); // Spacing (Row 13)
 
@@ -1034,13 +1040,13 @@ export const exportLossPeriodReportToExcel = async (
 
   // Compact columns to prevent horizontal splitting (fits beautifully on 1 page-width)
   ws['!cols'] = [
-    { wch: 25 }, // A: Ngày ghi / ĐH tổng / Chỉ số đánh giá
-    { wch: 10 }, // B: Giờ ghi
-    { wch: 15 }, // C: Chỉ số ĐH1 / Chỉ số CŨ / Giá trị
-    { wch: 15 }, // D: Cấp ĐH1 / Chỉ số MỚI / Tỷ lệ
-    { wch: 15 }, // E: Chỉ số ĐH2 / Tổng cấp (m³) / Ghi chú thành phần
-    { wch: 15 }, // F: Cấp ĐH2
-    { wch: 16 }, // G: Tổng cấp
+    { wch: 12 }, // A: Ngày ghi / ĐH tổng / Chỉ số đánh giá
+    { wch: 8 },  // B: Giờ ghi
+    { wch: 12 }, // C: Chỉ số ĐH1 / Chỉ số CŨ / Giá trị
+    { wch: 11 }, // D: Cấp ĐH1 / Chỉ số MỚI / Tỷ lệ
+    { wch: 12 }, // E: Chỉ số ĐH2 / Tổng cấp (m³) / Ghi chú thành phần
+    { wch: 11 }, // F: Cấp ĐH2
+    { wch: 12 }, // G: Tổng cấp
     { wch: 28 }  // H: Ghi chú / Sự kiện
   ];
 
@@ -1077,18 +1083,18 @@ export const exportLossPeriodReportToExcel = async (
     orientation: 'landscape',
     paperSize: 9, // A4
     fitToWidth: 1,
-    fitToHeight: 2,
+    fitToHeight: 0, // Fits perfectly horizontally on 1 page width, rows flow naturally vertically
     fitToPage: true
   };
 
-  // Configure print margins (0.5 inch / ~1.27cm, standard compact narrow margins)
+  // Configure print margins (0.25 inch / ~0.64cm, narrow margins to maximize horizontal printable area)
   ws['!margins'] = {
-    left: 0.5,
-    right: 0.5,
-    top: 0.5,
-    bottom: 0.5,
-    header: 0.3,
-    footer: 0.3
+    left: 0.25,
+    right: 0.25,
+    top: 0.4,
+    bottom: 0.4,
+    header: 0.2,
+    footer: 0.2
   };
 
   const wb = XLSX.utils.book_new();
