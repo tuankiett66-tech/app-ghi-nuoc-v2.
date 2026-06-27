@@ -750,112 +750,121 @@ export const exportLossPeriodReportToExcel = async (
   const lossVolume = totalSupply - totalConsumption;
   const lossPercent = totalSupply > 0 ? (lossVolume / totalSupply) * 100 : 0;
 
-  // Let's build styles
+  const getGhiNgayStr = (monthStr: string) => {
+    if (!monthStr || !monthStr.includes('/')) return '';
+    const parts = monthStr.split('/');
+    let m = parseInt(parts[0], 10);
+    let y = parseInt(parts[1], 10);
+    if (isNaN(m) || isNaN(y)) return '';
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+    return `1/${m}/${y}`;
+  };
+
+  const ghiNgayValue = getGhiNgayStr(record.month);
+
+  // Monochrome / Black-and-white print-optimized styles
   const sTitle = {
-    font: { name: "Arial", size: 14, bold: true, color: { rgb: "1E3A8A" } },
+    font: { name: "Arial", size: 12, bold: true, color: { rgb: "000000" } },
     alignment: { horizontal: "center", vertical: "center" }
   };
   const sSub = {
-    font: { name: "Arial", size: 10, italic: true, color: { rgb: "475569" } },
+    font: { name: "Arial", size: 8.5, italic: true, color: { rgb: "333333" } },
     alignment: { horizontal: "center", vertical: "center" }
   };
   const sSection = {
-    font: { name: "Arial", size: 11, bold: true, color: { rgb: "1E3A8A" } },
-    fill: { fgColor: { rgb: "EFF6FF" } },
-    alignment: { vertical: "center" }
+    font: { name: "Arial", size: 9.5, bold: true, color: { rgb: "000000" } },
+    fill: { fgColor: { rgb: "F1F5F9" } }, // Slate-100, soft light gray for clean laser printing
+    alignment: { vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "94A3B8" } },
+      bottom: { style: "thin", color: { rgb: "94A3B8" } }
+    }
   };
   const sHeader = {
-    font: { name: "Arial", size: 10, bold: true, color: { rgb: "FFFFFF" } },
-    fill: { fgColor: { rgb: "1E3A8A" } },
+    font: { name: "Arial", size: 9, bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "334155" } }, // Slate-700 (solid dark charcoal/black for text readability)
     alignment: { horizontal: "center", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "1E293B" } },
+      bottom: { style: "thin", color: { rgb: "1E293B" } },
+      left: { style: "thin", color: { rgb: "1E293B" } },
+      right: { style: "thin", color: { rgb: "1E293B" } }
+    }
+  };
+  const sNormal = {
+    font: { name: "Arial", size: 9 },
+    alignment: { vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "E2E8F0" } },
+      bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+      left: { style: "thin", color: { rgb: "E2E8F0" } },
+      right: { style: "thin", color: { rgb: "E2E8F0" } }
+    }
+  };
+  const sBold = {
+    font: { name: "Arial", size: 9, bold: true },
+    alignment: { vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "CBD5E1" } },
+      bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+      left: { style: "thin", color: { rgb: "CBD5E1" } },
+      right: { style: "thin", color: { rgb: "CBD5E1" } }
+    }
+  };
+  const sRight = {
+    font: { name: "Arial", size: 9 },
+    alignment: { horizontal: "right", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "E2E8F0" } },
+      bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+      left: { style: "thin", color: { rgb: "E2E8F0" } },
+      right: { style: "thin", color: { rgb: "E2E8F0" } }
+    }
+  };
+  const sRightBold = {
+    font: { name: "Arial", size: 9, bold: true },
+    alignment: { horizontal: "right", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "CBD5E1" } },
+      bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+      left: { style: "thin", color: { rgb: "CBD5E1" } },
+      right: { style: "thin", color: { rgb: "CBD5E1" } }
+    }
+  };
+  const sCenter = {
+    font: { name: "Arial", size: 9 },
+    alignment: { horizontal: "center", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "E2E8F0" } },
+      bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+      left: { style: "thin", color: { rgb: "E2E8F0" } },
+      right: { style: "thin", color: { rgb: "E2E8F0" } }
+    }
+  };
+  const sLossAlert = {
+    font: { name: "Arial", size: 9, bold: true, color: { rgb: "000000" } },
+    fill: { fgColor: { rgb: "E2E8F0" } }, // Solid light gray background for high-contrast alert printing
+    alignment: { horizontal: "right", vertical: "center" },
+    border: {
+      top: { style: "medium", color: { rgb: "000000" } },
+      bottom: { style: "medium", color: { rgb: "000000" } },
+      left: { style: "medium", color: { rgb: "000000" } },
+      right: { style: "medium", color: { rgb: "000000" } }
+    }
+  };
+  const sLossOK = {
+    font: { name: "Arial", size: 9, bold: true, color: { rgb: "000000" } },
+    fill: { fgColor: { rgb: "F8FAFC" } },
+    alignment: { horizontal: "right", vertical: "center" },
     border: {
       top: { style: "thin", color: { rgb: "475569" } },
       bottom: { style: "thin", color: { rgb: "475569" } },
       left: { style: "thin", color: { rgb: "475569" } },
       right: { style: "thin", color: { rgb: "475569" } }
-    }
-  };
-  const sHeaderAccent = {
-    font: { name: "Arial", size: 10, bold: true, color: { rgb: "FFFFFF" } },
-    fill: { fgColor: { rgb: "0F766E" } }, // Teal-700
-    alignment: { horizontal: "center", vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "042F2E" } },
-      bottom: { style: "thin", color: { rgb: "042F2E" } },
-      left: { style: "thin", color: { rgb: "042F2E" } },
-      right: { style: "thin", color: { rgb: "042F2E" } }
-    }
-  };
-  const sNormal = {
-    font: { name: "Arial", size: 10 },
-    alignment: { vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "CBD5E1" } },
-      bottom: { style: "thin", color: { rgb: "CBD5E1" } },
-      left: { style: "thin", color: { rgb: "CBD5E1" } },
-      right: { style: "thin", color: { rgb: "CBD5E1" } }
-    }
-  };
-  const sBold = {
-    font: { name: "Arial", size: 10, bold: true },
-    alignment: { vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "94A3B8" } },
-      bottom: { style: "thin", color: { rgb: "94A3B8" } },
-      left: { style: "thin", color: { rgb: "94A3B8" } },
-      right: { style: "thin", color: { rgb: "94A3B8" } }
-    }
-  };
-  const sRight = {
-    font: { name: "Arial", size: 10 },
-    alignment: { horizontal: "right", vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "CBD5E1" } },
-      bottom: { style: "thin", color: { rgb: "CBD5E1" } },
-      left: { style: "thin", color: { rgb: "CBD5E1" } },
-      right: { style: "thin", color: { rgb: "CBD5E1" } }
-    }
-  };
-  const sRightBold = {
-    font: { name: "Arial", size: 10, bold: true },
-    alignment: { horizontal: "right", vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "94A3B8" } },
-      bottom: { style: "thin", color: { rgb: "94A3B8" } },
-      left: { style: "thin", color: { rgb: "94A3B8" } },
-      right: { style: "thin", color: { rgb: "94A3B8" } }
-    }
-  };
-  const sCenter = {
-    font: { name: "Arial", size: 10 },
-    alignment: { horizontal: "center", vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "CBD5E1" } },
-      bottom: { style: "thin", color: { rgb: "CBD5E1" } },
-      left: { style: "thin", color: { rgb: "CBD5E1" } },
-      right: { style: "thin", color: { rgb: "CBD5E1" } }
-    }
-  };
-  const sLossAlert = {
-    font: { name: "Arial", size: 10, bold: true, color: { rgb: "991B1B" } },
-    fill: { fgColor: { rgb: "FEF2F2" } },
-    alignment: { horizontal: "right", vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "FCA5A5" } },
-      bottom: { style: "thin", color: { rgb: "FCA5A5" } },
-      left: { style: "thin", color: { rgb: "FCA5A5" } },
-      right: { style: "thin", color: { rgb: "FCA5A5" } }
-    }
-  };
-  const sLossOK = {
-    font: { name: "Arial", size: 10, bold: true, color: { rgb: "065F46" } },
-    fill: { fgColor: { rgb: "ECFDF5" } },
-    alignment: { horizontal: "right", vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "A7F3D0" } },
-      bottom: { style: "thin", color: { rgb: "A7F3D0" } },
-      left: { style: "thin", color: { rgb: "A7F3D0" } },
-      right: { style: "thin", color: { rgb: "A7F3D0" } }
     }
   };
 
@@ -864,7 +873,7 @@ export const exportLossPeriodReportToExcel = async (
 
   // TITLE ROW (Row 0)
   rows.push([
-    { v: `BÁO CÁO THẤT THOÁT NƯỚC KỲ ${record.period} - THÁNG ${record.month}`, s: sTitle },
+    { v: `BÁO CÁO THẤT THOÁT NƯỚC KỲ ${record.period}_GHI NGÀY ${ghiNgayValue}`, s: sTitle },
     "", "", "", "", "", "", ""
   ]);
   merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } });
@@ -885,45 +894,53 @@ export const exportLossPeriodReportToExcel = async (
   ]);
   merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: 7 } });
 
-  // Columns for Summary Stats Header (Row 4)
+  // Columns for Summary Stats Header (Row 4) - Merging Col A, B, C for clean description alignment
   rows.push([
     { v: "Chỉ số đánh giá", s: sHeader },
+    "", "", // Merged with A
     { v: "Giá trị (m³)", s: sHeader },
     { v: "Tỷ lệ (%)", s: sHeader },
     { v: "Ghi chú thành phần", s: sHeader },
-    "", "", "", ""
+    "", "" // Merged with F
   ]);
-  merges.push({ s: { r: 4, c: 3 }, e: { r: 4, c: 7 } });
+  merges.push({ s: { r: 4, c: 0 }, e: { r: 4, c: 2 } });
+  merges.push({ s: { r: 4, c: 5 }, e: { r: 4, c: 7 } });
 
   const customLossStyle = lossPercent > 10 ? sLossAlert : sLossOK;
 
   // Data rows (Row 5 - 7)
   rows.push([
     { v: "Tổng lượng nước cấp vào hệ thống (Đồng hồ tổng)", s: sNormal },
+    "", "",
     { v: totalSupply, s: sRightBold },
     { v: "100%", s: sCenter },
     { v: `Đồng hồ 1: ${supply1} m³ | Đồng hồ 2: ${supply2} m³`, s: sNormal },
-    "", "", "", ""
+    "", ""
   ]);
-  merges.push({ s: { r: 5, c: 3 }, e: { r: 5, c: 7 } });
+  merges.push({ s: { r: 5, c: 0 }, e: { r: 5, c: 2 } });
+  merges.push({ s: { r: 5, c: 5 }, e: { r: 5, c: 7 } });
 
   rows.push([
     { v: "Tổng lượng nước tiêu thụ danh bộ (Thu khách hàng)", s: sNormal },
+    "", "",
     { v: totalConsumption, s: sRightBold },
     { v: totalSupply > 0 ? `${((totalConsumption / totalSupply) * 100).toFixed(1)}%` : "0%", s: sCenter },
     { v: `Bộ 01: ${record.list1Volume} m³ | Bộ 02: ${record.list2Volume} m³`, s: sNormal },
-    "", "", "", ""
+    "", ""
   ]);
-  merges.push({ s: { r: 6, c: 3 }, e: { r: 6, c: 7 } });
+  merges.push({ s: { r: 6, c: 0 }, e: { r: 6, c: 2 } });
+  merges.push({ s: { r: 6, c: 5 }, e: { r: 6, c: 7 } });
 
   rows.push([
     { v: "Tổng lượng hao hụt (Thất thoát hệ thống)", s: sBold },
+    "", "",
     { v: lossVolume, s: customLossStyle },
     { v: `${lossPercent.toFixed(1)}%`, s: customLossStyle },
     { v: lossPercent > 10 ? "⚠️ Tỷ lệ thất thoát cao vượt ngưỡng an toàn (10%)" : "✅ Tỷ lệ thất thoát hoạt động an toàn", s: customLossStyle },
-    "", "", "", ""
+    "", ""
   ]);
-  merges.push({ s: { r: 7, c: 3 }, e: { r: 7, c: 7 } });
+  merges.push({ s: { r: 7, c: 0 }, e: { r: 7, c: 2 } });
+  merges.push({ s: { r: 7, c: 5 }, e: { r: 7, c: 7 } });
 
   rows.push(["", "", "", "", "", "", "", ""]); // Spacing (Row 8)
 
@@ -936,11 +953,11 @@ export const exportLossPeriodReportToExcel = async (
 
   // Meter table headers (Row 10)
   rows.push([
-    { v: "Đồng hồ tổng", s: sHeaderAccent },
-    { v: "Chỉ số CŨ", s: sHeaderAccent },
-    { v: "Chỉ số MỚI", s: sHeaderAccent },
-    { v: "Tổng cấp (m³)", s: sHeaderAccent },
-    { v: "Mô tả vị trí & Mục đích sử dụng", s: sHeaderAccent },
+    { v: "Đồng hồ tổng", s: sHeader },
+    { v: "Chỉ số CŨ", s: sHeader },
+    { v: "Chỉ số MỚI", s: sHeader },
+    { v: "Tổng cấp (m³)", s: sHeader },
+    { v: "Mô tả vị trí & Mục đích sử dụng", s: sHeader },
     "", "", ""
   ]);
   merges.push({ s: { r: 10, c: 4 }, e: { r: 10, c: 7 } });
@@ -976,15 +993,15 @@ export const exportLossPeriodReportToExcel = async (
   ]);
   merges.push({ s: { r: 14, c: 0 }, e: { r: 14, c: 7 } });
 
-  // Table headers for Daily (Row 15)
+  // Table headers for Daily (Row 15) - Compact text
   rows.push([
     { v: "NGÀY GHI", s: sHeader },
     { v: "GIỜ GHI", s: sHeader },
     { v: "CHỈ SỐ ĐH1", s: sHeader },
-    { v: "TIÊU THỤ ĐH1 (m³)", s: sHeader },
+    { v: "CẤP ĐH1", s: sHeader },
     { v: "CHỈ SỐ ĐH2", s: sHeader },
-    { v: "TIÊU THỤ ĐH2 (m³)", s: sHeader },
-    { v: "TỔNG CẤP KỲ (m³)", s: sHeader },
+    { v: "CẤP ĐH2", s: sHeader },
+    { v: "TỔNG CẤP", s: sHeader },
     { v: "GHI CHÚ / SỰ KIỆN", s: sHeader }
   ]);
 
@@ -1015,22 +1032,69 @@ export const exportLossPeriodReportToExcel = async (
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!merges'] = merges;
 
-  // Configure column widths
+  // Compact columns to prevent horizontal splitting (fits beautifully on 1 page-width)
   ws['!cols'] = [
-    { wch: 30 }, // A
-    { wch: 12 }, // B
-    { wch: 15 }, // C
-    { wch: 18 }, // D
-    { wch: 15 }, // E
-    { wch: 18 }, // F
-    { wch: 20 }, // G
-    { wch: 35 }  // H
+    { wch: 25 }, // A: Ngày ghi / ĐH tổng / Chỉ số đánh giá
+    { wch: 10 }, // B: Giờ ghi
+    { wch: 15 }, // C: Chỉ số ĐH1 / Chỉ số CŨ / Giá trị
+    { wch: 15 }, // D: Cấp ĐH1 / Chỉ số MỚI / Tỷ lệ
+    { wch: 15 }, // E: Chỉ số ĐH2 / Tổng cấp (m³) / Ghi chú thành phần
+    { wch: 15 }, // F: Cấp ĐH2
+    { wch: 16 }, // G: Tổng cấp
+    { wch: 28 }  // H: Ghi chú / Sự kiện
   ];
+
+  // Dynamic row heights for standard, spacious look
+  const rowHeights: { hpt: number }[] = [];
+  rowHeights.push({ hpt: 28 }); // Row 0 (Title)
+  rowHeights.push({ hpt: 18 }); // Row 1 (Subtitle)
+  rowHeights.push({ hpt: 12 }); // Row 2 (Spacing)
+  rowHeights.push({ hpt: 22 }); // Row 3 (Section I)
+  rowHeights.push({ hpt: 20 }); // Row 4 (Table 1 Header)
+  rowHeights.push({ hpt: 18 }); // Row 5 (Table 1 Row 1)
+  rowHeights.push({ hpt: 18 }); // Row 6 (Table 1 Row 2)
+  rowHeights.push({ hpt: 18 }); // Row 7 (Table 1 Row 3)
+  rowHeights.push({ hpt: 12 }); // Row 8 (Spacing)
+  rowHeights.push({ hpt: 22 }); // Row 9 (Section II)
+  rowHeights.push({ hpt: 20 }); // Row 10 (Table 2 Header)
+  rowHeights.push({ hpt: 18 }); // Row 11 (Table 2 Row 1)
+  rowHeights.push({ hpt: 18 }); // Row 12 (Table 2 Row 2)
+  rowHeights.push({ hpt: 12 }); // Row 13 (Spacing)
+  rowHeights.push({ hpt: 22 }); // Row 14 (Section III)
+  rowHeights.push({ hpt: 20 }); // Row 15 (Table 3 Header)
+  
+  if (filteredReadings.length === 0) {
+    rowHeights.push({ hpt: 20 });
+  } else {
+    filteredReadings.forEach(() => {
+      rowHeights.push({ hpt: 18 });
+    });
+  }
+  ws['!rows'] = rowHeights;
+
+  // Configure print setup for A4, Landscape orientation, fit-to-page layout
+  ws['!pageSetup'] = {
+    orientation: 'landscape',
+    paperSize: 9, // A4
+    fitToWidth: 1,
+    fitToHeight: 2,
+    fitToPage: true
+  };
+
+  // Configure print margins (0.5 inch / ~1.27cm, standard compact narrow margins)
+  ws['!margins'] = {
+    left: 0.5,
+    right: 0.5,
+    top: 0.5,
+    bottom: 0.5,
+    header: 0.3,
+    footer: 0.3
+  };
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Báo cáo");
   
   // Format safe file name
-  const safeFilename = `${fileName}_Ky_${record.period}_Thang_${record.month.replace('/', '_')}.xlsx`;
+  const safeFilename = `${fileName}_Ky_${record.period}_Ghi_Ngay_${ghiNgayValue.replace(/\//g, '_')}.xlsx`;
   XLSX.writeFile(wb, safeFilename);
 };
