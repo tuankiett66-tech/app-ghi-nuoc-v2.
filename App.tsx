@@ -30,6 +30,7 @@ const App: React.FC = () => {
   
   const [view, setView] = useState<string>('list');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [afterMaKH, setAfterMaKH] = useState<string | undefined>(undefined);
@@ -584,7 +585,10 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         listScrollTop.current[activeTab] = listEl.scrollTop;
       }
     }
-    if (resetSearch) setSearchQuery('');
+    if (resetSearch) {
+      setSearchQuery('');
+      setIsSearchExpanded(false);
+    }
     setView(newView);
   };
 
@@ -597,6 +601,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           <Header 
             title={activeTab === 'list1' ? 'BỘ 01' : 'BỘ 02'}
             searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+            isSearchExpanded={isSearchExpanded} setIsSearchExpanded={setIsSearchExpanded}
             isSyncing={isSyncing} onSync={handleSyncCloud}
             onSave={handleManualSave}
             syncStatus={syncStatus}
@@ -623,7 +628,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             onShowGroups={() => navigateTo('group_list')}
             onShowScan={() => navigateTo('ai_scan')}
           />
-          {unrecordedCount > 0 && (
+          {unrecordedCount > 0 && !isSearchExpanded && !searchQuery && (
             <div className="mx-3 my-2 bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 flex items-center justify-between shadow-xs shrink-0">
               <div className="flex items-center gap-2">
                 <div className="bg-amber-100 text-amber-600 p-2 rounded-xl">

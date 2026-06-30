@@ -6,6 +6,8 @@ interface HeaderProps {
   title: string;
   searchQuery: string;
   setSearchQuery: (val: string) => void;
+  isSearchExpanded: boolean;
+  setIsSearchExpanded: (val: boolean) => void;
   isSyncing: boolean;
   onSync: () => void;
   onSave: () => void;
@@ -26,11 +28,10 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, onToggleUnrecordedFilter, onlyUnrecorded, lastSyncTime, onShowVerify, onShowGroups, onShowScan
+  title, searchQuery, setSearchQuery, isSearchExpanded, setIsSearchExpanded, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, onToggleUnrecordedFilter, onlyUnrecorded, lastSyncTime, onShowVerify, onShowGroups, onShowScan
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
