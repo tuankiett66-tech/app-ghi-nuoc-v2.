@@ -100,7 +100,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
   }, [customers, focusedIndex, onSelect]);
 
   return (
-    <div id="main-list-container" className="flex-1 overflow-y-auto px-3 space-y-3 pb-40 bg-slate-50">
+    <div id="main-list-container" className="flex-1 overflow-y-auto px-3 space-y-2 pb-40 bg-slate-50">
       {customers.map((c, idx) => {
         const isFocused = idx === focusedIndex;
         return (
@@ -109,7 +109,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
             id={`cust-${c.id}`} 
             onClick={() => onSelect(c.id)} 
             onMouseEnter={() => setFocusedIndex(idx)}
-            className={`bg-white p-4 rounded-[1.8rem] shadow-md border-2 transition-all duration-75 cursor-pointer ${
+            className={`bg-white p-3 rounded-2xl shadow-sm border-2 transition-all duration-75 cursor-pointer ${
               isFocused 
                 ? 'border-slate-800 bg-slate-100/50 shadow-md' 
                 : c.isProcessed ? 'border-emerald-500 bg-emerald-50/10' : 
@@ -118,65 +118,65 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
                   'border-white hover:border-slate-200'
             }`}
           >
-            <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center gap-1.5 shrink-0">
+            <div className="flex items-start gap-2.5">
+              <div className="flex flex-col items-center gap-1 shrink-0">
                 <div className="text-[7px] font-black text-slate-400 uppercase leading-none">Mã KH</div>
-                <div className={`px-2.5 py-1.5 rounded-xl min-w-[38px] text-center text-white text-[12px] font-black shadow-sm ${c.isProcessed ? 'bg-emerald-500' : c.isZaloFriend ? 'bg-blue-600' : c.isZalo ? 'bg-indigo-600' : 'bg-slate-800'}`}>{c.maKH}</div>
-                <div className={`p-2 rounded-full border-2 ${
-                  c.isProcessed ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 
-                  c.isZaloFriend ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 
+                <div className={`px-2 py-1 rounded-xl min-w-[36px] text-center text-white text-[11px] font-black shadow-sm ${c.isProcessed ? 'bg-emerald-500' : c.isZaloFriend ? 'bg-blue-600' : c.isZalo ? 'bg-indigo-600' : 'bg-slate-800'}`}>{c.maKH}</div>
+                <div className={`p-1.5 rounded-full border-2 ${
+                  c.isProcessed ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 
+                  c.isZaloFriend ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 
                   c.isZalo ? 'bg-indigo-100 text-indigo-600 border-indigo-200' : 
                   'text-slate-300 border-slate-100'
                 }`}>
-                  <CheckCheck size={16} />
+                  <CheckCheck size={14} />
                 </div>
                 {getMeterStatus(c.installDate).status !== 'ok' && getMeterStatus(c.installDate).status !== 'unknown' && (
-                  <div className={`p-1.5 rounded-full border-2 mt-1 ${
-                    getMeterStatus(c.installDate).status === 'danger' ? 'bg-rose-600 text-white border-rose-600 shadow-md' : 'bg-amber-500 text-white border-amber-500 shadow-md'
+                  <div className={`p-1 rounded-full border-2 mt-0.5 ${
+                    getMeterStatus(c.installDate).status === 'danger' ? 'bg-rose-600 text-white border-rose-600 shadow-sm' : 'bg-amber-500 text-white border-amber-500 shadow-sm'
                   }`}>
-                    {getMeterStatus(c.installDate).status === 'danger' ? <AlertTriangle size={12} /> : <Clock size={12} />}
+                    {getMeterStatus(c.installDate).status === 'danger' ? <AlertTriangle size={10} /> : <Clock size={10} />}
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-0.5">
-                  <h3 className={`font-black uppercase text-[16px] leading-tight flex-1 ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
+                <div className="flex items-start justify-between gap-1 mb-0.5">
+                  <h3 className={`font-black uppercase text-[14px] sm:text-[16px] leading-tight flex-1 ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
                   <button 
                     onClick={(e) => { e.stopPropagation(); onCopyName(c.name); }}
-                    className="p-1.5 bg-slate-100 text-slate-400 rounded-lg active:scale-90 shrink-0 mt-0.5"
+                    className="p-1 bg-slate-100 text-slate-400 rounded-lg active:scale-90 shrink-0 mt-0.5"
                     title="Copy tên"
                   >
-                    <Copy size={12} />
+                    <Copy size={11} />
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-600 font-bold leading-tight">ĐC: {c.address || '---'}</p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
-                  <p className="text-[10px] text-blue-700 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Khách:</span> {c.phoneTenant || c.phone || '---'}</p>
-                  {c.phoneLandlord && <p className="text-[10px] text-slate-500 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Chủ:</span> {c.phoneLandlord}</p>}
+                <p className="text-[10px] sm:text-[11px] text-slate-600 font-bold leading-tight">ĐC: {c.address || '---'}</p>
+                <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1">
+                  <p className="text-[9px] sm:text-[10px] text-blue-700 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Khách:</span> {c.phoneTenant || c.phone || '---'}</p>
+                  {c.phoneLandlord && <p className="text-[9px] sm:text-[10px] text-slate-500 font-black flex items-center gap-1"><span className="text-slate-400 font-bold uppercase">Chủ:</span> {c.phoneLandlord}</p>}
                 </div>
               </div>
               <div className="text-right shrink-0 flex flex-col items-end justify-center">
-                <div className="font-black text-[20px] text-rose-600 tracking-tighter leading-none mb-1.5">{formatCurrency(c.balance)}</div>
+                <div className="font-black text-[18px] sm:text-[20px] text-rose-600 tracking-tighter leading-none mb-1">{formatCurrency(c.balance)}</div>
                 {c.newIndex > 0 ? (
-                  <div className="text-[13px] font-black text-white bg-emerald-600 px-2.5 py-1 rounded-xl shadow-md inline-flex items-center tracking-tight">SỐ: {c.newIndex}</div>
+                  <div className="text-[11px] sm:text-[13px] font-black text-white bg-emerald-600 px-2 py-0.5 rounded-xl shadow-md inline-flex items-center tracking-tight">SỐ: {c.newIndex}</div>
                 ) : (
-                  <div className="text-[11px] font-black text-slate-400 uppercase italic tracking-tighter opacity-80">Chưa ghi</div>
+                  <div className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase italic tracking-tighter opacity-80">Chưa ghi</div>
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t-2 border-slate-50">
-               <button onClick={(e) => { e.stopPropagation(); onCopyMsg(c); }} className="flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black uppercase active:scale-95 shadow-sm border border-slate-200"><Copy size={14}/> Copy Bill</button>
+            <div className="grid grid-cols-3 gap-1.5 mt-2.5 pt-2 border-t border-slate-100">
+               <button onClick={(e) => { e.stopPropagation(); onCopyMsg(c); }} className="flex items-center justify-center gap-1 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-[9px] sm:text-[10px] font-black uppercase active:scale-95 shadow-xs border border-slate-200"><Copy size={12}/> Copy Bill</button>
                <button 
                  onClick={(e) => { e.stopPropagation(); onCollectFull(c.id); }} 
-                 className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase active:scale-95 shadow-md border-b-4 transition-all ${
+                 className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase active:scale-95 shadow-md border-b-2 transition-all ${
                    c.status === 'paid' 
                      ? 'bg-slate-200 text-slate-400 border-slate-300 pointer-events-none shadow-none border-b-0' 
                      : 'bg-emerald-600 text-white border-emerald-800'
                  }`}
                >
-                 <Wallet size={14}/> Thu đủ
+                 <Wallet size={12}/> Thu đủ
                </button>
-               <button onClick={(e) => { e.stopPropagation(); onAddAfter(c.maKH); }} className="flex items-center justify-center gap-1.5 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase active:scale-95 shadow-sm border border-indigo-100"><Plus size={14}/> Chèn sau</button>
+               <button onClick={(e) => { e.stopPropagation(); onAddAfter(c.maKH); }} className="flex items-center justify-center gap-1 py-1.5 bg-indigo-50 text-indigo-700 rounded-xl text-[9px] sm:text-[10px] font-black uppercase active:scale-95 shadow-xs border border-indigo-100"><Plus size={12}/> Chèn sau</button>
             </div>
           </div>
         );
