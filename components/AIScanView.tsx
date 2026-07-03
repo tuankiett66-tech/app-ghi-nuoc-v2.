@@ -89,6 +89,25 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
     setError(null);
     setResults([]);
     setScanStats(null);
+
+    const maxSizeBytes = 6 * 1024 * 1024; // 6MB
+    if (file.size > maxSizeBytes) {
+      setError(`⚠️ DUNG LƯỢNG TỆP QUÁ LỚN (${(file.size / 1024 / 1024).toFixed(1)}MB)!
+
+Để tránh bị lỗi đường truyền máy chủ (Mã 413) và giúp trí tuệ nhân tạo Gemini nhận dạng chữ viết tay chuẩn xác nhất, bạn vui lòng áp dụng giải pháp cực kỳ hiệu quả sau:
+
+1️⃣ CHIA NHỎ TỆP QUÉT (KHUYÊN DÙNG):
+Khi dùng ứng dụng Google Drive để quét (scan) sổ chép tay, bạn hãy bấm lưu thành nhiều tệp PDF nhỏ (khoảng 3 - 5 trang mỗi tệp). Việc này giúp tệp tải lên cực kỳ nhanh, và AI sẽ đọc chính xác từng hộ mà không bao giờ lo bị bỏ sót hay quá giới hạn!
+
+2️⃣ CHUYỂN SANG QUÉT ĐEN TRẮNG (GRAYSCALE):
+Trong phần cài đặt quét của Google Drive, hãy chọn định dạng Đen trắng (Grayscale) hoặc Bản quét tài liệu (Document) thay vì chọn Ảnh màu độ phân giải cao. Dung lượng tệp PDF sẽ giảm đi hơn 10 LẦN (chỉ còn vài trăm KB cho hàng chục trang) mà chất lượng chữ viết tay vẫn cực kỳ sắc nét để AI đọc được!`);
+      setImagePreview(null);
+      setFileName(null);
+      setFileType(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setIsAnalyzing(true);
     setFileName(file.name);
     setFileType(file.type);
@@ -453,8 +472,8 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
             <AlertCircle size={32} />
           </div>
           <div className="space-y-1.5">
-            <h4 className="text-rose-900 font-black uppercase text-sm">Phân tích thất bại</h4>
-            <p className="text-xs text-rose-700 font-medium leading-relaxed">{error}</p>
+            <h4 className="text-rose-900 font-black uppercase text-sm">Thông báo từ hệ thống</h4>
+            <p className="text-xs text-rose-700 font-bold leading-relaxed whitespace-pre-line text-left bg-white/60 p-4 rounded-2xl border border-rose-100/50">{error}</p>
           </div>
           <div className="flex gap-2.5">
             <button 

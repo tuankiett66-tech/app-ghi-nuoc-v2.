@@ -122,11 +122,11 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
               <div className="flex flex-col items-center gap-1 shrink-0">
                 <div className="text-[9px] font-extrabold text-slate-400 uppercase leading-none tracking-wider">Mã KH</div>
                 <div className={`px-2.5 py-1.5 rounded-xl min-w-[42px] text-center text-white text-[14px] font-black shadow-sm leading-none ${c.isProcessed ? 'bg-emerald-500' : c.isZaloFriend ? 'bg-blue-600' : c.isZalo ? 'bg-indigo-600' : 'bg-slate-800'}`}>{c.maKH}</div>
-                <div className={`p-1 rounded-full border-2 -mt-1 bg-white ${
+                <div className={`p-1 rounded-full border-2 -mt-1 ${
                   c.isProcessed ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 
                   c.isZaloFriend ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 
-                  c.isZalo ? 'bg-indigo-100 text-indigo-600 border-indigo-200' : 
-                  'text-slate-300 border-slate-100'
+                  c.isZalo ? 'bg-indigo-100 text-indigo-600 border-indigo-200 bg-white' : 
+                  'opacity-0 border-transparent pointer-events-none'
                 }`}>
                   <CheckCheck size={12} />
                 </div>
