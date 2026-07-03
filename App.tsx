@@ -375,16 +375,15 @@ const App: React.FC = () => {
             masterInitialDate: config.masterInitialDate || "",
             // Add extra sync data as JSON string inside config object
             // This ensures scripts that only handle "config" can still sync these features
+            // Crucial Optimization: Remove redundant updatedAtMap (already in customer rows) and prune histories to fit 50,000 chars limit
             extra_sync_data: JSON.stringify({
               groups,
-              lossRecords,
-              dailySupplyReadings,
-              updatedAtMap: customers.reduce((acc, c) => {
-                if (c.updatedAt) {
-                  acc[c.maKH] = c.updatedAt;
-                }
-                return acc;
-              }, {} as Record<string, number>)
+              lossRecords: [...lossRecords]
+                .sort((a, b) => b.createdAt - a.createdAt)
+                .slice(0, 24),
+              dailySupplyReadings: [...dailySupplyReadings]
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .slice(0, 90)
             })
           },
           list1: data1,
