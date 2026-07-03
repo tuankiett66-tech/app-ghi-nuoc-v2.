@@ -10,7 +10,8 @@ export const useWaterData = () => {
       const data = saved ? JSON.parse(saved) : [];
       const loaded = (Array.isArray(data) ? data : []).map((c: any) => {
         const maKH = c.maKH || c.stt || "";
-        return { ...c, maKH: String(maKH) };
+        const name = String(c.name || "").toUpperCase().trim();
+        return { ...c, maKH: String(maKH), name };
       });
       // Filter out any "TỔNG CỘNG" row that accidentally got imported as a customer
       return loaded.filter((c: any) => {

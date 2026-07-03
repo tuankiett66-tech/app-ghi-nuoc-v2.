@@ -609,48 +609,25 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             onShowConfig={() => navigateTo('config')}
             onShowMsgTemplate={() => navigateTo('edit_msg', false)}
             onlyNonZalo={onlyNonZalo} onToggleZaloFilter={() => {
-              const newVal = !onlyNonZalo;
-              setOnlyNonZalo(newVal);
-              showToast(newVal ? "Đang hiện KH chưa có Zalo" : "Hiện tất cả Zalo");
+               const newVal = !onlyNonZalo;
+               setOnlyNonZalo(newVal);
+               showToast(newVal ? "Đang hiện KH chưa có Zalo" : "Hiện tất cả Zalo");
             }}
             onlyUnpaid={onlyUnpaid} onToggleUnpaidFilter={() => {
-              const newVal = !onlyUnpaid;
-              setOnlyUnpaid(newVal);
-              showToast(newVal ? "Đang hiện KH CÒN NỢ ĐỌNG" : "Hiện tất cả (Đã thu + Chưa thu)");
+               const newVal = !onlyUnpaid;
+               setOnlyUnpaid(newVal);
+               showToast(newVal ? "Đang hiện KH CÒN NỢ ĐỌNG" : "Hiện tất cả (Đã thu + Chưa thu)");
             }}
             onlyUnrecorded={onlyUnrecorded} onToggleUnrecordedFilter={() => {
-              const newVal = !onlyUnrecorded;
-              setOnlyUnrecorded(newVal);
-              showToast(newVal ? "Đang hiện hộ CHƯA GHI SỐ" : "Hiện tất cả");
+               const newVal = !onlyUnrecorded;
+               setOnlyUnrecorded(newVal);
+               showToast(newVal ? "Đang hiện hộ CHƯA GHI SỐ" : "Hiện tất cả");
             }}
             lastSyncTime={config.lastSyncTime}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
             onShowScan={() => navigateTo('ai_scan')}
           />
-          {unrecordedCount > 0 && !isSearchExpanded && !searchQuery && (
-            <div className="mx-3 my-2 bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 flex items-center justify-between shadow-xs shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="bg-amber-100 text-amber-600 p-2 rounded-xl">
-                  <AlertTriangle size={18} className="animate-pulse" />
-                </div>
-                <div>
-                  <p className="text-xs font-black text-amber-800 uppercase">Còn {unrecordedCount} hộ chưa ghi số!</p>
-                  <p className="text-[10px] text-amber-600 font-bold leading-tight">Tránh bỏ sót các hộ ghi sau.</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => {
-                  const newVal = !onlyUnrecorded;
-                  setOnlyUnrecorded(newVal);
-                  showToast(newVal ? "Đang lọc hộ CHƯA GHI" : "Hiện tất cả");
-                }}
-                className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase shadow-xs transition-colors ${onlyUnrecorded ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-800'}`}
-              >
-                {onlyUnrecorded ? "Tất cả" : "Lọc chưa ghi"}
-              </button>
-            </div>
-          )}
           <ListView 
             customers={filtered} 
             onSelect={(id) => { 

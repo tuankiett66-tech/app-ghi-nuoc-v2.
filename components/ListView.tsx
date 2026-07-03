@@ -120,15 +120,15 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
           >
             <div className="flex items-start gap-2.5">
               <div className="flex flex-col items-center gap-1 shrink-0">
-                <div className="text-[7px] font-black text-slate-400 uppercase leading-none">Mã KH</div>
-                <div className={`px-2 py-1 rounded-xl min-w-[36px] text-center text-white text-[11px] font-black shadow-sm ${c.isProcessed ? 'bg-emerald-500' : c.isZaloFriend ? 'bg-blue-600' : c.isZalo ? 'bg-indigo-600' : 'bg-slate-800'}`}>{c.maKH}</div>
-                <div className={`p-1.5 rounded-full border-2 ${
+                <div className="text-[9px] font-extrabold text-slate-400 uppercase leading-none tracking-wider">Mã KH</div>
+                <div className={`px-2.5 py-1.5 rounded-xl min-w-[42px] text-center text-white text-[14px] font-black shadow-sm leading-none ${c.isProcessed ? 'bg-emerald-500' : c.isZaloFriend ? 'bg-blue-600' : c.isZalo ? 'bg-indigo-600' : 'bg-slate-800'}`}>{c.maKH}</div>
+                <div className={`p-1 rounded-full border-2 -mt-1 bg-white ${
                   c.isProcessed ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 
                   c.isZaloFriend ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 
                   c.isZalo ? 'bg-indigo-100 text-indigo-600 border-indigo-200' : 
                   'text-slate-300 border-slate-100'
                 }`}>
-                  <CheckCheck size={14} />
+                  <CheckCheck size={12} />
                 </div>
                 {getMeterStatus(c.installDate).status !== 'ok' && getMeterStatus(c.installDate).status !== 'unknown' && (
                   <div className={`p-1 rounded-full border-2 mt-0.5 ${
@@ -158,9 +158,14 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
               <div className="text-right shrink-0 flex flex-col items-end justify-center">
                 <div className="font-black text-[18px] sm:text-[20px] text-rose-600 tracking-tighter leading-none mb-1">{formatCurrency(c.balance)}</div>
                 {c.newIndex > 0 ? (
-                  <div className="text-[11px] sm:text-[13px] font-black text-white bg-emerald-600 px-2 py-0.5 rounded-xl shadow-md inline-flex items-center tracking-tight">SỐ: {c.newIndex}</div>
+                  <div className="text-[12px] sm:text-[14px] font-black text-white bg-emerald-600 px-2.5 py-1 rounded-xl shadow-md inline-flex items-center tracking-tight gap-1 border border-emerald-500">
+                    <span className="text-[8px] font-extrabold text-emerald-100 uppercase">SỐ:</span>
+                    <span className="text-[14px] sm:text-[15px] font-black leading-none">{c.newIndex}</span>
+                  </div>
                 ) : (
-                  <div className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase italic tracking-tighter opacity-80">Chưa ghi</div>
+                  <div className="text-[10px] sm:text-[11px] font-black text-rose-500 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-lg uppercase tracking-wider animate-pulse">
+                    Chưa ghi
+                  </div>
                 )}
               </div>
             </div>

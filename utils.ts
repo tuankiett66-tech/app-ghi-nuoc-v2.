@@ -93,6 +93,7 @@ export const calculateRow = (cust: any, rate: number) => {
   const od = parseSafe(cust.oldDebt);
   const paid = parseSafe(cust.paid);
   const maKH = String(cust.maKH || "");
+  const name = String(cust.name || "").toUpperCase().trim();
   const phone = String(cust.phone || "");
   const phoneTenant = String(cust.phoneTenant || "");
   
@@ -106,6 +107,7 @@ export const calculateRow = (cust: any, rate: number) => {
   return {
     ...cust,
     maKH,
+    name,
     phone,
     phoneTenant,
     newIndex: ni, oldIndex: oi, oldDebt: od, paid: paid,

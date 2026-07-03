@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ChevronLeft, Camera, FileImage, Sparkles, Loader2, AlertCircle, Check, Info, RefreshCw, X, Edit2 } from 'lucide-react';
+import { ChevronLeft, Camera, FileImage, Sparkles, Loader2, AlertCircle, Check, Info, RefreshCw, X, Edit2, FileText } from 'lucide-react';
 import { Customer } from '../types';
 import { formatCurrency } from '../utils';
 
@@ -26,6 +26,8 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<ScanResultItem[]>([]);
   const [scanStats, setScanStats] = useState<{ total: number; matched: number } | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -88,22 +90,46 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
     setResults([]);
     setScanStats(null);
     setIsAnalyzing(true);
-    setLoadingStep("⚙️ Đang xử lý và tối ưu dung lượng ảnh...");
+    setFileName(file.name);
+    setFileType(file.type);
+
+    const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+    if (isPdf) {
+      setLoadingStep("⚙️ Đang tải tệp PDF tài liệu quét...");
+    } else {
+      setLoadingStep("⚙️ Đang xử lý và tối ưu dung lượng ảnh...");
+    }
 
     try {
-      const compressedDataUrl = await compressAndResizeImage(file);
-      setImagePreview(compressedDataUrl);
+      if (isPdf) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result as string);
+          setIsAnalyzing(false);
+          setLoadingStep('');
+        };
+        reader.onerror = () => {
+          setError("Không thể đọc tệp PDF.");
+          setIsAnalyzing(false);
+          setLoadingStep('');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        const compressedDataUrl = await compressAndResizeImage(file);
+        setImagePreview(compressedDataUrl);
+        setIsAnalyzing(false);
+        setLoadingStep('');
+      }
     } catch (err) {
       console.error("Error compressing image:", err);
       // Fallback
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
+        setIsAnalyzing(false);
+        setLoadingStep('');
       };
       reader.readAsDataURL(file);
-    } finally {
-      setIsAnalyzing(false);
-      setLoadingStep('');
     }
   };
 
@@ -114,7 +140,15 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
     setError(null);
     setResults([]);
 
-    const steps = [
+    const isPdf = fileType === 'application/pdf' || fileName?.endsWith('.pdf') || imagePreview.startsWith('data:application/pdf');
+    const steps = isPdf ? [
+      "🔄 Đang tải tệp PDF tài liệu quét...",
+      "🧠 Khởi động động cơ trí tuệ nhân tạo Gemini 3.5...",
+      "🔍 Đang quét toàn bộ các trang PDF và phân tích chữ viết tay...",
+      "🗺️ Đang đối chiếu nhận diện tên, địa chỉ với Danh sách Khách hàng...",
+      "⚖️ Đang kiểm định logic (Chỉ số mới ≥ Chỉ số cũ)...",
+      "✨ Đang định dạng kết quả chuẩn..."
+    ] : [
       "🔄 Đang tải ảnh bút tích...",
       "🧠 Khởi động động cơ trí tuệ nhân tạo Gemini 3.5...",
       "🔍 Đang phân tích chữ viết tay trên ảnh log nước...",
@@ -277,10 +311,10 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
         <div className="space-y-4">
           <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-100 p-5 rounded-[2.2rem] shadow-sm">
             <h3 className="text-xs font-black text-indigo-900 uppercase tracking-tight flex items-center gap-1.5 mb-2">
-              <Sparkles size={14} className="text-indigo-600" /> Trợ lý Quét Ảnh Ghi Tay Thông Minh
+              <Sparkles size={14} className="text-indigo-600" /> Trợ lý Quét Ảnh / PDF Ghi Tay Thông Minh
             </h3>
             <p className="text-[11px] text-indigo-700 font-bold leading-relaxed">
-              Bạn không cần gõ phím mỏi tay nữa! Chỉ cần chụp hoặc chọn hình ảnh của quyển sổ ghi nước viết tay, AI sẽ quét tự động nhận diện chữ, số và tự động đối chiếu ghép cặp vào đúng vị trí từng hộ của <span className="font-extrabold uppercase text-indigo-950">{activeTab === 'list1' ? 'Bộ 01' : 'Bộ 02'}</span>.
+              Bạn không cần gõ phím mỏi tay nữa! Chỉ cần chụp, chọn hình ảnh hoặc tải lên tệp tài liệu PDF đã quét từ Google Drive, AI sẽ tự động phân tích toàn bộ tài liệu để nhận diện chữ, số và khớp chỉ số mới của từng hộ trong <span className="font-extrabold uppercase text-indigo-950">{activeTab === 'list1' ? 'Bộ 01' : 'Bộ 02'}</span>.
             </p>
           </div>
 
@@ -303,7 +337,7 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
               <div className="p-3.5 bg-slate-50 rounded-2xl">
                 <FileImage size={28} className="text-slate-500" />
               </div>
-              <span className="text-xs font-black uppercase tracking-tight">Chọn có sẵn</span>
+              <span className="text-xs font-black uppercase tracking-tight">Chọn Ảnh / PDF</span>
             </button>
           </div>
 
@@ -320,16 +354,32 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept="image/*"
+            accept="image/*,application/pdf"
             className="hidden"
           />
 
           {imagePreview && (
             <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-4 shadow-sm space-y-4">
-              <div className="relative rounded-3xl overflow-hidden aspect-video border bg-slate-50 flex items-center justify-center">
-                <img src={imagePreview} className="max-h-56 object-contain" alt="Preview" />
+              <div className="relative rounded-3xl overflow-hidden aspect-video border bg-slate-50 flex items-center justify-center p-4">
+                {fileType === 'application/pdf' || fileName?.endsWith('.pdf') || imagePreview.startsWith('data:application/pdf') ? (
+                  <div className="flex flex-col items-center justify-center text-center space-y-2">
+                    <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border-2 border-rose-100 shadow-xs animate-bounce">
+                      <FileText size={44} />
+                    </div>
+                    <div className="max-w-[200px]">
+                      <p className="text-xs font-black text-slate-800 truncate">{fileName || 'Tài liệu quét.pdf'}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Tài liệu PDF (Nhiều trang)</p>
+                    </div>
+                  </div>
+                ) : (
+                  <img src={imagePreview} className="max-h-56 object-contain" alt="Preview" />
+                )}
                 <button 
-                  onClick={() => setImagePreview(null)} 
+                  onClick={() => {
+                    setImagePreview(null);
+                    setFileName(null);
+                    setFileType(null);
+                  }} 
                   className="absolute top-2 right-2 bg-slate-900/80 text-white p-2 rounded-full hover:bg-slate-900 duration-150"
                 >
                   <X size={18} />
@@ -340,7 +390,7 @@ export const AIScanView: React.FC<AIScanViewProps> = ({ customers, activeTab, on
                 onClick={handleStartAnalysis}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] transition-all text-white py-4.5 rounded-2xl font-black uppercase text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-100"
               >
-                <Sparkles size={18} /> Bắt đầu AI phân tích ảnh
+                <Sparkles size={18} /> Bắt đầu AI phân tích tài liệu
               </button>
             </div>
           )}

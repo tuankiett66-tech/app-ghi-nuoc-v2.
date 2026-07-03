@@ -160,18 +160,19 @@ async function startServer() {
 
       const promptText = `
 Bạn là một trợ lý AI chuyên nghiệp phân tích biểu mẫu ghi chỉ số nước ghi tay (OCR) và so khớp thông tin khách hàng.
-Hình ảnh đính kèm là trang ghi tay số nước hoặc danh sách chỉ số nước mới của một kỳ ghi nước.
-Hãy đọc kỹ hình ảnh và trích xuất chỉ số mới (Chỉ số mới ghi được) cho từng khách hàng.
-Sử dụng "Danh sách Khách hàng hiện tại" được cung cấp bên dưới để ánh xạ (match) chính xác chữ viết tay trên ảnh (có thể chỉ ghi tên viết tắt, số nhà, địa chỉ, số thứ tự sản xuất, hoặc mã số) với Mã KH (id) tương ứng.
+Tài liệu hoặc hình ảnh đính kèm là trang ghi tay số nước, danh sách chỉ số nước mới, hoặc tệp tài liệu PDF (có thể gồm nhiều trang) của một kỳ ghi nước.
+Hãy đọc kỹ toàn bộ các trang tài liệu hoặc hình ảnh, phân tích chữ viết tay hoặc chữ in và trích xuất chỉ số mới (Chỉ số mới ghi được) cho từng khách hàng.
+Sử dụng "Danh sách Khách hàng hiện tại" được cung cấp bên dưới để ánh xạ (match) chính xác chữ viết tay trên tài liệu (có thể chỉ ghi tên viết tắt, số nhà, địa chỉ, số thứ tự sản xuất, hoặc mã số) với Mã KH (id) tương ứng.
 
 Danh sách Khách hàng hiện tại:
 ${JSON.stringify(customers, null, 2)}
 
 Yêu cầu trích xuất:
-1. So khớp thông tin khách hàng: ánh xạ các ghi chú tên hoặc mã số viết tay tới Mã KH (id) phù hợp nhất từ danh sách khách hàng được cung cấp. Nếu viết tay mập mờ hoặc ghi tắt (ví dụ: "T Hải Nam", "Nam", "241 Nam"), hãy dùng thông tin tên đầy đủ, địa chỉ hoặc 'oldIndex' (Chỉ số cũ) tương đồng để phán đoán hợp lý thông minh nhất.
+1. So khớp thông tin khách hàng: ánh xạ các ghi chú tên, địa chỉ hoặc mã số viết tay tới Mã KH (id) phù hợp nhất từ danh sách khách hàng được cung cấp. Nếu viết tay mập mờ hoặc ghi tắt (ví dụ: "T Hải Nam", "Nam", "241 Nam"), hãy dùng thông tin tên đầy đủ, địa chỉ hoặc 'oldIndex' (Chỉ số cũ) tương đồng để phán đoán hợp lý thông minh nhất.
 2. Trích xuất CHỈ SỐ MỚI (chữ số đọc được ví dụ: "2098", "4563"). Đảm bảo chỉ số mới phải LỚN HƠN HOẶC BẰNG chỉ số cũ (oldIndex) của khách hàng đó. Không lấy phần chênh lệch tiêu thụ.
-3. Nếu không tìm thấy hoặc không đọc được khách hàng nào đó phù hợp hoàn toàn, hãy bỏ qua hoặc không đưa khách hàng đó vào mảng JSON kết quả để tránh sai lệch dữ liệu.
-4. Trả về kết quả dưới dạng danh sách JSON đúng Schema cấu trúc quy định.
+3. Nếu tài liệu PDF có nhiều trang, hãy duyệt qua toàn bộ tất cả các trang để không bỏ sót bất kỳ khách hàng nào.
+4. Nếu không tìm thấy hoặc không đọc được khách hàng nào đó phù hợp hoàn toàn, hãy bỏ qua hoặc không đưa khách hàng đó vào mảng JSON kết quả để tránh sai lệch dữ liệu.
+5. Trả về kết quả dưới dạng danh sách JSON đúng Schema cấu trúc quy định.
 `;
 
       const response = await generateContentWithRetryAndFallback(ai, {
