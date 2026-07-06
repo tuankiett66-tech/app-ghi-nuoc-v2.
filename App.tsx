@@ -224,6 +224,7 @@ const App: React.FC = () => {
             isZalo: !!item.isZalo, 
             isZaloFriend: !!item.isZaloFriend,
             isProcessed: !!item.isProcessed,
+            isSubMeter: !!item.isSubMeter,
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
@@ -272,6 +273,7 @@ const App: React.FC = () => {
             isZalo: !!item.isZalo, 
             isZaloFriend: !!item.isZaloFriend,
             isProcessed: !!item.isProcessed,
+            isSubMeter: !!item.isSubMeter,
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
@@ -325,6 +327,7 @@ const App: React.FC = () => {
       isZalo: !!c.isZalo,
       isZaloFriend: !!c.isZaloFriend,
       isProcessed: !!c.isProcessed,
+      isSubMeter: !!c.isSubMeter,
       installDate: c.installDate || "",
       note: "'" + (c.note || ""),
       updatedAt: c.updatedAt || 0
@@ -345,6 +348,7 @@ const App: React.FC = () => {
       isZalo: !!c.isZalo,
       isZaloFriend: !!c.isZaloFriend,
       isProcessed: !!c.isProcessed,
+      isSubMeter: !!c.isSubMeter,
       installDate: c.installDate || "",
       note: "'" + (c.note || ""),
       updatedAt: c.updatedAt || 0

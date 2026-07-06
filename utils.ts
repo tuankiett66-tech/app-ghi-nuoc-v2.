@@ -333,7 +333,7 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   });
 
   // Add summary row
-  const totalVolume = sorted.reduce((sum, c) => sum + (c.volume || 0), 0);
+  const totalVolume = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.volume || 0), 0);
   const totalAmount = sorted.reduce((sum, c) => sum + (c.amount || 0), 0);
   const totalOldDebt = sorted.reduce((sum, c) => sum + (c.oldDebt || 0), 0);
   const totalPaid = sorted.reduce((sum, c) => sum + (c.paid || 0), 0);

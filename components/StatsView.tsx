@@ -32,8 +32,8 @@ export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBa
       debt: list.reduce((sum, c) => sum + (c.oldDebt || 0), 0),
       paid: list.reduce((sum, c) => sum + (c.paid || 0), 0),
       balance: list.reduce((sum, c) => sum + (c.balance || 0), 0),
-      totalVolume: list.reduce((sum, c) => sum + (c.volume || 0), 0),
-      systemVolume: all.reduce((sum, c) => sum + (c.volume || 0), 0),
+      totalVolume: list.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.volume || 0), 0),
+      systemVolume: all.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.volume || 0), 0),
       expiredMeters: list.filter(c => getMeterStatus(c.installDate).status === 'danger').length,
       warningMeters: list.filter(c => getMeterStatus(c.installDate).status === 'warning').length
     };

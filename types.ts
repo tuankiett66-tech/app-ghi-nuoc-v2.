@@ -21,6 +21,7 @@ export interface Customer {
   isProcessed?: boolean;  // Da gui bill/copy bill trong ky nay
   note?: string;
   installDate?: string; // Ngay lap dat (YYYY-MM)
+  isSubMeter?: boolean;  // Tích là đồng hồ phụ, không cộng dồn tiêu thụ
   updatedAt?: number; // Thoi diem cap nhat gan nhat (timestamp)
 }
 

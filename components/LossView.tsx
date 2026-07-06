@@ -138,8 +138,8 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
     const list1 = customers.filter(c => c.listType === 'list1');
     const list2 = customers.filter(c => c.listType === 'list2');
     return {
-      list1Vol: list1.reduce((sum, c) => sum + (c.volume || 0), 0),
-      list2Vol: list2.reduce((sum, c) => sum + (c.volume || 0), 0)
+      list1Vol: list1.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.volume || 0), 0),
+      list2Vol: list2.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.volume || 0), 0)
     };
   }, [customers]);
 

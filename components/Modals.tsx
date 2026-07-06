@@ -17,7 +17,7 @@ interface ModalsProps {
 
 export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, onDelete, config, setConfig, selectedCustomer, suggestedMaKH }) => {
   const [formData, setFormData] = useState({ 
-    name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: '', oldIndex: 0, oldDebt: 0, installDate: ''
+    name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: '', oldIndex: 0, oldDebt: 0, installDate: '', isSubMeter: false
   });
 
   useEffect(() => {
@@ -30,10 +30,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
         maKH: selectedCustomer.maKH || '',
         oldIndex: selectedCustomer.oldIndex,
         oldDebt: selectedCustomer.oldDebt,
-        installDate: selectedCustomer.installDate || ''
+        installDate: selectedCustomer.installDate || '',
+        isSubMeter: selectedCustomer.isSubMeter || false
       });
     } else if (view === 'add_customer') {
-      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: suggestedMaKH, oldIndex: 0, oldDebt: 0, installDate: '' });
+      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: suggestedMaKH, oldIndex: 0, oldDebt: 0, installDate: '', isSubMeter: false });
     }
   }, [view, selectedCustomer, suggestedMaKH]);
 
@@ -87,6 +88,19 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                 <label className="text-[10px] font-black uppercase text-rose-600 ml-1">Nợ tồn (đ)</label>
                 <input type="number" className="w-full bg-rose-50 p-3.5 rounded-2xl border-2 border-rose-100 font-black text-rose-600" value={formData.oldDebt} onChange={e => setFormData({...formData, oldDebt: parseFloat(e.target.value) || 0})} />
               </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-purple-50 p-3.5 rounded-2xl border-2 border-purple-100 mt-2">
+              <input 
+                id="isSubMeter"
+                type="checkbox" 
+                className="w-5 h-5 accent-purple-700 cursor-pointer rounded-lg" 
+                checked={formData.isSubMeter} 
+                onChange={e => setFormData({...formData, isSubMeter: e.target.checked})} 
+              />
+              <label htmlFor="isSubMeter" className="text-xs font-black uppercase text-purple-700 cursor-pointer select-none">
+                Đồng hồ phụ (Quản lý hộ, không cộng dồn)
+              </label>
             </div>
 
             <div>

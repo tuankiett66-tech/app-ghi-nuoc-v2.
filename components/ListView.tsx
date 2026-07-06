@@ -140,7 +140,12 @@ export const ListView: React.FC<ListViewProps> = ({ customers, onSelect, onCall,
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-1 mb-0.5">
-                  <h3 className={`font-black uppercase text-[14px] sm:text-[16px] leading-tight flex-1 ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
+                  <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                    <h3 className={`font-black uppercase text-[14px] sm:text-[16px] leading-tight ${c.isZalo ? 'text-blue-800' : 'text-slate-900'}`}>{c.name}</h3>
+                    {c.isSubMeter && (
+                      <span className="bg-purple-100 text-purple-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 border border-purple-200">ĐH Phụ</span>
+                    )}
+                  </div>
                   <button 
                     onClick={(e) => { e.stopPropagation(); onCopyName(c.name); }}
                     className="p-1 bg-slate-100 text-slate-400 rounded-lg active:scale-90 shrink-0 mt-0.5"
