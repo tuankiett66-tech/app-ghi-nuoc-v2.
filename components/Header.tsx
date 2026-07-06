@@ -222,14 +222,14 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 </div>
                 <div className="max-h-[200px] overflow-y-auto">
-                  {history.map((item, idx) => (
+                  {history.slice(0, 2).map((item, idx) => (
                     <div 
                       key={idx}
                       onMouseDown={() => {
                         setSearchQuery(item);
                         setShowHistory(false);
                       }}
-                      className="flex items-center justify-between p-3.5 hover:bg-blue-50 active:bg-blue-100 border-b border-slate-50 last:border-0 transition-colors cursor-pointer"
+                      className="flex items-center justify-between p-3 hover:bg-blue-50 active:bg-blue-100 border-b border-slate-50 last:border-0 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <History size={14} className="text-slate-300 shrink-0" />
