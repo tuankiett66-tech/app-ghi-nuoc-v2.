@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, Users, Plus, Trash2, ArrowRight, X, Edit2, GripVertical, Settings2, Check } from 'lucide-react';
+import { ChevronLeft, Users, Plus, Trash2, ArrowRight, X, Edit2, GripVertical, Settings2, Check, Search } from 'lucide-react';
 import { WaterGroup, GroupMember, Customer } from '../types';
 import {
   DndContext,
@@ -31,12 +31,14 @@ interface GroupListViewProps {
 
 const SortableGroupItem = ({ 
   group, 
+  index,
   onSelect, 
   onDelete, 
   onEdit, 
   isSortMode 
 }: { 
   group: WaterGroup; 
+  index: number;
   onSelect: (id: string) => void; 
   onDelete: (id: string, e: React.MouseEvent) => void;
   onEdit: (group: WaterGroup, e: React.MouseEvent) => void;
@@ -80,14 +82,17 @@ const SortableGroupItem = ({
         onClick={() => !isSortMode && onSelect(group.id)} 
         className={`flex-1 flex justify-between items-center px-4 py-3 transition-colors min-w-0 ${isSortMode ? '' : 'active:bg-slate-50 cursor-pointer'}`}
       >
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-start gap-2">
+            <div className="bg-indigo-100 text-indigo-700 text-xs font-black min-w-[24px] h-[24px] px-1.5 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+              {index + 1}
+            </div>
             <h3 className="font-black text-slate-900 uppercase text-md leading-tight line-clamp-2 flex-1">{group.name}</h3>
             <button onClick={(e) => onEdit(group, e)} className="p-1 px-2 text-slate-400 hover:text-indigo-600 bg-slate-100 rounded-lg shrink-0">
               <Edit2 size={12}/>
             </button>
           </div>
-          <p className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg inline-block text-[10px] font-black uppercase tracking-wider mt-1">{(group.members || []).length} Hộ thành viên</p>
+          <p className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg inline-block text-[10px] font-black uppercase tracking-wider mt-1 ml-8">{(group.members || []).length} Hộ thành viên</p>
         </div>
         
         <div className="flex items-center gap-1 shrink-0">
@@ -114,6 +119,11 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState('');
   const [editName, setEditName] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredGroups = groups.filter(g => 
+    g.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -164,7 +174,10 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <button 
-              onClick={() => setIsSortMode(!isSortMode)} 
+              onClick={() => {
+                if (!isSortMode) setSearchQuery('');
+                setIsSortMode(!isSortMode);
+              }} 
               className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-md font-black uppercase text-[10px] ${isSortMode ? 'bg-emerald-600 text-white border-b-4 border-emerald-900' : 'bg-slate-100 text-slate-600 border-b-4 border-slate-300'}`}
           >
               {isSortMode ? <Check size={18}/> : <Settings2 size={18}/>}
@@ -181,6 +194,31 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
           )}
         </div>
       </header>
+
+      {!isSortMode && (
+        <div className="px-4 py-2 shrink-0 bg-white border-b flex gap-2">
+          <div className="relative flex-1">
+            <input 
+              type="text" 
+              placeholder="Tìm tên nhóm..." 
+              className="w-full bg-slate-50 p-3.5 pl-10 pr-10 rounded-2xl border-2 border-slate-100 font-black text-sm text-slate-800 outline-none focus:border-indigo-500"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+              <Search size={18} />
+            </div>
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')} 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 bg-slate-100 rounded-full"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {showAddForm && (
         <div className="fixed inset-0 bg-slate-900/60 z-[200] flex items-center justify-center p-6 backdrop-blur-sm" onClick={() => setShowAddForm(false)}>
@@ -228,13 +266,14 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
           onDragEnd={handleDragEnd}
         >
           <SortableContext 
-            items={groups.map(g => g.id)}
+            items={filteredGroups.map(g => g.id)}
             strategy={verticalListSortingStrategy}
           >
-            {groups.map((group) => (
+            {filteredGroups.map((group, index) => (
               <SortableGroupItem
                 key={group.id}
                 group={group}
+                index={index}
                 isSortMode={isSortMode}
                 onSelect={onSelectGroup}
                 onDelete={(id, e) => { 
@@ -247,10 +286,13 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
           </SortableContext>
         </DndContext>
 
-        {groups.length === 0 && (
+        {filteredGroups.length === 0 && (
           <div className="py-20 text-center space-y-4">
              <div className="inline-block p-10 bg-white rounded-[3.5rem] shadow-sm text-slate-100 border-2 border-dashed border-slate-200"><Users size={80}/></div>
-             <p className="text-slate-400 font-black uppercase italic text-[11px] tracking-widest px-10 leading-relaxed">Chưa có nhóm nào được tạo.<br/>Bấm nút "+" phía trên để bắt đầu</p>
+             <p className="text-slate-400 font-black uppercase italic text-[11px] tracking-widest px-10 leading-relaxed">
+               {searchQuery ? 'Không tìm thấy nhóm nào phù hợp.' : 'Chưa có nhóm nào được tạo.'}<br/>
+               {searchQuery ? 'Vui lòng thử lại với từ khóa khác' : 'Bấm nút "+" phía trên để bắt đầu'}
+             </p>
           </div>
         )}
       </div>
