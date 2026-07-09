@@ -121,9 +121,19 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
   const [editName, setEditName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredGroups = groups.filter(g => 
-    g.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredGroups = groups.filter((g, idx) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+    const stt = (idx + 1).toString();
+    
+    const matchesName = g.name.toLowerCase().includes(query);
+    const matchesSTTExact = stt === query;
+    const matchesSTTText = query.includes(`nhóm ${stt}`) || query.includes(`nhom ${stt}`) || query.includes(`#${stt}`) || query === stt;
+    const isOnlyNumber = /^\d+$/.test(query);
+    const matchesSTTSub = isOnlyNumber && stt.includes(query);
+
+    return matchesName || matchesSTTExact || matchesSTTText || matchesSTTSub;
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -269,20 +279,23 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
             items={filteredGroups.map(g => g.id)}
             strategy={verticalListSortingStrategy}
           >
-            {filteredGroups.map((group, index) => (
-              <SortableGroupItem
-                key={group.id}
-                group={group}
-                index={index}
-                isSortMode={isSortMode}
-                onSelect={onSelectGroup}
-                onDelete={(id, e) => { 
-                  e.stopPropagation(); 
-                  if(confirm("Bạn muốn xóa nhóm này?")) onDeleteGroup(id); 
-                }}
-                onEdit={handleStartEdit}
-              />
-            ))}
+            {filteredGroups.map((group) => {
+              const originalIndex = groups.findIndex(g => g.id === group.id);
+              return (
+                <SortableGroupItem
+                  key={group.id}
+                  group={group}
+                  index={originalIndex !== -1 ? originalIndex : 0}
+                  isSortMode={isSortMode}
+                  onSelect={onSelectGroup}
+                  onDelete={(id, e) => { 
+                    e.stopPropagation(); 
+                    if(confirm("Bạn muốn xóa nhóm này?")) onDeleteGroup(id); 
+                  }}
+                  onEdit={handleStartEdit}
+                />
+              );
+            })}
           </SortableContext>
         </DndContext>
 
