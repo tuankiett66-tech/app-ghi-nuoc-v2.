@@ -367,6 +367,53 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
     return readings.filter(r => getMonthYearKey(r.date) === selectedMonth);
   }, [readings, selectedMonth]);
 
+  const readingsWithDays = useMemo(() => {
+    const sorted = [...readings].map(r => ({ ...r, date: r.date.split('T')[0] })).sort((a, b) => {
+      const dateTimeA = `${a.date} ${a.time || '00:00'}`;
+      const dateTimeB = `${b.date} ${b.time || '00:00'}`;
+      return dateTimeA.localeCompare(dateTimeB);
+    });
+
+    const result: Record<string, { diffDays: number; avgCons: number }> = {};
+
+    sorted.forEach((r, i) => {
+      let diffDays = 1;
+      const prev = sorted[i - 1];
+      if (prev) {
+        try {
+          const curD = new Date(r.date);
+          const prevD = new Date(prev.date);
+          if (!isNaN(curD.getTime()) && !isNaN(prevD.getTime())) {
+            const diffTime = curD.getTime() - prevD.getTime();
+            const days = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            if (days > 0) diffDays = days;
+          }
+        } catch (e) {
+          diffDays = 1;
+        }
+      } else if (config.masterInitialDate) {
+        try {
+          const curD = new Date(r.date);
+          const initD = new Date(config.masterInitialDate);
+          if (!isNaN(curD.getTime()) && !isNaN(initD.getTime())) {
+            const diffTime = curD.getTime() - initD.getTime();
+            const days = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            if (days > 0) diffDays = days;
+          }
+        } catch (e) {
+          diffDays = 1;
+        }
+      }
+
+      const totalCons = (r.consumption1 || 0) + (r.consumption2 || 0);
+      const avgCons = totalCons / diffDays;
+
+      result[r.id] = { diffDays, avgCons };
+    });
+
+    return result;
+  }, [readings, config.masterInitialDate]);
+
   const handlePrevMonth = () => {
     const currentIndex = availableMonths.indexOf(selectedMonth);
     if (currentIndex < availableMonths.length - 1) {
@@ -656,8 +703,9 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                   </tr>
                 ) : (
                   filteredReadings.map((r, idx) => {
+                    const info = readingsWithDays[r.id] || { diffDays: 1, avgCons: (r.consumption1 || 0) + (r.consumption2 || 0) };
                     const totalCons = (r.consumption1 || 0) + (r.consumption2 || 0);
-                    const isHigh = totalCons > avgConsumption * 1.5 && filteredReadings.length > 3;
+                    const isHigh = info.avgCons > avgConsumption * 1.5 && filteredReadings.length > 3;
                     const isEditing = editingId === r.id;
                     
                     return (
@@ -705,7 +753,12 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                             ) : (
                               <div className="flex flex-col items-center" onClick={() => handleStartEdit(r)}>
                                 <span className={`text-base font-black ${isHigh ? 'text-rose-600' : 'text-slate-900'}`}>{totalCons}</span>
-                                {isHigh && <div className="text-[7px] font-black text-rose-500 uppercase tracking-tighter">Bất thường</div>}
+                                {info.diffDays > 1 && (
+                                  <span className="text-[9px] font-black text-indigo-500 bg-indigo-50 border border-indigo-100/50 px-1.5 py-0.5 rounded-md mt-0.5 whitespace-nowrap uppercase tracking-tighter">
+                                    Gộp {info.diffDays} ngày ({Math.round(info.avgCons)}/n)
+                                  </span>
+                                )}
+                                {isHigh && <div className="text-[7px] font-black text-rose-500 uppercase tracking-tighter mt-0.5">Bất thường</div>}
                               </div>
                             )}
                           </td>
