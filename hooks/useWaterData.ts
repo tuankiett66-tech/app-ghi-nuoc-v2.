@@ -228,6 +228,7 @@ export const useWaterData = () => {
         paid: 0,
         isZalo: c.isZalo,
         isZaloFriend: c.isZaloFriend,
+        isProcessed: false,
         note: '',
         updatedAt: undefined
       }, config.waterRate);
