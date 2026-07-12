@@ -50,6 +50,28 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
              <button onClick={onBackupCloud} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 active:scale-95 shadow-md border-b-4 border-blue-900 mt-2">
                 <UploadCloud size={20} /> Sao lưu lên Cloud
              </button>
+
+             <div className="pt-2 border-t border-slate-100 space-y-2">
+                <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
+                  💡 <b>TỰ ĐỘNG LƯU TRỮ LỊCH SỬ KỲ (V4.3):</b> Khi chốt kỳ, dữ liệu kỳ cũ sẽ tự động nhân bản thành một trang tính riêng biệt (ví dụ: <i>LichSu_Bộ01_Ky_6_2026</i>) trên Google Sheets để lưu trữ vĩnh viễn. Hãy nhấn nút dưới để copy và cập nhật lại Apps Script của bạn:
+                </p>
+                <button 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/docs/script_v4.3.js');
+                      if (!response.ok) throw new Error("Không thể tải file script từ hệ thống.");
+                      const text = await response.text();
+                      await navigator.clipboard.writeText(text);
+                      alert("📋 Đã sao chép mã Google Apps Script V4.3 thành công!\n\nHướng dẫn:\n1. Mở file Google Sheets của bạn.\n2. Vào Tiện ích mở rộng (Extensions) > Apps Script.\n3. Chọn toàn bộ mã cũ và dán đè mã mới này vào.\n4. Nhấn nút Save (Biểu tượng đĩa) và nhấn Triển khai (Deploy) > Tùy chọn triển khai mới (New Deployment) > Chọn loại Web App > Nhấn Deploy.");
+                    } catch (err) {
+                      alert("Lỗi tải script: " + (err instanceof Error ? err.message : String(err)));
+                    }
+                  }} 
+                  className="w-full bg-slate-100 text-slate-800 hover:bg-slate-200 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border border-slate-200 active:scale-95"
+                >
+                  📋 Copy mã Apps Script V4.3 mới nhất
+                </button>
+             </div>
           </div>
 
           <div className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-200 space-y-4 shadow-sm">

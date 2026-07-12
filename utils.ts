@@ -339,6 +339,33 @@ export const getZaloBillingHeader = () => {
   return `Tiền nước  KỲ ${ky}/${kyYear}_Ngày ghi chỉ số:${day}/${actualMonth}/${actualYear}.`;
 };
 
+export const getCurrentPeriodSuffix = () => {
+  const d = new Date();
+  const day = d.getDate();
+  const actualMonth = d.getMonth() + 1;
+  const actualYear = d.getFullYear();
+
+  let year = actualYear;
+  let month = actualMonth;
+  
+  if (day >= 25) {
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+  
+  let ky = month - 1;
+  let kyYear = year;
+  if (ky === 0) {
+    ky = 12;
+    kyYear = year - 1;
+  }
+  
+  return `Ky_${ky}_${kyYear}`;
+};
+
 export const normalizeMonthYear = (monthStr: string): string => {
   if (!monthStr) return '';
   // Convert standard date string / ISO timestamp to local YYYY-MM-DD

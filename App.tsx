@@ -13,7 +13,7 @@ import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
 import { AIScanView } from './components/AIScanView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, parseSafeBool, safeJsonStringify } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
 
@@ -295,16 +295,16 @@ const App: React.FC = () => {
     finally { if (!silent) setIsSyncing(false); }
   };
 
-  const handleBackupCloud = async (silent = false) => {
+  const handleBackupCloud = async (silent = false, archiveSuffix?: string): Promise<boolean> => {
     const url = config.sheetUrl?.trim();
     if (!url) {
       if (!silent) showToast("Chưa có Link Script!");
-      return;
+      return false;
     }
 
     if (!url.toLowerCase().includes('/exec')) {
       if (!silent) alert("Link Script sai định dạng /exec");
-      return;
+      return false;
     }
     
     // Sắp xếp dữ liệu trước khi gửi để đảm bảo thứ tự trên Sheet khớp với App
@@ -365,6 +365,7 @@ const App: React.FC = () => {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: safeJsonStringify({
           action: 'update_all',
+          archive_suffix: archiveSuffix || "",
           config: {
             waterRate: config.waterRate,
             bankId: config.bankId,
@@ -408,9 +409,12 @@ const App: React.FC = () => {
         setSyncStatus('synced');
         setConfig(prev => ({ ...prev, lastSyncTime: Date.now() }));
         setLastAutoBackup(Date.now());
-        if (!silent) showToast("Đã tải dữ liệu từ máy lên Cloud!");
+        if (!silent) {
+          showToast(archiveSuffix ? `Đã tự động lưu trữ lịch sử ${archiveSuffix} lên Google Sheets!` : "Đã tải dữ liệu từ máy lên Cloud!");
+        }
         // Reset status to idle after 5s to allow for next clear sync feedback
         setTimeout(() => setSyncStatus('idle'), 5000);
+        return true;
       } else {
         throw new Error(result.message || "Lỗi không xác định từ server");
       }
@@ -418,6 +422,7 @@ const App: React.FC = () => {
       console.error("Backup error:", e);
       setSyncStatus('error');
       if (!silent) alert("Lỗi sao lưu: " + (e instanceof Error ? e.message : String(e)));
+      return false;
     } finally {
       if (!silent) setIsSyncing(false);
     }
@@ -781,9 +786,26 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             } else {
               if(!confirm("Bạn có muốn chốt kì hiện tại và mở kì mới?")) return;
             }
+            const periodSuffix = getCurrentPeriodSuffix();
+            
+            // 1. Tự động lưu trữ lịch sử kỳ này lên Google Sheets
+            showToast("Đang tự động lưu trữ lịch sử lên Google Sheets...");
+            const backupSuccess = await handleBackupCloud(false, periodSuffix);
+            
+            if (!backupSuccess) {
+              const proceed = confirm("⚠️ Không thể tự động sao lưu lịch sử lên Google Sheets.\nBạn có muốn bỏ qua và tiếp tục CHỐT KỲ offline (vẫn xuất file Excel kì mới) không?");
+              if (!proceed) return;
+            }
+
+            // 2. Chốt kỳ và tạo danh sách kỳ mới trong bộ nhớ cục bộ
             const res = closePeriod(); 
             await exportToExcel(res, 'Ky_Moi'); 
-            showToast("Đã chốt kì và tạo kì mới!"); 
+            showToast("Đã chốt kì và tạo kì mới thành công!"); 
+
+            // 3. Tự động đồng bộ kỳ mới lên Google Sheets để khởi tạo các trang tính chính
+            showToast("Đang khởi tạo kỳ mới lên Google Sheets...");
+            await handleBackupCloud(true); // Đồng bộ ngầm để reset chỉ số cũ/mới của kỳ mới
+            
             navigateTo('list'); 
           }}
           onExport={async () => {
