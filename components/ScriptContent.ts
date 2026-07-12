@@ -146,6 +146,23 @@ function doPost(e) {
   }
 }
 
+function findHeaderRow(sheet) {
+  if (!sheet) return 1;
+  var lastRow = Math.min(sheet.getLastRow(), 20);
+  if (lastRow === 0) return 1;
+  var values = sheet.getRange(1, 1, lastRow, Math.min(sheet.getLastColumn(), 10)).getValues();
+  for (var r = 0; r < values.length; r++) {
+    var row = values[r];
+    for (var c = 0; c < row.length; c++) {
+      var val = String(row[c] || "").toUpperCase().trim();
+      if (val === "MÃ KH" || val === "MAKH" || val === "STT") {
+        return r + 1;
+      }
+    }
+  }
+  return 1;
+}
+
 function getSheetData(sheet) {
   if (!sheet) return [];
   
@@ -157,8 +174,9 @@ function getSheetData(sheet) {
   
   const data = sheet.getDataRange().getValues();
   const rows = [];
-  if (data.length < 5) return [];
-  for (var i = 4; i < data.length; i++) {
+  var H = findHeaderRow(sheet);
+  if (data.length <= H) return [];
+  for (var i = H; i < data.length; i++) {
     var row = data[i];
     var maKH = String(row[0] || "").trim();
     if (!maKH || maKH === "0" || maKH.toUpperCase().includes("CỘNG")) continue;
@@ -216,11 +234,14 @@ function updateOrInsertData(sheet, dataToUpdate) {
     sheet.insertColumnsAfter(maxCols, 17 - maxCols);
   }
   
-  // 1. Lấy toàn bộ dữ liệu hiện tại để xóa (từ dòng 5 trở đi)
+  var H = findHeaderRow(sheet);
+  var startRow = H + 1;
+  
+  // 1. Lấy toàn bộ dữ liệu hiện tại để xóa (từ dòng startRow trở đi)
   var lastRow = sheet.getLastRow();
-  if (lastRow >= 5) {
+  if (lastRow >= startRow) {
     // Xóa nội dung từ cột A đến Q (17 cột) để đảm bảo sạch sẽ trước khi ghi mới
-    sheet.getRange(5, 1, lastRow - 4, 17).clearContent();
+    sheet.getRange(startRow, 1, lastRow - H, 17).clearContent();
   }
   
   if (dataToUpdate.length === 0) return 0;
@@ -248,8 +269,8 @@ function updateOrInsertData(sheet, dataToUpdate) {
     ];
   });
   
-  // 3. Ghi toàn bộ dữ liệu xuống Sheet từ dòng 5
-  sheet.getRange(5, 1, values.length, 17).setValues(values);
+  // 3. Ghi toàn bộ dữ liệu xuống Sheet từ dòng startRow
+  sheet.getRange(startRow, 1, values.length, 17).setValues(values);
   
   return dataToUpdate.length;
 }
