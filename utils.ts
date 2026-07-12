@@ -230,6 +230,71 @@ export const normalizePhoneForZalo = (phone: any): string => {
   return p;
 };
 
+export const parseSafeBool = (val: any): boolean => {
+  if (val === undefined || val === null) return false;
+  if (typeof val === 'boolean') return val;
+  const s = String(val).trim().toUpperCase();
+  return s === 'TRUE' || s === 'YES' || s === 'X' || s === '1' || s === 'T';
+};
+
+export const safeJsonStringify = (obj: any, indent?: number): string => {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    try {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return "[Circular]";
+        }
+        seen.add(value);
+        
+        // If it is a DOM node or has React internal Fiber structure, prevent circular/deep serialization
+        if (typeof Node !== 'undefined' && value instanceof Node) {
+          return `[Node: ${value.nodeName || 'DOM Node'}]`;
+        }
+
+        if (typeof Window !== 'undefined' && value instanceof Window) {
+          return "[Window]";
+        }
+
+        if (typeof Document !== 'undefined' && value instanceof Document) {
+          return "[Document]";
+        }
+        
+        const constructorName = value.constructor?.name || '';
+        if (
+          constructorName.includes('Element') || 
+          constructorName.includes('Fiber') || 
+          constructorName.includes('Event') ||
+          constructorName.includes('SyntheticEvent')
+        ) {
+          return `[Non-serializable: ${constructorName || 'DOM/React Element'}]`;
+        }
+      }
+      if (typeof value === 'function') {
+        return "[Function]";
+      }
+      return value;
+    } catch (e) {
+      return "[Unserializable]";
+    }
+  }, indent);
+};
+
+export const ensureUniqueIds = (list: Customer[]): Customer[] => {
+  if (!Array.isArray(list)) return [];
+  const seenIds = new Set<string>();
+  return list.map(c => {
+    let uniqueId = c.id;
+    let suffix = 1;
+    while (seenIds.has(uniqueId)) {
+      uniqueId = `${c.id}-dup${suffix}`;
+      suffix++;
+    }
+    seenIds.add(uniqueId);
+    return { ...c, id: uniqueId };
+  });
+};
+
 export const getBillingMonthYear = () => {
   const d = new Date();
   let year = d.getFullYear();
@@ -249,10 +314,14 @@ export const getBillingMonthYear = () => {
 
 export const getZaloBillingHeader = () => {
   const d = new Date();
-  let year = d.getFullYear();
-  let month = d.getMonth() + 1; // 1 to 12
+  const day = d.getDate();
+  const actualMonth = d.getMonth() + 1;
+  const actualYear = d.getFullYear();
+
+  let year = actualYear;
+  let month = actualMonth;
   
-  if (d.getDate() >= 25) {
+  if (day >= 25) {
     month += 1;
     if (month > 12) {
       month = 1;
@@ -267,7 +336,7 @@ export const getZaloBillingHeader = () => {
     kyYear = year - 1;
   }
   
-  return `Tiền nước  KỲ ${ky}/${kyYear}_Ngày ghi chỉ số:1/${month}/${year}.`;
+  return `Tiền nước  KỲ ${ky}/${kyYear}_Ngày ghi chỉ số:${day}/${actualMonth}/${actualYear}.`;
 };
 
 export const normalizeMonthYear = (monthStr: string): string => {
@@ -482,8 +551,15 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
           
           const phone = String(row[colMap.phone] || "").trim();
           
+          let finalId = `xl-${maKH}-${listType}`;
+          let dupCount = 1;
+          while (res.some(c => c.id === finalId)) {
+            finalId = `xl-${maKH}-${listType}-dup${dupCount}`;
+            dupCount++;
+          }
+
           res.push(calculateRow({
-            id: `xl-${maKH}-${listType}`,
+            id: finalId,
             maKH: maKH,
             name: nameVal,
             address: String(row[colMap.address] || ""),

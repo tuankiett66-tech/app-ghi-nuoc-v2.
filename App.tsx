@@ -13,7 +13,7 @@ import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
 import { AIScanView } from './components/AIScanView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, parseSafeBool, safeJsonStringify } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
 
@@ -221,10 +221,10 @@ const App: React.FC = () => {
             oldDebt: parseFloat(item.oldDebt) || 0, 
             paid: parseFloat(item.paid) || 0,
             listType: 'list1', 
-            isZalo: !!item.isZalo, 
-            isZaloFriend: !!item.isZaloFriend,
-            isProcessed: !!item.isProcessed,
-            isSubMeter: !!item.isSubMeter,
+            isZalo: parseSafeBool(item.isZalo), 
+            isZaloFriend: parseSafeBool(item.isZaloFriend),
+            isProcessed: parseSafeBool(item.isProcessed),
+            isSubMeter: parseSafeBool(item.isSubMeter),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
@@ -270,10 +270,10 @@ const App: React.FC = () => {
             oldDebt: parseFloat(item.oldDebt) || 0, 
             paid: parseFloat(item.paid) || 0,
             listType: 'list2', 
-            isZalo: !!item.isZalo, 
-            isZaloFriend: !!item.isZaloFriend,
-            isProcessed: !!item.isProcessed,
-            isSubMeter: !!item.isSubMeter,
+            isZalo: parseSafeBool(item.isZalo), 
+            isZaloFriend: parseSafeBool(item.isZaloFriend),
+            isProcessed: parseSafeBool(item.isProcessed),
+            isSubMeter: parseSafeBool(item.isSubMeter),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
@@ -363,7 +363,7 @@ const App: React.FC = () => {
         mode: 'cors',
         redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
+        body: safeJsonStringify({
           action: 'update_all',
           config: {
             waterRate: config.waterRate,
@@ -380,7 +380,7 @@ const App: React.FC = () => {
             // Add extra sync data as JSON string inside config object
             // This ensures scripts that only handle "config" can still sync these features
             // Crucial Optimization: Remove redundant updatedAtMap (already in customer rows) and prune histories to fit 50,000 chars limit
-            extra_sync_data: JSON.stringify({
+            extra_sync_data: safeJsonStringify({
               groups,
               lossRecords: [...lossRecords]
                 .sort((a, b) => b.createdAt - a.createdAt)

@@ -442,9 +442,19 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
 
   const avgConsumption = useMemo(() => {
     if (filteredReadings.length === 0) return 0;
+    let sumDailyAvg = 0;
+    let count = 0;
+    filteredReadings.forEach(r => {
+      const info = readingsWithDays[r.id];
+      if (info) {
+        sumDailyAvg += info.avgCons;
+        count++;
+      }
+    });
+    if (count > 0) return sumDailyAvg / count;
     const totals = filteredReadings.map(r => (r.consumption1 || 0) + (r.consumption2 || 0));
     return totals.reduce((a, b) => a + b, 0) / totals.length;
-  }, [filteredReadings]);
+  }, [filteredReadings, readingsWithDays]);
 
   const { totalM1Cons, totalM2Cons, grandTotalCons } = useMemo(() => {
     const m1Sum = filteredReadings.reduce((sum, r) => sum + (r.consumption1 || 0), 0);
@@ -705,7 +715,7 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                   filteredReadings.map((r, idx) => {
                     const info = readingsWithDays[r.id] || { diffDays: 1, avgCons: (r.consumption1 || 0) + (r.consumption2 || 0) };
                     const totalCons = (r.consumption1 || 0) + (r.consumption2 || 0);
-                    const isHigh = info.avgCons > avgConsumption * 1.5 && filteredReadings.length > 3;
+                    const isHigh = info.diffDays === 1 && info.avgCons > avgConsumption * 1.5 && filteredReadings.length > 3;
                     const isEditing = editingId === r.id;
                     
                     return (

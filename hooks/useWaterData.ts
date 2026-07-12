@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { Customer, SystemConfig, WaterGroup, GroupMember, LossRecord, DailySupplyReading } from '../types';
-import { calculateRow, normalizeMonthYear, parseStringOrDateToNumber } from '../utils';
+import { calculateRow, normalizeMonthYear, parseStringOrDateToNumber, safeJsonStringify, ensureUniqueIds } from '../utils';
 
 export const useWaterData = () => {
-  const [customers, setCustomers] = useState<Customer[]>(() => {
+  const [customers, setCustomersState] = useState<Customer[]>(() => {
     try {
       const saved = localStorage.getItem('water_data_final_v21');
       const data = saved ? JSON.parse(saved) : [];
@@ -14,18 +14,26 @@ export const useWaterData = () => {
         return { ...c, maKH: String(maKH), name };
       });
       // Filter out any "TỔNG CỘNG" row that accidentally got imported as a customer
-      return loaded.filter((c: any) => {
+      const filtered = loaded.filter((c: any) => {
         const cleanMaKH = String(c.maKH || "").replace(/[\u200B\s]/g, "").toUpperCase();
         const cleanName = String(c.name || "").replace(/[\u200B\s]/g, "").toUpperCase();
         const isSumRow = cleanMaKH.includes("TỔNG") || cleanMaKH.includes("CỘNG") || cleanMaKH.includes("TONG") || cleanMaKH.includes("CONG") ||
                          cleanName.includes("TỔNG CỘNG") || cleanName.includes("TONG CONG") || cleanName === "TỔNG" || cleanName === "CỘNG";
         return !isSumRow;
       });
+      return ensureUniqueIds(filtered);
     } catch (e) {
       console.error("Error loading customers:", e);
       return [];
     }
   });
+
+  const setCustomers = (val: Customer[] | ((prev: Customer[]) => Customer[])) => {
+    setCustomersState(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      return ensureUniqueIds(next);
+    });
+  };
 
   const [lossRecords, setLossRecords] = useState<LossRecord[]>(() => {
     try {
@@ -143,12 +151,12 @@ export const useWaterData = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem('water_data_final_v21', JSON.stringify(customers));
-    localStorage.setItem('water_groups_v21', JSON.stringify(groups));
-    localStorage.setItem('water_config_v21', JSON.stringify(config));
+    localStorage.setItem('water_data_final_v21', safeJsonStringify(customers));
+    localStorage.setItem('water_groups_v21', safeJsonStringify(groups));
+    localStorage.setItem('water_config_v21', safeJsonStringify(config));
     localStorage.setItem('water_active_tab', activeTab);
-    localStorage.setItem('water_loss_records_v21', JSON.stringify(lossRecords));
-    localStorage.setItem('water_daily_supply_v21', JSON.stringify(dailySupplyReadings));
+    localStorage.setItem('water_loss_records_v21', safeJsonStringify(lossRecords));
+    localStorage.setItem('water_daily_supply_v21', safeJsonStringify(dailySupplyReadings));
   }, [customers, groups, config, activeTab, lossRecords, dailySupplyReadings]);
 
   useEffect(() => {
