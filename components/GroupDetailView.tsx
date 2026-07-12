@@ -180,7 +180,7 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
   };
 
   const generateGroupMsg = () => {
-    let msg = `${getZaloBillingHeader()}
+    let msg = `${getZaloBillingHeader(group.updatedAt)}
 NHÓM: ${group.name.toUpperCase()}
 ---------------------------
 `;

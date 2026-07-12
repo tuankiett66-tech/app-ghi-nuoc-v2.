@@ -312,8 +312,8 @@ export const getBillingMonthYear = () => {
   return `${m}/${year}`;
 };
 
-export const getZaloBillingHeader = () => {
-  const d = new Date();
+export const getZaloBillingHeader = (customTimestamp?: number) => {
+  const d = (customTimestamp && customTimestamp > 0) ? new Date(customTimestamp) : new Date();
   const day = d.getDate();
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();

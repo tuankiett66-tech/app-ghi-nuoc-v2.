@@ -514,7 +514,7 @@ const App: React.FC = () => {
     const accountNo = isGroup ? (config.groupAccountNo || config.accountNo) : config.accountNo;
     const accountName = isGroup ? (config.groupAccountName || config.accountName) : config.accountName;
     
-    let msg = `${getZaloBillingHeader()}
+    let msg = `${getZaloBillingHeader(c.updatedAt)}
 MÃ KH: ${c.maKH}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}
