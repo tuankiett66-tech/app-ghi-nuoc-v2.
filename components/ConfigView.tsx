@@ -3,6 +3,7 @@ import React from 'react';
 import { X, UploadCloud, FileSpreadsheet, Trash2, Globe } from 'lucide-react';
 import { SystemConfig } from '../types';
 import { parseSafe } from '../utils';
+import { APPS_SCRIPT_V4_3 } from './ScriptContent';
 
 interface ConfigViewProps {
   config: SystemConfig;
@@ -58,10 +59,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                 <button 
                   onClick={async () => {
                     try {
-                      const response = await fetch('/docs/script_v4.3.js');
-                      if (!response.ok) throw new Error("Không thể tải file script từ hệ thống.");
-                      const text = await response.text();
-                      await navigator.clipboard.writeText(text);
+                      await navigator.clipboard.writeText(APPS_SCRIPT_V4_3);
                       alert("📋 Đã sao chép mã Google Apps Script V4.3 thành công!\n\nHướng dẫn:\n1. Mở file Google Sheets của bạn.\n2. Vào Tiện ích mở rộng (Extensions) > Apps Script.\n3. Chọn toàn bộ mã cũ và dán đè mã mới này vào.\n4. Nhấn nút Save (Biểu tượng đĩa) và nhấn Triển khai (Deploy) > Tùy chọn triển khai mới (New Deployment) > Chọn loại Web App > Nhấn Deploy.");
                     } catch (err) {
                       alert("Lỗi tải script: " + (err instanceof Error ? err.message : String(err)));
