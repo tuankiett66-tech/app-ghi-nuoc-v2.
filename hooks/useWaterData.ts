@@ -243,6 +243,7 @@ export const useWaterData = () => {
     });
 
     setCustomers([...otherTabCustomers, ...nextMonthCustomers].sort((a, b) => String(a.maKH || "").localeCompare(String(b.maKH || ""), undefined, { numeric: true, sensitivity: 'base' })));
+    setGroups(prev => prev.map(g => ({ ...g, isProcessed: false })));
     return nextMonthCustomers;
   };
 

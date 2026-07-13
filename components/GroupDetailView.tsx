@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode, GripVertical, Settings2, Check } from 'lucide-react';
+import { ChevronLeft, Plus, X, MessageCircle, Trash2, Copy, Info, UserCheck, Mic, QrCode, GripVertical, Settings2, Check, CheckCheck } from 'lucide-react';
 import { Customer, SystemConfig, WaterGroup } from '../types';
 import { formatCurrency, copyToClipboard, generateVietQrUrl, normalizeString, getBillingMonthYear, getZaloBillingHeader } from '../utils';
 import {
@@ -94,6 +94,7 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ group, custome
   const [maKHInput, setMaKHInput] = useState('');
   const [sourceInput, setSourceInput] = useState<'list1' | 'list2'>('list1');
   const [isSortMode, setIsSortMode] = useState(false);
+  const [localCopied, setLocalCopied] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -387,7 +388,20 @@ Nội dung: TT NUOC ${cleanGroupName}`;
             >
               <QrCode size={18}/>
             </button>
-            <button onClick={async () => { const msg = generateGroupMsg(); await copyToClipboard(msg); alert("Da copy!"); }} className="col-span-3 bg-slate-800 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-slate-950 disabled:opacity-50 text-[10px]"><Copy size={16}/> BILL</button>
+            <button 
+              onClick={async () => { 
+                const msg = generateGroupMsg(); 
+                await copyToClipboard(msg); 
+                onUpdateGroup(group.id, { isProcessed: true });
+                setLocalCopied(true);
+                setTimeout(() => setLocalCopied(false), 2000);
+              }} 
+              disabled={groupData.length === 0}
+              className="col-span-3 bg-slate-800 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-slate-950 disabled:opacity-50 text-[10px]"
+            >
+              {localCopied ? <CheckCheck size={16} className="text-emerald-400"/> : <Copy size={16}/>}
+              {localCopied ? "ĐÃ COPY" : "BILL"}
+            </button>
         </div>
       </div>
     </div>

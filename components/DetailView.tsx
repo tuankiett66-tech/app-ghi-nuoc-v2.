@@ -29,6 +29,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [showQrInline, setShowQrInline] = useState(false);
   const [isEditingInstallDate, setIsEditingInstallDate] = useState(false);
   const [tempInstallDate, setTempInstallDate] = useState(customer.installDate || "");
+  const [copiedName, setCopiedName] = useState(false);
 
   // QUAN TRONG: Reset o nhap lieu moi khi chuyen sang khach hang khac (customer.id thay doi)
   useEffect(() => {
@@ -38,6 +39,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
     setShowQrInline(false);
     setIsEditingInstallDate(false);
     setTempInstallDate(customer.installDate || "");
+    setCopiedName(false);
   }, [customer.id]);
 
   // Cap nhat du lieu len store khi nguoi dung nhap lieu
@@ -92,13 +94,15 @@ export const DetailView: React.FC<DetailViewProps> = ({
           <div className="flex items-center gap-2 mt-2">
             <h2 className="font-black uppercase text-[22px] text-slate-900 leading-tight">{customer.name}</h2>
             <button 
-              onClick={() => {
-                copyToClipboard(customer.name);
-                alert("Đã copy tên khách hàng!");
+              onClick={async () => {
+                await copyToClipboard(customer.name);
+                setCopiedName(true);
+                setTimeout(() => setCopiedName(false), 2000);
               }}
-              className="p-1.5 bg-slate-100 rounded-lg text-slate-500 active:scale-90"
+              className={`p-1.5 rounded-lg active:scale-90 transition-all ${copiedName ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}
+              title="Copy tên"
             >
-              <Copy size={16}/>
+              {copiedName ? <CheckCheck size={16}/> : <Copy size={16}/>}
             </button>
           </div>
           <p className="text-sm text-slate-600 font-bold mt-1">ĐC: {customer.address || '---'}</p>

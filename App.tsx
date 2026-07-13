@@ -737,7 +737,8 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           }}
           onSendZalo={async (msg, sdt) => {
             await copyToClipboard(msg);
-            showToast("Da copy Bill Nhom!");
+            updateGroup(activeGroup.id, { isProcessed: true });
+            showToast("Đã copy Bill Nhóm & Đánh dấu!");
             if(sdt) setTimeout(() => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(sdt)}`; }, 300);
           }}
           onShowQr={(bankId, accountNo, amount, name) => setGroupQrData({bankId, accountNo, amount, name})}

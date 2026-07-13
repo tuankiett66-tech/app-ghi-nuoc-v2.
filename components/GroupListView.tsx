@@ -64,7 +64,11 @@ const SortableGroupItem = ({
     <div 
       ref={setNodeRef} 
       style={style}
-      className={`bg-white rounded-[2rem] shadow-sm border-2 transition-all flex items-stretch group relative overflow-hidden min-h-[5rem] ${isSortMode ? 'border-dashed border-indigo-200' : 'border-transparent hover:border-indigo-100'}`}
+      className={`bg-white rounded-[2rem] shadow-sm border-2 transition-all flex items-stretch group relative overflow-hidden min-h-[5rem] ${
+        isSortMode ? 'border-dashed border-indigo-200' : 
+        group.isProcessed ? 'border-emerald-500 bg-emerald-50/10' : 
+        'border-transparent hover:border-indigo-100'
+      }`}
     >
       {isSortMode && (
         <div 
@@ -92,7 +96,14 @@ const SortableGroupItem = ({
               <Edit2 size={12}/>
             </button>
           </div>
-          <p className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg inline-block text-[10px] font-black uppercase tracking-wider mt-1 ml-8">{(group.members || []).length} Hộ thành viên</p>
+          <div className="flex flex-wrap items-center gap-1.5 mt-1 ml-8">
+            <p className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider">{(group.members || []).length} Hộ thành viên</p>
+            {group.isProcessed && (
+              <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                <Check size={12} strokeWidth={3} /> Đã copy
+              </span>
+            )}
+          </div>
         </div>
         
         <div className="flex items-center gap-1 shrink-0">

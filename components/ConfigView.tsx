@@ -3,7 +3,7 @@ import React from 'react';
 import { X, UploadCloud, FileSpreadsheet, Trash2, Globe } from 'lucide-react';
 import { SystemConfig } from '../types';
 import { parseSafe } from '../utils';
-import { APPS_SCRIPT_V4_3 } from './ScriptContent';
+import { APPS_SCRIPT_V4_4 } from './ScriptContent';
 
 interface ConfigViewProps {
   config: SystemConfig;
@@ -54,20 +54,20 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
 
              <div className="pt-2 border-t border-slate-100 space-y-2">
                 <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-                  💡 <b>TỰ ĐỘNG LƯU TRỮ LỊCH SỬ KỲ (V4.3):</b> Khi chốt kỳ, dữ liệu kỳ cũ sẽ tự động nhân bản thành một trang tính riêng biệt (ví dụ: <i>LichSu_Bộ01_Ky_6_2026</i>) trên Google Sheets để lưu trữ vĩnh viễn. Hãy nhấn nút dưới để copy và cập nhật lại Apps Script của bạn:
+                  💡 <b>ĐỒNG BỘ THẤT THOÁT & GHI NƯỚC (V4.4):</b> Bản cập nhật này đồng bộ trực tiếp các trang tính độc lập <i>LossRecords</i> (Thất thoát) và <i>DailySupply</i> (Ghi nước hàng ngày) lên Google Sheets, đồng thời tự động lưu trữ lịch sử trang hoạt động khi chốt kỳ. Vui lòng copy và cập nhật Apps Script của bạn:
                 </p>
                 <button 
                   onClick={async () => {
                     try {
-                      await navigator.clipboard.writeText(APPS_SCRIPT_V4_3);
-                      alert("📋 Đã sao chép mã Google Apps Script V4.3 thành công!\n\nHướng dẫn:\n1. Mở file Google Sheets của bạn.\n2. Vào Tiện ích mở rộng (Extensions) > Apps Script.\n3. Chọn toàn bộ mã cũ và dán đè mã mới này vào.\n4. Nhấn nút Save (Biểu tượng đĩa) và nhấn Triển khai (Deploy) > Tùy chọn triển khai mới (New Deployment) > Chọn loại Web App > Nhấn Deploy.");
+                      await navigator.clipboard.writeText(APPS_SCRIPT_V4_4);
+                      alert("📋 Đã sao chép mã Google Apps Script V4.4 thành công!\n\nHướng dẫn:\n1. Mở file Google Sheets của bạn.\n2. Vào Tiện ích mở rộng (Extensions) > Apps Script.\n3. Chọn toàn bộ mã cũ và dán đè mã mới này vào.\n4. Nhấn nút Save (Biểu tượng đĩa) và nhấn Triển khai (Deploy) > Tùy chọn triển khai mới (New Deployment) > Chọn loại Web App > Nhấn Deploy.");
                     } catch (err) {
                       alert("Lỗi tải script: " + (err instanceof Error ? err.message : String(err)));
                     }
                   }} 
                   className="w-full bg-slate-100 text-slate-800 hover:bg-slate-200 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border border-slate-200 active:scale-95"
                 >
-                  📋 Copy mã Apps Script V4.3 mới nhất
+                  📋 Copy mã Apps Script V4.4 mới nhất
                 </button>
              </div>
           </div>

@@ -38,6 +38,14 @@
 - **Problem**: Small fonts for critical numbers (usage, readings) were hard to read outdoors.
 - **Solution**: Standardize on high-contrast, large font sizes for numeric data in `DetailView`, `LossView`, and `LossDailyTracking`.
 
+### 7. Group Billing Copy Status & Modern Feedback (Fixed in V4.4)
+- **Problem**: Users found it hard to track which group bills had already been copied/billed. Copying data (customer names, group bills) lacked elegant in-context validation, relying on primitive `alert()` popups that broke flow.
+- **Solution**:
+  - **Dynamic Highlights**: Groups with `group.isProcessed === true` are styled with an emerald border, light green tint, and an inline "Đã copy" checkmark badge in `GroupListView`.
+  - **Action Sync**: Copied status `isProcessed` is updated to `true` automatically on clicking copy/Zalo button for the group, and is fully persisted through local/cloud synchronization mechanisms.
+  - **Micro-interactions**: Added instant feedback transitions (2 seconds) replacing the standard copy buttons with a double-check icon (`CheckCheck`) and a green hue, replacing popups.
+  - **Period Transitions**: All group processed states automatically reset to `false` in `createNewMonth` to ensure a clean slate for the next period.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel` (blank column K logic).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).

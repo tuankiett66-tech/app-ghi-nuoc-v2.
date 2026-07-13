@@ -38,6 +38,7 @@ export interface WaterGroup {
   oldIndex?: number;      // Chỉ số tổng nhóm (Cũ)
   newIndex?: number;      // Chỉ số tổng nhóm (Mới)
   updatedAt?: number;     // Ngày ghi chỉ số nhóm
+  isProcessed?: boolean;  // Track if group bill is copied/processed
 }
 
 export interface SystemConfig {

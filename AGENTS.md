@@ -9,12 +9,18 @@
 2. **Data Persistence & Sync**:
    - **Phone Numbers**: In `updateCustomer`, always check for `undefined` (e.g., `updates.phoneTenant !== undefined`) to allow empty strings (`""`) to be saved.
    - **Green Status (isProcessed)**: Always include `isProcessed` in Cloud Backup and Restore (Sync) to prevent losing the "sent message" visual indicator.
+   - **Group Billing Processed Status (`isProcessed`)**: Track the `isProcessed` boolean flag for each group. Ensure it is preserved during cloud backup and restored properly inside the `groups` list (within `extra_sync_data` of the configuration).
+   - **Meter Expiry & Group Status Reset**: All group `isProcessed` flags must be reset to `false` automatically when initiating a new period (`createNewMonth` or chốt kỳ) to start clean.
    - **Meter Install Date (installDate)**: Ensure `installDate` is mapped in `handleBackupCloud` and `handleSyncCloud` to persist meter expiration tracking across devices.
    - **Daily Supply Tracking**: Ensure `dailySupplyReadings` array is included in the Cloud Backup JSON object to persist loss management history.
    - **Group Sync & Merging**: When restoring from cloud, use a merge strategy for `groups` to compare local vs cloud entities (by ID or Name) and preserve data from both sides. Include `extra_sync_data` (stringified JSON) within the `config` object as a fallback for scripts that only support the config table.
 
 3. **UI & Layout**:
    - **Large Numbers**: Priority metrics like "Mã KH", "Tiêu thụ" (Volume), "Số cũ/mới", and "Chỉ số" (CS reading) must use large, bold fonts (e.g., `text-[13px]`+ for labels, `text-[18px]`+ for main values) for high visibility in field conditions.
+   - **Group Copied Status indicators**: Group cards in the main Group List must visually highlight copy status. When `group.isProcessed` is `true`, style the card with an emerald border, high-contrast subtle green background (`border-emerald-500 bg-emerald-50/10`), and a "Đã copy" checkmark badge.
+   - **Copy Action Feedback**: Trigger instant visual micro-animations and status updates upon copying critical data:
+     - When copying a customer name in `DetailView`, immediately change the button layout to green (`bg-emerald-100 text-emerald-700`) and replace the copy icon with a double-check (`CheckCheck` icon) for 2 seconds.
+     - When copying a group's combined invoice (`BILL` action in `GroupDetailView`), change the button label to "ĐÃ COPY" and replace the icon with `CheckCheck` for 2 seconds.
    - **Reorder Control Segregation**: In lists where items can be reordered (Groups, Members), use a dedicated "Sort Mode" (Edit Mode) triggered by a button in the header. In this mode:
      - Show a 3-bar "Grip" handle at the start of each card for drag-and-drop reordering using `dnd-kit`.
      - Disable normal navigation/deletion clicks to prevent accidental triggers while reordering.
