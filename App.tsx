@@ -224,7 +224,7 @@ const App: React.FC = () => {
             isZalo: parseSafeBool(item.isZalo), 
             isZaloFriend: parseSafeBool(item.isZaloFriend),
             isProcessed: parseSafeBool(item.isProcessed),
-            isSubMeter: parseSafeBool(item.isSubMeter),
+            isSubMeter: item.isSubMeter !== undefined ? parseSafeBool(item.isSubMeter) : (Array.isArray(extraData.subMeters) && extraData.subMeters.includes(`list1:${maKH}`)),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
@@ -273,7 +273,7 @@ const App: React.FC = () => {
             isZalo: parseSafeBool(item.isZalo), 
             isZaloFriend: parseSafeBool(item.isZaloFriend),
             isProcessed: parseSafeBool(item.isProcessed),
-            isSubMeter: parseSafeBool(item.isSubMeter),
+            isSubMeter: item.isSubMeter !== undefined ? parseSafeBool(item.isSubMeter) : (Array.isArray(extraData.subMeters) && extraData.subMeters.includes(`list2:${maKH}`)),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
@@ -388,7 +388,8 @@ const App: React.FC = () => {
                 .slice(0, 24),
               dailySupplyReadings: [...dailySupplyReadings]
                 .sort((a, b) => b.date.localeCompare(a.date))
-                .slice(0, 90)
+                .slice(0, 90),
+              subMeters: customers.filter(c => c.isSubMeter).map(c => `${c.listType}:${c.maKH}`)
             })
           },
           list1: data1,

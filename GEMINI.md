@@ -57,6 +57,13 @@
   - **Line 2 (Status & Balance)**: Keeps the total balance highlighted in high-contrast rose-600 bold text directly underneath the name, combined with the number of member households and processing indicator.
   - **Clean Structure**: The delete action is placed cleanly at the outer right end, and arrow icons are completely removed. Clicking anywhere on the card opens its details immediately.
 
+### 10. Sub-Meter Sync Persistence (Fixed in V4.7)
+- **Problem**: Every time uploading to or downloading from the cloud occurred, the sub-meter ("Đồng hồ phụ" / `isSubMeter`) flag was reset back to default false because the legacy Google Apps Script (V4.3 and earlier) only parsed up to 17 columns (A to Q) and ignored `isSubMeter` entirely.
+- **Solution**:
+  - **Double-Sync Fallback Mechanism**: Implemented a highly robust fallback mechanism. In `App.tsx`, `isSubMeter` is now backed up both as an individual field and inside the `extra_sync_data` JSON string (which stores a list of sub-meter customers). When restoring data, if the Apps Script is outdated and returns `undefined` for `item.isSubMeter`, the app seamlessly falls back to reading from `extra_sync_data.subMeters`. This prevents any data loss even if the user hasn't redeployed their script.
+  - **Updated Google Apps Script (V4.4)**: Created `/docs/script_v4.4.js` which natively supports 18 columns, reading and writing `isSubMeter` directly in Column R of Google Sheets.
+  - **Excel Synchronization**: Added support for `"ĐỒNG HỒ PHỤ"` column (Column M / 13) in Excel export and import, completing the end-to-end data integrity chain.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel` (blank column K logic).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).

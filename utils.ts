@@ -394,7 +394,7 @@ export const generateVietQrUrl = (bankId: string, accountNo: string, amount: num
 
 export const exportToExcel = async (customers: Customer[], fileName: string = 'Bao_Cao') => {
   const XLSX = await getXLSX();
-  const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI", "LẮP ĐẶT"];
+  const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI", "LẮP ĐẶT", "ĐỒNG HỒ PHỤ"];
   
   const sorted = [...customers].sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
   
@@ -424,7 +424,8 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
       Math.round(c.oldDebt) || 0, 
       Math.round(c.paid) || "", 
       isKyMoi ? "" : (Math.round(c.balance) || ""),
-      c.installDate || ""
+      c.installDate || "",
+      c.isSubMeter ? "X" : ""
     ];
   });
 
@@ -527,7 +528,7 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
         
         let headerRowIndex = -1;
         let colMap: Record<string, number> = {
-          maKH: 0, name: 1, address: 2, phone: 3, newIndex: 4, oldIndex: 5, oldDebt: 8, paid: 9, zalo: 11, installDate: -1
+          maKH: 0, name: 1, address: 2, phone: 3, newIndex: 4, oldIndex: 5, oldDebt: 8, paid: 9, zalo: 11, installDate: -1, isSubMeter: -1
         };
 
         // Tim hang tieu de va tu dong mapping cot theo ten
@@ -550,6 +551,7 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
               else if (text.includes("THANH TOÁN") || text.includes("ĐÃ TRẢ") || text.includes("THU")) colMap.paid = idx;
               else if (text.includes("ZALO")) colMap.zalo = idx;
               else if (text.includes("LẮP ĐẶT") || text.includes("INSTALL")) colMap.installDate = idx;
+              else if (text.includes("PHỤ") || text.includes("SUB")) colMap.isSubMeter = idx;
             });
             break;
           }
@@ -598,7 +600,8 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
             paid: parseSafe(row[colMap.paid]),
             listType,
             isZalo: String(row[colMap.zalo] || "").toUpperCase() === "X",
-            installDate: colMap.installDate !== -1 ? String(row[colMap.installDate] || "").trim() : ""
+            installDate: colMap.installDate !== -1 ? String(row[colMap.installDate] || "").trim() : "",
+            isSubMeter: colMap.isSubMeter !== -1 ? parseSafeBool(row[colMap.isSubMeter]) : false
           }, rate));
         }
         resolve(res);

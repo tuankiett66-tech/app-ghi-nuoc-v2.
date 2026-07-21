@@ -46,5 +46,6 @@
 
 ## Synchronization
 - The app uses a Google Apps Script for cloud backup.
-- No changes to the script are needed for data structure updates as it handles generic JSON objects.
-- Ensure `handleBackupCloud` in `App.tsx` maps all critical fields: `isProcessed`, `isZalo`, `dailySupplyReadings`, `groups`, `lossRecords`, `master1Initial`, `master2Initial`.
+- **Double-Backup Fallback**: To ensure backward compatibility, `isSubMeter` status must be saved both directly inside each customer row and consolidated inside the `extra_sync_data` JSON string (under `subMeters`). This guarantees that if a user uses an older script version, their sub-meter properties are still preserved during restore.
+- Update the Apps Script reference in `/docs/script_v4.4.js` to support 18 columns, including `isSubMeter` in Column R.
+- Ensure `handleBackupCloud` in `App.tsx` maps all critical fields: `isProcessed`, `isZalo`, `isSubMeter`, `dailySupplyReadings`, `groups`, `lossRecords`, `master1Initial`, `master2Initial`.
