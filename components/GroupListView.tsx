@@ -92,27 +92,26 @@ const SortableGroupItem = ({
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-1 shrink-0">
-        <div className="text-[9px] font-extrabold text-slate-400 uppercase leading-none tracking-wider">STT</div>
-        <div className={`px-2.5 py-1.5 rounded-xl min-w-[42px] text-center text-white text-[14px] font-black shadow-sm leading-none ${
+      <div className="flex-col flex gap-1 items-center shrink-0">
+        <div className="text-[8px] font-extrabold text-slate-400 uppercase leading-none tracking-widest">STT</div>
+        <div className={`px-2.5 py-1.5 rounded-xl min-w-[38px] text-center text-white text-[13px] font-black shadow-sm leading-none ${
           group.isProcessed ? 'bg-emerald-500' : 'bg-indigo-600'
         }`}>
           {index + 1}
         </div>
         {group.isProcessed && (
-          <div className="p-0.5 rounded-full border-2 -mt-1 bg-emerald-600 text-white border-emerald-600 shadow-sm shrink-0">
-            <Check size={10} strokeWidth={3} />
+          <div className="p-0.5 rounded-full border border-emerald-600 -mt-1 bg-emerald-600 text-white shadow-sm shrink-0">
+            <Check size={9} strokeWidth={4} />
           </div>
         )}
       </div>
 
-      <div className="flex-1 min-w-0 self-center">
-        <div className="flex items-start justify-between gap-1 mb-0.5">
-          <div className="flex items-center gap-1.5 flex-wrap flex-1">
-            <h3 className="font-black uppercase text-[14px] sm:text-[16px] leading-tight text-slate-900 line-clamp-2">
-              {group.name}
-            </h3>
-          </div>
+      <div className="flex-1 min-w-0">
+        {/* Dòng 1: TÊN NHÓM hiển thị đầy đủ */}
+        <div className="flex items-start gap-1.5 mb-1.5 justify-between">
+          <h3 className="font-black uppercase text-[14px] sm:text-[15px] leading-snug text-slate-900 break-words flex-1 pr-1">
+            {group.name}
+          </h3>
           <button 
             onClick={(e) => { e.stopPropagation(); onEdit(group, e); }}
             className="p-1 bg-slate-100 text-slate-400 hover:text-indigo-600 rounded-lg active:scale-90 shrink-0 transition-colors"
@@ -122,39 +121,39 @@ const SortableGroupItem = ({
           </button>
         </div>
         
-        <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1">
-          <p className="text-[9px] sm:text-[10px] text-indigo-700 font-black flex items-center gap-1">
-            <span className="text-slate-400 font-bold uppercase">Thành viên:</span> {(group.members || []).length} hộ
-          </p>
-          {group.isProcessed && (
-            <p className="text-[9px] sm:text-[10px] text-emerald-700 font-black flex items-center gap-1">
-              <span className="text-emerald-400 font-bold uppercase">Trạng thái:</span> Đã copy
-            </p>
+        {/* Dòng 2: Số tiền & Thông tin hộ thành viên */}
+        <div className="flex flex-col gap-1">
+          {!isSortMode && (
+            <div className="flex items-baseline gap-1">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Tiền nhóm:</span>
+              <span className="font-black text-[15px] text-rose-600 tracking-tight leading-none">
+                {formatCurrency(totalAmount)}
+              </span>
+            </div>
           )}
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[10px] sm:text-[11px] text-slate-500 font-bold">
+            <span className="flex items-center gap-1">
+              <span className="text-slate-400 font-bold uppercase">Số hộ:</span> 
+              <strong className="text-indigo-600">{(group.members || []).length} hộ</strong>
+            </span>
+            {group.isProcessed && (
+              <span className="text-emerald-700 font-black bg-emerald-100/60 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider">
+                ĐÃ COPY
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* NÚT XOÁ ĐỂ CUỐI */}
       <div className="flex items-center gap-1 shrink-0 ml-1 self-center">
-        {!isSortMode && (
-          <div className="text-right flex flex-col justify-center mr-1 select-none shrink-0 min-w-[70px]">
-            <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest leading-none mb-0.5">Tiền nhóm</span>
-            <span className="font-black text-[15px] text-rose-600 tracking-tight leading-none">
-              {formatCurrency(totalAmount)}
-            </span>
-          </div>
-        )}
-        
         <button 
           onClick={(e) => onDelete(group.id, e)} 
-          className="p-2 text-slate-300 hover:text-rose-600 active:scale-90 transition-all hover:bg-rose-50 rounded-lg shrink-0"
+          className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl active:scale-90 shrink-0 transition-all"
           title="Xóa nhóm"
         >
           <Trash2 size={16}/>
         </button>
-        
-        <div className={`p-1.5 transition-colors shrink-0 ${isSortMode ? 'opacity-0' : 'text-slate-300 group-hover:text-indigo-600'}`}>
-          <ArrowRight size={16}/>
-        </div>
       </div>
     </div>
   );

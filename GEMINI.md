@@ -50,6 +50,13 @@
 - **Problem**: When viewing the Group list, collectors had to enter each group's detail view to see the total billing amount, which slowed down physical field collection progress.
 - **Solution**: Dynamically calculate each group's total outstanding bill (sum of the `balance` of all group members) in `GroupListView.tsx` and render it directly on the group list cards in a distinct, highly readable rose-600 formatted currency value ("Tiền nhóm: [Số tiền] đ").
 
+### 9. Minimalist Group List Card Layout (Fixed in V4.6)
+- **Problem**: The group list cards had a cluttered UI with excessive line clamping, arrow icons, and misaligned metrics that made reading and navigating slow in the field.
+- **Solution**: Refactored the cards to be highly minimalist and optimized for mobile:
+  - **Line 1 (Group Name)**: Wraps naturally to display the full name without truncate or clamp, keeping the Edit action in context.
+  - **Line 2 (Status & Balance)**: Keeps the total balance highlighted in high-contrast rose-600 bold text directly underneath the name, combined with the number of member households and processing indicator.
+  - **Clean Structure**: The delete action is placed cleanly at the outer right end, and arrow icons are completely removed. Clicking anywhere on the card opens its details immediately.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel` (blank column K logic).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).
