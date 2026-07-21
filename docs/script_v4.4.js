@@ -223,6 +223,19 @@ function updateOrInsertData(sheet, dataToUpdate) {
     sheet.insertColumnsAfter(maxCols, 18 - maxCols);
   }
   
+  // Tự động điền tiêu đề "Đồng hồ phụ" vào ô R4 (Dòng 4, Cột 18) và định dạng checkbox
+  try {
+    var headerCell = sheet.getRange(4, 18);
+    headerCell.setValue("Đồng hồ phụ");
+    
+    // Thiết lập định dạng checkbox cho toàn bộ cột R (từ dòng 5 trở đi)
+    var totalRowsToFormat = Math.max(dataToUpdate.length, 500);
+    var checkboxRange = sheet.getRange(5, 18, totalRowsToFormat, 1);
+    checkboxRange.insertCheckboxes();
+  } catch (e) {
+    // Bỏ qua lỗi định dạng nếu có
+  }
+  
   // 1. Lấy toàn bộ dữ liệu hiện tại để xóa (từ dòng 5 trở đi)
   var lastRow = sheet.getLastRow();
   if (lastRow >= 5) {
