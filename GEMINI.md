@@ -46,6 +46,10 @@
   - **Micro-interactions**: Added instant feedback transitions (2 seconds) replacing the standard copy buttons with a double-check icon (`CheckCheck`) and a green hue, replacing popups.
   - **Period Transitions**: All group processed states automatically reset to `false` in `createNewMonth` to ensure a clean slate for the next period.
 
+### 8. Displaying Group Bill Amount on List (Fixed in V4.5)
+- **Problem**: When viewing the Group list, collectors had to enter each group's detail view to see the total billing amount, which slowed down physical field collection progress.
+- **Solution**: Dynamically calculate each group's total outstanding bill (sum of the `balance` of all group members) in `GroupListView.tsx` and render it directly on the group list cards in a distinct, highly readable rose-600 formatted currency value ("Tiền nhóm: [Số tiền] đ").
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel` (blank column K logic).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).

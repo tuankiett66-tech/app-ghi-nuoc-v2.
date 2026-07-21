@@ -18,6 +18,7 @@
 3. **UI & Layout**:
    - **Large Numbers**: Priority metrics like "Mã KH", "Tiêu thụ" (Volume), "Số cũ/mới", and "Chỉ số" (CS reading) must use large, bold fonts (e.g., `text-[13px]`+ for labels, `text-[18px]`+ for main values) for high visibility in field conditions.
    - **Group Copied Status indicators**: Group cards in the main Group List must visually highlight copy status. When `group.isProcessed` is `true`, style the card with an emerald border, high-contrast subtle green background (`border-emerald-500 bg-emerald-50/10`), and a "Đã copy" checkmark badge.
+   - **Group Bill Total display on list**: Each group card in `GroupListView.tsx` must display the total outstanding bill of all members in the group (calculated as the sum of members' `balance`). Use a distinct, high-contrast label ("Tiền nhóm") and a prominent rose-600 colored text format (e.g. `text-rose-600 text-[15px] font-black`) next to the action buttons for instant visibility.
    - **Copy Action Feedback**: Trigger instant visual micro-animations and status updates upon copying critical data:
      - When copying a customer name in `DetailView`, immediately change the button layout to green (`bg-emerald-100 text-emerald-700`) and replace the copy icon with a double-check (`CheckCheck` icon) for 2 seconds.
      - When copying a group's combined invoice (`BILL` action in `GroupDetailView`), change the button label to "ĐÃ COPY" and replace the icon with `CheckCheck` for 2 seconds.

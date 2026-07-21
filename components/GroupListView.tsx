@@ -17,6 +17,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { formatCurrency } from '../utils';
 
 interface GroupListViewProps {
   groups: WaterGroup[];
@@ -32,6 +33,7 @@ interface GroupListViewProps {
 const SortableGroupItem = ({ 
   group, 
   index,
+  customers,
   onSelect, 
   onDelete, 
   onEdit, 
@@ -39,6 +41,7 @@ const SortableGroupItem = ({
 }: { 
   group: WaterGroup; 
   index: number;
+  customers: Customer[];
   onSelect: (id: string) => void; 
   onDelete: (id: string, e: React.MouseEvent) => void;
   onEdit: (group: WaterGroup, e: React.MouseEvent) => void;
@@ -52,6 +55,13 @@ const SortableGroupItem = ({
     transition,
     isDragging
   } = useSortable({ id: group.id });
+
+  const totalAmount = React.useMemo(() => {
+    return (group.members || []).reduce((sum, m) => {
+      const found = customers.find(c => c.maKH === m.maKH && c.listType === m.source);
+      return sum + (found ? found.balance : 0);
+    }, 0);
+  }, [group.members, customers]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -106,7 +116,13 @@ const SortableGroupItem = ({
           </div>
         </div>
         
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0 ml-2">
+          {!isSortMode && (
+            <div className="text-right flex flex-col justify-center mr-2 select-none shrink-0">
+              <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest leading-none mb-0.5">Tiền nhóm</span>
+              <span className="font-black text-[15px] text-rose-600 tracking-tighter leading-none">{formatCurrency(totalAmount)}</span>
+            </div>
+          )}
           <button 
             onClick={(e) => onDelete(group.id, e)} 
             className="p-3 text-rose-300 hover:text-rose-600 active:scale-90 transition-colors"
@@ -296,6 +312,7 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
                 <SortableGroupItem
                   key={group.id}
                   group={group}
+                  customers={customers}
                   index={originalIndex !== -1 ? originalIndex : 0}
                   isSortMode={isSortMode}
                   onSelect={onSelectGroup}
