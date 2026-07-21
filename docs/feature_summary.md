@@ -12,12 +12,12 @@
 | **Ghi Chỉ Số & Thu Tiền** | Ghi số mới, nhập tiền khách trả, tính tiền nợ còn lại. | `DetailView.tsx`, `utils.ts` | Hoàn thành | **Đã fix**: Hỗ trợ số dư âm (khách trả thừa). |
 | **Gửi Zalo & VietQR** | Tự động sinh nội dung bill và QR thanh toán. | `App.tsx`, `utils.ts` | Hoàn thành | Bill Zalo hiện đúng số âm. QR tự về 0 nếu âm. |
 | **Đồng Bộ Copy Bill** | Tự động đánh dấu "Xanh" (isZalo: true) khi bấm Copy Bill. | `App.tsx` | Hoàn thành | Giúp nhận biết hộ đã xử lý thủ công. |
-| **Quản Lý Nhóm** | Gom nhiều hộ vào 1 bill tổng, gửi Zalo cho chủ nhóm. | `GroupDetailView.tsx` | Hoàn thành | **Mới**: Thêm nút Tiến/Lùi để duyệt nhóm nhanh. |
+| **Quản Lý Nhóm** | Gom nhiều hộ vào 1 bill tổng, gửi Zalo cho chủ nhóm. | `GroupDetailView.tsx` | Hoàn thành | **Mới**: Tối ưu giao diện thẻ nhóm cực kỳ gọn gàng cho mobile (wrap tên nhóm, tiền dòng 2, nút xoá ở cuối, bỏ mũi tên). |
 | **Quản Lý Thất Thoát** | Theo dõi lịch sử hao hụt qua từng kỳ, so sánh đồng hồ tổng và hộ dân. | `LossView.tsx` | Hoàn thành | **Mới**: Có biểu đồ xu hướng và bảng lịch sử chi tiết. |
 | **Hai Tài Khoản Thu** | Hỗ trợ 2 STK riêng biệt: Tài khoản 1 (Thu chung) và Tài khoản 2 (Thu Nhóm). | `ConfigView.tsx` | Hoàn thành | **Mới**: Tự động đổi STK khi gửi Bill Nhóm hoặc Bill lẻ. |
 | **Báo Cáo & Chốt Kỳ** | Thống kê doanh thu, nợ tồn, chốt kỳ chuyển nợ sang kỳ mới. | `StatsView.tsx` | Hoàn thành | **Mới**: Đánh giá thất thoát linh hoạt (Toàn hệ thống hoặc từng Bộ). |
-| **Dữ Liệu Cloud** | Đồng bộ Google Sheets qua API Script riêng cho từng bộ. | `App.tsx`, `ConfigView.tsx` | Hoàn thành | Hỗ trợ Fetch (GET) và Backup (POST) không mất lịch sử (`updatedAt`) & Ngày thay ĐH (`installDate`). |
-| **Nhập/Xuất Excel** | Hỗ trợ file 12 cột chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành | **Mới**: Thêm dòng **TỔNG CỘNG** cuối file Excel báo cáo. |
+| **Dữ Liệu Cloud** | Đồng bộ Google Sheets qua API Script riêng cho từng bộ. | `App.tsx`, `ConfigView.tsx` | Hoàn thành | **Mới**: Apps Script V4.4 tự động tạo Cột R (Đồng hồ phụ), điền tiêu đề "Đồng hồ phụ" và định dạng Checkbox nếu cột chưa có. Bảo toàn lịch sử (`updatedAt`), Ngày thay ĐH (`installDate`) và Đồng hồ phụ (`isSubMeter`). |
+| **Nhập/Xuất Excel** | Hỗ trợ file Excel chuẩn, Backup dữ liệu ra file Excel. | `utils.ts` | Hoàn thành | **Mới**: Tích hợp cột M ("ĐỒNG HỒ PHỤ") vào cả quy trình xuất và nhập Excel; thêm dòng **TỔNG CỘNG** cuối file báo cáo. |
 | **Quản lý KH** | Sửa thông tin, xóa SĐT, theo dõi thời hạn đồng hồ. | `Modals.tsx`, `useWaterData.ts` | Hoàn thành | **Đã fix**: Cho phép xóa trắng SĐT và lưu thành công. |
 | **Giao diện Chi tiết** | Hiện QR trực tiếp, nút Copy tên, tối ưu nút bấm mobile. | `DetailView.tsx` | Hoàn thành | **Mới**: Nút QR ưu tiên, QR hiện inline không cần Modal. |
 | **Giao diện Danh sách** | Nút "Thu đủ", "Copy Bill", "Copy Tên KH". | `ListView.tsx` | Hoàn thành | **Mới**: Thêm icon Copy nhỏ cạnh tên KH để tìm Zalo nhanh. |
