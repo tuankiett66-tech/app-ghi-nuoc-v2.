@@ -639,12 +639,15 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           />
           <ListView 
             customers={filtered} 
+            selectedId={selectedId || lastScrollId.current}
             onSelect={(id) => { 
               setSelectedId(id); 
+              lastScrollId.current = id;
               navigateTo('detail'); 
             }}
             onCall={(phone) => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(phone)}`; }}
             onCopyMsg={async (c) => { 
+              lastScrollId.current = c.id;
               await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); 
               updateCustomer(c.id, { isProcessed: true });
               showToast("Da copy hoa don & Danh dau!"); 
@@ -658,7 +661,10 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               navigateTo('add_customer', false); 
               showToast(`Đang chèn hộ mới sau mã ${maKH}`);
             }}
-            onCollectFull={handleCollectFull}
+            onCollectFull={(id) => {
+              lastScrollId.current = id;
+              handleCollectFull(id);
+            }}
           />
         </>
       )}
