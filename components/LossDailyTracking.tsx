@@ -572,22 +572,6 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
         </div>
       )}
 
-      {/* Excel Import Clarification banner */}
-      {(activeTab === 'history') && (
-        <div className="bg-indigo-50 border-2 border-indigo-100 p-4 rounded-3xl flex items-start gap-3 shadow-sm mb-4">
-          <div className="bg-indigo-100 text-indigo-700 p-2 rounded-xl mt-0.5 shrink-0">
-            <FileUp size={16} />
-          </div>
-          <div>
-            <h4 className="text-xs font-black text-indigo-900 uppercase tracking-tight">📈 KHẮC PHỤC SAI LỆCH SỐ LIỆU CŨ</h4>
-            <p className="text-[11px] text-indigo-700 font-medium leading-relaxed mt-1">
-              Bạn có thể nhập bổ sung dữ liệu viết tay từ các tháng trước để bù đắp số liệu cũ bị thiếu giúp báo cáo tự động tính toán chính xác tuyệt đối. 
-              Hãy bấm vào biểu tượng <span className="font-black text-indigo-950 inline-flex items-center gap-0.5 bg-indigo-200/50 px-1 py-0.5 rounded-md leading-none"><FileUp size={11} /> Nhập Excel</span> ở góc phải thanh tiêu đề để bắt đầu tải file lên.
-            </p>
-          </div>
-        </div>
-      )}
-
       {activeTab === 'record' && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <div className="bg-white p-6 rounded-[2.5rem] border-2 border-blue-50 shadow-xl space-y-5">
@@ -628,61 +612,88 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
 
       {activeTab === 'history' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-          <div className="bg-white p-4 rounded-[2rem] border-2 border-slate-100 shadow-sm">
-            <div className="flex items-center justify-between mb-4 px-2">
-              <h2 className="text-xs font-black uppercase text-slate-900 tracking-tight flex items-center gap-2">
-                <Activity size={16} className="text-blue-600" />
-                Số chốt đầu kỳ (Opening Index)
-              </h2>
-              <button 
-                onClick={() => {
-                  setTempM1Init(config.master1Initial?.toString() || '0');
-                  setTempM2Init(config.master2Initial?.toString() || '0');
-                  setShowInitialSettings(!showInitialSettings);
-                }} 
-                className="text-[10px] font-black text-blue-600 uppercase border-b-2 border-blue-600/30 pb-0.5"
-              >
-                {showInitialSettings ? 'Hủy' : 'Sửa số chốt'}
-              </button>
-            </div>
-
-            {showInitialSettings ? (
-              <div className="space-y-3 p-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chốt M1 (Số Cuối Kỳ Trước)</label>
-                    <input type="number" value={tempM1Init} onChange={e => setTempM1Init(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
-                  </div>
-                  <div>
-                    <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Chốt M2 (Số Cuối Kỳ Trước)</label>
-                    <input type="number" value={tempM2Init} onChange={e => setTempM2Init(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
-                  </div>
+          {/* Top Summary Block */}
+          <div className="space-y-3">
+            {/* TB Tiêu thụ / ngày & Số ngày ghi card */}
+            <div className="bg-slate-900 text-white p-4.5 rounded-[2.2rem] shadow-xl flex items-center justify-between border border-slate-800">
+              <div className="flex items-center gap-3.5">
+                <div className="bg-blue-500/20 p-2.5 rounded-2xl text-blue-400 shrink-0">
+                  <TrendingUp size={22} />
                 </div>
                 <div>
-                   <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Ngày chốt (Số liệu tính cho ngày đầu kỳ)</label>
-                   <input type="date" value={tempDateInit} onChange={e => setTempDateInit(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
-                </div>
-                <button onClick={handleSaveInitial} className="w-full bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs">Cập nhật số chốt</button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 px-2">
-                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M1 (Số Cuối Kỳ Trước)</p>
-                  <p className="text-lg font-black text-slate-700">{config.master1Initial?.toLocaleString('vi-VN') || 0}</p>
-                </div>
-                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">M2 (Số Cuối Kỳ Trước)</p>
-                  <p className="text-lg font-black text-slate-700">{config.master2Initial?.toLocaleString('vi-VN') || 0}</p>
-                </div>
-                <div className="col-span-2 bg-slate-50 rounded-2xl p-2 border border-slate-100 text-center">
-                   <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Ngày chốt kỳ trước</p>
-                   <p className="text-xs font-black text-slate-600">{formatDateDisplay(config.masterInitialDate || '')}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">TB tiêu thụ/ngày</p>
+                  <p className="text-xl sm:text-2xl font-black tracking-tighter leading-none">
+                    {avgConsumption.toFixed(1)} <span className="text-[11px] font-bold text-slate-400 italic">m³/ngày</span>
+                  </p>
                 </div>
               </div>
-            )}
-            <p className="text-[9px] font-bold text-slate-400 italic px-2 mt-3 block text-center opacity-70">
-              App dùng số này để tính cho ngày ghi chép đầu tiên.
-            </p>
+              <div className="h-9 w-px bg-slate-800 mx-1"></div>
+              <div className="text-right">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Số ngày ghi</p>
+                <p className="text-lg font-black text-blue-400">{filteredReadings.length} <span className="text-[9px] font-black text-slate-500">NGÀY</span></p>
+              </div>
+            </div>
+
+            {/* Tổng tiêu thụ lũy kế cả kỳ card */}
+            <div className="bg-blue-950 text-white p-4.5 rounded-[2.2rem] shadow-xl space-y-3.5 border border-blue-900/40">
+              <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <Activity size={15} className="text-blue-400" />
+                  <h3 className="text-[11px] font-black uppercase tracking-wider text-blue-200">Tổng tiêu thụ lũy kế cả kỳ</h3>
+                </div>
+                <button 
+                  onClick={() => {
+                    setTempM1Init(config.master1Initial?.toString() || '0');
+                    setTempM2Init(config.master2Initial?.toString() || '0');
+                    setShowInitialSettings(!showInitialSettings);
+                  }} 
+                  className="text-[9px] font-black uppercase bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-2.5 py-1 rounded-xl transition-all border border-blue-400/20 flex items-center gap-1 active:scale-95"
+                >
+                  <Edit2 size={11} /> {showInitialSettings ? 'Đóng số chốt' : 'Sửa số chốt'}
+                </button>
+              </div>
+
+              {/* Collapsible Initial Index Settings */}
+              {showInitialSettings && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-slate-900/90 p-3.5 rounded-2xl border border-blue-500/30 space-y-3 my-1">
+                  <p className="text-[10px] font-black text-blue-300 uppercase tracking-wider text-center">⚙️ Cấu hình số chốt đầu kỳ (Opening Index)</p>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[8px] font-black text-slate-400 uppercase ml-1 mb-1 block">Chốt M1 (Số Cuối Kỳ Trước)</label>
+                      <input type="number" value={tempM1Init} onChange={e => setTempM1Init(e.target.value)} className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-black text-center" />
+                    </div>
+                    <div>
+                      <label className="text-[8px] font-black text-slate-400 uppercase ml-1 mb-1 block">Chốt M2 (Số Cuối Kỳ Trước)</label>
+                      <input type="number" value={tempM2Init} onChange={e => setTempM2Init(e.target.value)} className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-black text-center" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[8px] font-black text-slate-400 uppercase ml-1 mb-1 block">Ngày chốt kỳ trước</label>
+                    <input type="date" value={tempDateInit} onChange={e => setTempDateInit(e.target.value)} className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-black text-center" />
+                  </div>
+                  <button onClick={handleSaveInitial} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-xl font-black uppercase text-[10px] shadow-md transition-all">Lưu số chốt đầu kỳ</button>
+                </motion.div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white/5 p-3 rounded-2xl border border-white/5 flex flex-col justify-center">
+                  <p className="text-[8px] font-black text-blue-400 uppercase mb-0.5 tracking-wider">Đồng hồ 1</p>
+                  <p className="text-lg font-black text-blue-100 leading-none">{totalM1Cons.toLocaleString('vi-VN')} <span className="text-[10px] opacity-50 font-normal">m³</span></p>
+                </div>
+                <div className="bg-white/5 p-3 rounded-2xl border border-white/5 flex flex-col justify-center">
+                  <p className="text-[8px] font-black text-indigo-400 uppercase mb-0.5 tracking-wider">Đồng hồ 2</p>
+                  <p className="text-lg font-black text-indigo-100 leading-none">{totalM2Cons.toLocaleString('vi-VN')} <span className="text-[10px] opacity-50 font-normal">m³</span></p>
+                </div>
+              </div>
+
+              <div className="bg-blue-500/10 p-3.5 rounded-2xl border border-blue-500/20 flex justify-between items-center">
+                <div className="text-left">
+                  <p className="text-[10px] font-black text-blue-400 uppercase tracking-wide leading-none mb-0.5">Tổng 2 đồng hồ</p>
+                  <p className="text-[8px] font-bold text-slate-400 leading-none italic">Lũy kế tiêu thụ hàng ngày</p>
+                </div>
+                <p className="text-2xl font-black text-blue-400 leading-none">{grandTotalCons.toLocaleString('vi-VN')} <span className="text-xs font-black opacity-80">m³</span></p>
+              </div>
+            </div>
           </div>
 
           <div className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
@@ -795,56 +806,15 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
             </table>
           </div>
 
-          <div className="bg-slate-900 text-white p-5 rounded-[2.5rem] shadow-xl flex items-center justify-between">
-            <div className="flex items-center gap-4">
-               <div className="bg-blue-500/20 p-3 rounded-2xl text-blue-300"><TrendingUp size={24}/></div>
-               <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5 mt-1">TB tiêu thụ/ngày</p>
-                  <p className="text-2xl font-black tracking-tighter leading-none">{avgConsumption.toFixed(1)} <span className="text-xs font-bold opacity-40 italic tracking-normal">m3/ngày</span></p>
-               </div>
-            </div>
-            <div className="h-10 w-px bg-white/10 mx-2"></div>
-            <div className="text-right">
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5 mt-1">Số ngày ghi</p>
-               <p className="text-xl font-black text-blue-400">{filteredReadings.length} <span className="text-[10px] font-black text-slate-500">NGÀY</span></p>
-            </div>
-          </div>
-
           {filteredReadings.length > 0 && (
-            <>
-              <div className="bg-blue-950 text-white p-5 rounded-[2.5rem] shadow-xl space-y-4 border border-blue-900/40">
-                <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                  <h3 className="text-[11px] font-black uppercase tracking-wider text-blue-300">Tổng tiêu thụ lũy kế cả kỳ</h3>
-                  <span className="text-[8px] font-black uppercase tracking-widest bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-lg">Từ số chốt</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3.5">
-                  <div className="bg-white/5 p-3.5 rounded-2xl border border-white/5 flex flex-col justify-center">
-                    <p className="text-[9px] font-black text-blue-400 uppercase mb-1 tracking-wider">Đồng hồ 1</p>
-                    <p className="text-[20px] font-black text-blue-100 leading-none">{totalM1Cons.toLocaleString('vi-VN')} <span className="text-[11px] opacity-50 font-normal">m³</span></p>
-                  </div>
-                  <div className="bg-white/5 p-3.5 rounded-2xl border border-white/5 flex flex-col justify-center">
-                    <p className="text-[9px] font-black text-indigo-400 uppercase mb-1 tracking-wider">Đồng hồ 2</p>
-                    <p className="text-[20px] font-black text-indigo-100 leading-none">{totalM2Cons.toLocaleString('vi-VN')} <span className="text-[11px] opacity-50 font-normal">m³</span></p>
-                  </div>
-                </div>
-                <div className="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 flex justify-between items-center">
-                  <div className="text-left">
-                    <p className="text-[11px] font-black text-blue-400 uppercase tracking-wide leading-none mb-1">Tổng 2 đồng hồ</p>
-                    <p className="text-[8px] font-bold text-slate-400 leading-none italic">Lũy kế tiêu thụ hàng ngày</p>
-                  </div>
-                  <p className="text-[24px] font-black text-blue-400 leading-none">{grandTotalCons.toLocaleString('vi-VN')} <span className="text-[13px] font-black opacity-80">m³</span></p>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button 
-                  onClick={handleConfirmClosePeriod}
-                  className="w-full bg-rose-600 hover:bg-rose-700 text-white py-4 bg-rose-600 hover:bg-rose-700 text-white py-4.5 rounded-[2rem] font-black uppercase text-xs flex justify-center items-center gap-2 shadow-lg hover:shadow-rose-300 active:scale-95 border-b-4 border-rose-800 transition-all"
-                >
-                  Chốt kỳ & Qua tháng mới
-                </button>
-              </div>
-            </>
+            <div className="pt-1">
+              <button 
+                onClick={handleConfirmClosePeriod}
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-[2rem] font-black uppercase text-xs flex justify-center items-center gap-2 shadow-lg hover:shadow-rose-300 active:scale-95 border-b-4 border-rose-800 transition-all"
+              >
+                Chốt kỳ & Qua tháng mới
+              </button>
+            </div>
           )}
         </motion.div>
       )}

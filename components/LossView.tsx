@@ -370,9 +370,9 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                                onClick={async () => {
                                  try {
                                    await exportLossPeriodReportToExcel(r, dailySupplyReadings);
-                                 } catch (err) {
-                                   alert("Có lỗi khi xuất Excel!");
-                                   console.error(err);
+                                 } catch (err: any) {
+                                   alert(`Có lỗi khi xuất Excel: ${err?.message || err}`);
+                                   console.error("Lỗi xuất Excel thất thoát:", err);
                                  }
                                }}
                                className="p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl active:scale-90 flex items-center gap-1 text-[10px] font-black uppercase px-2.5 shadow-sm border border-emerald-100"

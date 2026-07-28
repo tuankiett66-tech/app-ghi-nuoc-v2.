@@ -72,8 +72,15 @@
 - **Problem**: Standard long lists can be tedious to scroll through, but permanent scroll bars clutter mobile screens and obscure card action buttons.
 - **Solution**: Implemented an elegant, auto-hiding vertical scrubber handle in `ListView.tsx`. It remains invisible during normal viewing and smoothly fades in (`opacity-100`) only while actively dragging or scrolling, then automatically fades out after 1.2 seconds of inactivity.
 
+### 13. Loss Report Excel Export Fix (Fixed in V4.9)
+- **Problem**: Clicking "Báo cáo" in `LossView` failed with `Có lỗi khi xuất Excel!` because dynamic import `await import('xlsx-js-style')` in Vite/ESM returned a module object without unpacking `mod.default`, causing `XLSX.utils` to be `undefined`.
+- **Solution**:
+  - Refactored `getXLSX()` in `utils.ts` to return `mod.default || mod`.
+  - Added robust null-safety, safe value parsing (`parseSafe`), explicit cell typing (`t: 'n' | 's'`), and safe filename sanitization to `exportLossPeriodReportToExcel`.
+
 ## Code References
-- `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel` (blank column K logic).
+- `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel`, `exportLossPeriodReportToExcel` (safe Excel generation).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).
 - `components/ListView.tsx`: Auto-hiding fast scrubber icon, customer auto-scroll positioning (`selectedId`).
 - `components/DetailView.tsx`: Header layout and inline QR display.
+- `components/LossView.tsx`: Loss management & report generation.

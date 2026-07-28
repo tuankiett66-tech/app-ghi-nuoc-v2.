@@ -4,7 +4,8 @@ import { Customer, GroupMember, DailySupplyReading, LossRecord } from './types';
 // Helper to load XLSX dynamically
 const getXLSX = async () => {
   // @ts-ignore
-  return await import('xlsx-js-style');
+  const mod = await import('xlsx-js-style');
+  return mod.default || mod;
 };
 
 export const parseStringOrDateToNumber = (val: any): number => {
@@ -837,26 +838,37 @@ export const suggestNextMaKH = (customers: Customer[], listType: 'list1' | 'list
 
 export const exportLossPeriodReportToExcel = async (
   record: LossRecord,
-  readings: DailySupplyReading[],
+  readings: DailySupplyReading[] = [],
   fileName: string = 'Bao_Cao_That_Thoat'
 ) => {
+  if (!record) {
+    throw new Error("Không tìm thấy dữ liệu bản ghi thất thoát.");
+  }
   const XLSX = await getXLSX();
   
   // Helper to extract month-year from reading date (supports YYYY-MM-DD or DD/MM/YYYY)
   const getMonthYearKeyForPeriod = (dateStr: string) => {
-    return normalizeMonthYear(dateStr);
+    return normalizeMonthYear(dateStr || '');
   };
 
-  const monthKey = normalizeMonthYear(record.month);
+  const monthKey = normalizeMonthYear(record.month || '');
   // Filter readings that belong to the month of the record
-  const filteredReadings = readings
-    .filter(r => getMonthYearKeyForPeriod(r.date) === monthKey)
-    .sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
+  const safeReadings = Array.isArray(readings) ? readings : [];
+  const filteredReadings = safeReadings
+    .filter(r => r && r.date && getMonthYearKeyForPeriod(r.date) === monthKey)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.time || '').localeCompare(b.time || ''));
 
-  const supply1 = record.master1New - record.master1Old;
-  const supply2 = record.master2New - record.master2Old;
+  const m1New = parseSafe(record.master1New);
+  const m1Old = parseSafe(record.master1Old);
+  const m2New = parseSafe(record.master2New);
+  const m2Old = parseSafe(record.master2Old);
+  const l1Vol = parseSafe(record.list1Volume);
+  const l2Vol = parseSafe(record.list2Volume);
+
+  const supply1 = m1New - m1Old;
+  const supply2 = m2New - m2Old;
   const totalSupply = supply1 + supply2;
-  const totalConsumption = record.list1Volume + record.list2Volume;
+  const totalConsumption = l1Vol + l2Vol;
   const lossVolume = totalSupply - totalConsumption;
   const lossPercent = totalSupply > 0 ? (lossVolume / totalSupply) * 100 : 0;
 
@@ -874,7 +886,18 @@ export const exportLossPeriodReportToExcel = async (
     return `1/${m}/${y}`;
   };
 
-  const ghiNgayValue = getGhiNgayStr(record.month);
+  const ghiNgayValue = getGhiNgayStr(record.month) || record.month || "";
+
+  // Helper to construct cell objects safely for xlsx-js-style
+  const cell = (v: any, s?: any, typeOverride?: string) => {
+    const val = (v === undefined || v === null) ? "" : v;
+    let t = typeOverride;
+    if (!t) {
+      if (typeof val === 'number') t = 'n';
+      else t = 's';
+    }
+    return s ? { v: val, s, t } : { v: val, t };
+  };
 
   // Monochrome / Black-and-white print-optimized styles
   const sTitle = {
@@ -983,14 +1006,14 @@ export const exportLossPeriodReportToExcel = async (
 
   // TITLE ROW (Row 0)
   rows.push([
-    { v: `BÁO CÁO THẤT THOÁT NƯỚC KỲ ${record.period}_GHI NGÀY ${ghiNgayValue}`, s: sTitle },
+    cell(`BÁO CÁO THẤT THOÁT NƯỚC KỲ ${record.period || '1'}_GHI NGÀY ${ghiNgayValue}`, sTitle),
     "", "", "", "", "", "", ""
   ]);
   merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } });
 
   // SUBTITLE ROW (Row 1)
   rows.push([
-    { v: `Thời gian xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')} ${new Date().toLocaleTimeString('vi-VN')} | Đơn vị: m³`, s: sSub },
+    cell(`Thời gian xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')} ${new Date().toLocaleTimeString('vi-VN')} | Đơn vị: m³`, sSub),
     "", "", "", "", "", "", ""
   ]);
   merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 7 } });
@@ -999,18 +1022,18 @@ export const exportLossPeriodReportToExcel = async (
 
   // SECTION I: HAO HỤT CHUNG (Row 3)
   rows.push([
-    { v: "  I. TỔNG QUAN HAO HỤT CHUNG", s: sSection },
+    cell("  I. TỔNG QUAN HAO HỤT CHUNG", sSection),
     "", "", "", "", "", "", ""
   ]);
   merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: 7 } });
 
   // Columns for Summary Stats Header (Row 4) - Merging Col A, B, C for clean description alignment
   rows.push([
-    { v: "Chỉ số đánh giá", s: sHeader },
+    cell("Chỉ số đánh giá", sHeader),
     "", "", // Merged with A
-    { v: "Giá trị (m³)", s: sHeader },
-    { v: "Tỷ lệ (%)", s: sHeader },
-    { v: "Ghi chú thành phần", s: sHeader },
+    cell("Giá trị (m³)", sHeader),
+    cell("Tỷ lệ (%)", sHeader),
+    cell("Ghi chú thành phần", sHeader),
     "", "" // Merged with F
   ]);
   merges.push({ s: { r: 4, c: 0 }, e: { r: 4, c: 2 } });
@@ -1020,33 +1043,33 @@ export const exportLossPeriodReportToExcel = async (
 
   // Data rows (Row 5 - 7)
   rows.push([
-    { v: "Tổng cấp vào hệ thống (ĐH tổng)", s: sNormal },
+    cell("Tổng cấp vào hệ thống (ĐH tổng)", sNormal),
     "", "",
-    { v: totalSupply, s: sRightBold },
-    { v: "100%", s: sCenter },
-    { v: `ĐH1: ${supply1} m³ | ĐH2: ${supply2} m³`, s: sNormal },
+    cell(totalSupply, sRightBold),
+    cell("100%", sCenter),
+    cell(`ĐH1: ${supply1} m³ | ĐH2: ${supply2} m³`, sNormal),
     "", ""
   ]);
   merges.push({ s: { r: 5, c: 0 }, e: { r: 5, c: 2 } });
   merges.push({ s: { r: 5, c: 5 }, e: { r: 5, c: 7 } });
 
   rows.push([
-    { v: "Tổng tiêu thụ danh bộ (Thu khách hàng)", s: sNormal },
+    cell("Tổng tiêu thụ danh bộ (Thu khách hàng)", sNormal),
     "", "",
-    { v: totalConsumption, s: sRightBold },
-    { v: totalSupply > 0 ? `${((totalConsumption / totalSupply) * 100).toFixed(1)}%` : "0%", s: sCenter },
-    { v: `Bộ 1: ${record.list1Volume} m³ | Bộ 2: ${record.list2Volume} m³`, s: sNormal },
+    cell(totalConsumption, sRightBold),
+    cell(totalSupply > 0 ? `${((totalConsumption / totalSupply) * 100).toFixed(1)}%` : "0%", sCenter),
+    cell(`Bộ 1: ${l1Vol} m³ | Bộ 2: ${l2Vol} m³`, sNormal),
     "", ""
   ]);
   merges.push({ s: { r: 6, c: 0 }, e: { r: 6, c: 2 } });
   merges.push({ s: { r: 6, c: 5 }, e: { r: 6, c: 7 } });
 
   rows.push([
-    { v: "Hao hụt thất thoát hệ thống", s: sBold },
+    cell("Hao hụt thất thoát hệ thống", sBold),
     "", "",
-    { v: lossVolume, s: customLossStyle },
-    { v: `${lossPercent.toFixed(1)}%`, s: customLossStyle },
-    { v: lossPercent > 10 ? "⚠️ Tỷ lệ thất thoát cao vượt ngưỡng (10%)" : "✅ Tỷ lệ thất thoát hoạt động an toàn", s: customLossStyle },
+    cell(lossVolume, customLossStyle),
+    cell(`${lossPercent.toFixed(1)}%`, customLossStyle),
+    cell(lossPercent > 10 ? "⚠️ Tỷ lệ thất thoát cao vượt ngưỡng (10%)" : "✅ Tỷ lệ thất thoát hoạt động an toàn", customLossStyle),
     "", ""
   ]);
   merges.push({ s: { r: 7, c: 0 }, e: { r: 7, c: 2 } });
@@ -1056,19 +1079,19 @@ export const exportLossPeriodReportToExcel = async (
 
   // SECTION II: SỐ LIỆU ĐỒNG HỒ TỔNG (Row 9)
   rows.push([
-    { v: "  II. SỐ LIỆU ĐỒNG HỒ TỔNG", s: sSection },
+    cell("  II. SỐ LIỆU ĐỒNG HỒ TỔNG", sSection),
     "", "", "", "", "", "", ""
   ]);
   merges.push({ s: { r: 9, c: 0 }, e: { r: 9, c: 7 } });
 
   // Meter table headers (Row 10)
   rows.push([
-    { v: "Đồng hồ tổng", s: sHeader },
+    cell("Đồng hồ tổng", sHeader),
     "", // B merged
-    { v: "Chỉ số CŨ", s: sHeader },
-    { v: "Chỉ số MỚI", s: sHeader },
-    { v: "Tổng cấp (m³)", s: sHeader },
-    { v: "Mô tả vị trí & Mục đích sử dụng", s: sHeader },
+    cell("Chỉ số CŨ", sHeader),
+    cell("Chỉ số MỚI", sHeader),
+    cell("Tổng cấp (m³)", sHeader),
+    cell("Mô tả vị trí & Mục đích sử dụng", sHeader),
     "", "" // G, H merged
   ]);
   merges.push({ s: { r: 10, c: 0 }, e: { r: 10, c: 1 } });
@@ -1076,12 +1099,12 @@ export const exportLossPeriodReportToExcel = async (
 
   // Meter 1 Data (Row 11)
   rows.push([
-    { v: "ĐỒNG HỒ TỔNG SỐ 1", s: sBold },
+    cell("ĐỒNG HỒ TỔNG SỐ 1", sBold),
     "", // B merged
-    { v: record.master1Old, s: sRight },
-    { v: record.master1New, s: sRightBold },
-    { v: supply1, s: sRightBold },
-    { v: "Đo lưu lượng cấp khu vực Bộ 01 (Nhánh 1 chính)", s: sNormal },
+    cell(m1Old, sRight),
+    cell(m1New, sRightBold),
+    cell(supply1, sRightBold),
+    cell("Đo lưu lượng cấp khu vực Bộ 01 (Nhánh 1 chính)", sNormal),
     "", "" // G, H merged
   ]);
   merges.push({ s: { r: 11, c: 0 }, e: { r: 11, c: 1 } });
@@ -1089,12 +1112,12 @@ export const exportLossPeriodReportToExcel = async (
 
   // Meter 2 Data (Row 12)
   rows.push([
-    { v: "ĐỒNG HỒ TỔNG SỐ 2", s: sBold },
+    cell("ĐỒNG HỒ TỔNG SỐ 2", sBold),
     "", // B merged
-    { v: record.master2Old, s: sRight },
-    { v: record.master2New, s: sRightBold },
-    { v: supply2, s: sRightBold },
-    { v: "Đo lưu lượng cấp khu vực Bộ 02 (Nhánh 2 phụ)", s: sNormal },
+    cell(m2Old, sRight),
+    cell(m2New, sRightBold),
+    cell(supply2, sRightBold),
+    cell("Đo lưu lượng cấp khu vực Bộ 02 (Nhánh 2 phụ)", sNormal),
     "", "" // G, H merged
   ]);
   merges.push({ s: { r: 12, c: 0 }, e: { r: 12, c: 1 } });
@@ -1104,42 +1127,42 @@ export const exportLossPeriodReportToExcel = async (
 
   // SECTION III: GHI CHÉP CHI TIẾT HẰNG NGÀY (Row 14)
   rows.push([
-    { v: `  III. NHẬT KÝ THEO DÕI GHI NƯỚC HẰNG NGÀY (THÁNG ${record.month})`, s: sSection },
+    cell(`  III. NHẬT KÝ THEO DÕI GHI NƯỚC HẰNG NGÀY (THÁNG ${record.month || ''})`, sSection),
     "", "", "", "", "", "", ""
   ]);
   merges.push({ s: { r: 14, c: 0 }, e: { r: 14, c: 7 } });
 
   // Table headers for Daily (Row 15) - Compact text
   rows.push([
-    { v: "NGÀY GHI", s: sHeader },
-    { v: "GIỜ GHI", s: sHeader },
-    { v: "CHỈ SỐ ĐH1", s: sHeader },
-    { v: "CẤP ĐH1", s: sHeader },
-    { v: "CHỈ SỐ ĐH2", s: sHeader },
-    { v: "CẤP ĐH2", s: sHeader },
-    { v: "TỔNG CẤP", s: sHeader },
-    { v: "GHI CHÚ / SỰ KIỆN", s: sHeader }
+    cell("NGÀY GHI", sHeader),
+    cell("GIỜ GHI", sHeader),
+    cell("CHỈ SỐ ĐH1", sHeader),
+    cell("CẤP ĐH1", sHeader),
+    cell("CHỈ SỐ ĐH2", sHeader),
+    cell("CẤP ĐH2", sHeader),
+    cell("TỔNG CẤP", sHeader),
+    cell("GHI CHÚ / SỰ KIỆN", sHeader)
   ]);
 
   const baseRowIdx = 16;
   if (filteredReadings.length === 0) {
     rows.push([
-      { v: "Không có dữ liệu nhật ký ghi nước hằng ngày nào trong kỳ này.", s: sCenter },
+      cell("Không có dữ liệu nhật ký ghi nước hằng ngày nào trong kỳ này.", sCenter),
       "", "", "", "", "", "", ""
     ]);
     merges.push({ s: { r: baseRowIdx, c: 0 }, e: { r: baseRowIdx, c: 7 } });
   } else {
     filteredReadings.forEach((r) => {
-      const dailyTotal = (r.consumption1 || 0) + (r.consumption2 || 0);
+      const dailyTotal = parseSafe(r.consumption1) + parseSafe(r.consumption2);
       rows.push([
-        { v: formatDateDisplay(r.date), s: sCenter },
-        { v: normalizeTime(r.time), s: sCenter },
-        { v: r.master1 || 0, s: sRight },
-        { v: r.consumption1 || 0, s: sRight },
-        { v: r.master2 || 0, s: sRight },
-        { v: r.consumption2 || 0, s: sRight },
-        { v: dailyTotal, s: sRightBold },
-        { v: r.notes || "", s: sNormal }
+        cell(formatDateDisplay(r.date), sCenter),
+        cell(normalizeTime(r.time), sCenter),
+        cell(parseSafe(r.master1), sRight),
+        cell(parseSafe(r.consumption1), sRight),
+        cell(parseSafe(r.master2), sRight),
+        cell(parseSafe(r.consumption2), sRight),
+        cell(dailyTotal, sRightBold),
+        cell(r.notes || "", sNormal)
       ]);
     });
   }
@@ -1150,14 +1173,14 @@ export const exportLossPeriodReportToExcel = async (
 
   // Compact columns to prevent horizontal splitting (fits beautifully on 1 page-width)
   ws['!cols'] = [
-    { wch: 12 }, // A: Ngày ghi / ĐH tổng / Chỉ số đánh giá
-    { wch: 8 },  // B: Giờ ghi
-    { wch: 12 }, // C: Chỉ số ĐH1 / Chỉ số CŨ / Giá trị
-    { wch: 11 }, // D: Cấp ĐH1 / Chỉ số MỚI / Tỷ lệ
-    { wch: 12 }, // E: Chỉ số ĐH2 / Tổng cấp (m³) / Ghi chú thành phần
-    { wch: 11 }, // F: Cấp ĐH2
-    { wch: 12 }, // G: Tổng cấp
-    { wch: 28 }  // H: Ghi chú / Sự kiện
+    { wch: 12 }, // A
+    { wch: 8 },  // B
+    { wch: 12 }, // C
+    { wch: 11 }, // D
+    { wch: 12 }, // E
+    { wch: 11 }, // F
+    { wch: 12 }, // G
+    { wch: 28 }  // H
   ];
 
   // Dynamic row heights for standard, spacious look
@@ -1193,11 +1216,10 @@ export const exportLossPeriodReportToExcel = async (
     orientation: 'landscape',
     paperSize: 9, // A4
     fitToWidth: 1,
-    fitToHeight: 0, // Fits perfectly horizontally on 1 page width, rows flow naturally vertically
+    fitToHeight: 0,
     fitToPage: true
   };
 
-  // Configure print margins (0.25 inch / ~0.64cm, narrow margins to maximize horizontal printable area)
   ws['!margins'] = {
     left: 0.25,
     right: 0.25,
@@ -1211,6 +1233,7 @@ export const exportLossPeriodReportToExcel = async (
   XLSX.utils.book_append_sheet(wb, ws, "Báo cáo");
   
   // Format safe file name
-  const safeFilename = `${fileName}_Ky_${record.period}_Ghi_Ngay_${ghiNgayValue.replace(/\//g, '_')}.xlsx`;
+  const cleanGhiNgay = String(ghiNgayValue || '').replace(/[\/\s]/g, '_');
+  const safeFilename = `${fileName}_Ky_${record.period || '1'}_Ghi_Ngay_${cleanGhiNgay}.xlsx`;
   XLSX.writeFile(wb, safeFilename);
 };
