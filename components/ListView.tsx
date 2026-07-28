@@ -24,7 +24,20 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
   // Scrubber state
   const [scrollRatio, setScrollRatio] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isScrolling, setIsScrolling] = useState<boolean>(false);
   const isDraggingRef = useRef<boolean>(false);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-hide scrollbar handle when idle (Google Photos style)
+  const triggerScrollVisibility = () => {
+    setIsScrolling(true);
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+    }
+    hideTimerRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1200);
+  };
 
   // Reset focus when the lists or search filter changes
   useEffect(() => {
@@ -49,6 +62,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
 
   // Sync scroll position when container scrolls naturally
   const handleScroll = () => {
+    triggerScrollVisibility();
     if (isDraggingRef.current) return;
     const container = containerRef.current || (document.getElementById('main-list-container') as HTMLDivElement);
     if (!container) return;
@@ -86,6 +100,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
   useEffect(() => {
     const handlePointerMove = (e: MouseEvent | TouchEvent) => {
       if (!isDraggingRef.current) return;
+      triggerScrollVisibility();
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       if (e.cancelable) e.preventDefault();
       updateScrollFromClientY(clientY);
@@ -112,6 +127,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
   }, [customers]);
 
   const handleStartDrag = (e: React.MouseEvent | React.TouchEvent) => {
+    triggerScrollVisibility();
     isDraggingRef.current = true;
     setIsDragging(true);
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -294,28 +310,32 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
         {customers.length === 0 && <div className="py-20 text-center text-slate-400 font-black uppercase italic text-sm">Không tìm thấy dữ liệu</div>}
       </div>
 
-      {/* Fast Vertical Scrubber Handle (Thanh kéo dọc di chuyển nhanh, mượt mà) */}
+      {/* Fast Vertical Scrubber Handle (Google Photos style auto-hiding floating icon) */}
       {customers.length > 5 && (
-        <div className="absolute right-0.5 top-3 bottom-28 z-30 flex flex-col items-center select-none touch-none">
+        <div 
+          className={`absolute right-1 top-4 bottom-28 z-30 flex flex-col items-center select-none touch-none transition-opacity duration-300 ${
+            isScrolling || isDragging ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
+        >
           <div 
             ref={trackRef}
             onMouseDown={handleStartDrag}
             onTouchStart={handleStartDrag}
-            className="relative w-2.5 h-full bg-slate-200/70 hover:bg-slate-300/90 active:bg-slate-400/80 rounded-full transition-colors cursor-pointer flex justify-center border border-slate-300/50"
+            className="relative w-4 h-full cursor-pointer flex justify-center"
           >
             {/* Draggable Thumb Handle */}
             <div 
-              className={`absolute w-5.5 h-9 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform ${
+              className={`absolute w-6 h-10 rounded-full shadow-xl flex items-center justify-center cursor-grab active:cursor-grabbing backdrop-blur-md transition-all duration-150 border border-white/30 ${
                 isDragging 
-                  ? 'bg-blue-600 text-white scale-110 shadow-blue-500/50' 
-                  : 'bg-slate-800 text-slate-200 hover:bg-slate-900 hover:scale-105'
+                  ? 'bg-blue-600 text-white scale-110 shadow-blue-500/50 ring-2 ring-blue-300' 
+                  : 'bg-slate-900/85 text-slate-100 hover:bg-slate-900 hover:scale-105'
               }`}
               style={{
                 top: `${scrollRatio * 100}%`,
                 transform: `translateY(-${scrollRatio * 100}%)`
               }}
             >
-              <ChevronsUpDown size={13} className="text-white/90" />
+              <ChevronsUpDown size={14} className="text-white/90" />
             </div>
           </div>
         </div>
