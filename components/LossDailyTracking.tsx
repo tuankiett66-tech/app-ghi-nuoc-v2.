@@ -672,6 +672,9 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                     <input type="date" value={tempDateInit} onChange={e => setTempDateInit(e.target.value)} className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-black text-center" />
                   </div>
                   <button onClick={handleSaveInitial} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-xl font-black uppercase text-[10px] shadow-md transition-all">Lưu số chốt đầu kỳ</button>
+                  <p className="text-[9px] font-medium text-slate-400 italic text-center mt-1">
+                    * Số chốt kỳ trước là chỉ số cuối của kỳ vừa xong, dùng làm căn cứ tính tiêu thụ cho ngày ghi đầu tiên.
+                  </p>
                 </motion.div>
               )}
 
@@ -693,6 +696,16 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                 </div>
                 <p className="text-2xl font-black text-blue-400 leading-none">{grandTotalCons.toLocaleString('vi-VN')} <span className="text-xs font-black opacity-80">m³</span></p>
               </div>
+            </div>
+
+            {/* Red Action Button: Chốt kỳ & Qua tháng mới */}
+            <div className="pt-1">
+              <button 
+                onClick={handleConfirmClosePeriod}
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-[2rem] font-black uppercase text-xs flex justify-center items-center gap-2 shadow-lg hover:shadow-rose-300 active:scale-95 border-b-4 border-rose-800 transition-all cursor-pointer"
+              >
+                Chốt kỳ & Qua tháng mới
+              </button>
             </div>
           </div>
 
@@ -805,17 +818,6 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
               </tbody>
             </table>
           </div>
-
-          {filteredReadings.length > 0 && (
-            <div className="pt-1">
-              <button 
-                onClick={handleConfirmClosePeriod}
-                className="w-full bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-[2rem] font-black uppercase text-xs flex justify-center items-center gap-2 shadow-lg hover:shadow-rose-300 active:scale-95 border-b-4 border-rose-800 transition-all"
-              >
-                Chốt kỳ & Qua tháng mới
-              </button>
-            </div>
-          )}
         </motion.div>
       )}
 
@@ -859,15 +861,6 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
           </div>
         </motion.div>
       )}
-      <div className="bg-amber-50 border-2 border-amber-100 p-5 rounded-[2rem] flex gap-4 mt-4">
-        <div className="bg-amber-100 p-3 rounded-2xl text-amber-600 self-start"><AlertCircle size={24}/></div>
-        <div>
-          <p className="text-sm font-black text-amber-900 mb-1 tracking-tight">Hướng dẫn số chốt</p>
-          <p className="text-[11px] font-bold text-amber-700 leading-relaxed italic opacity-80">
-            "Số chốt kỳ trước" chính là <span className="underline decoration-2 text-amber-900 uppercase">Chỉ số CUỐI</span> của kỳ nước vừa xong. App dùng số này để tính tiêu thụ cho ngày đầu tiên của kỳ mới.
-          </p>
-        </div>
-      </div>
 
       {/* AI Scan Overlay */}
       <AnimatePresence>
