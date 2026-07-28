@@ -64,7 +64,16 @@
   - **Updated Google Apps Script (V4.4)**: Created `/docs/script_v4.4.js` which natively supports 18 columns, reading and writing `isSubMeter` directly in Column R of Google Sheets.
   - **Excel Synchronization**: Added support for `"ĐỒNG HỒ PHỤ"` column (Column M / 13) in Excel export and import, completing the end-to-end data integrity chain.
 
+### 11. Customer Position Retention (Fixed in V4.8)
+- **Problem**: When searching for a customer (e.g. searching "2750") and opening their details or copying their bill, returning to the list view reset the scroll position back to the top (first item 2001), forcing the user to search or scroll again.
+- **Solution**: Pass `selectedId` (or `lastScrollId.current`) into `ListView.tsx` and use a `useEffect` hook to automatically scroll the container to the active customer's DOM element (`#cust-[id]`), preserving position seamlessly.
+
+### 12. Google Photos Style Fast Scrubber (Fixed in V4.8)
+- **Problem**: Standard long lists can be tedious to scroll through, but permanent scroll bars clutter mobile screens and obscure card action buttons.
+- **Solution**: Implemented an elegant, auto-hiding vertical scrubber handle in `ListView.tsx`. It remains invisible during normal viewing and smoothly fades in (`opacity-100`) only while actively dragging or scrolling, then automatically fades out after 1.2 seconds of inactivity.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel` (blank column K logic).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).
+- `components/ListView.tsx`: Auto-hiding fast scrubber icon, customer auto-scroll positioning (`selectedId`).
 - `components/DetailView.tsx`: Header layout and inline QR display.
