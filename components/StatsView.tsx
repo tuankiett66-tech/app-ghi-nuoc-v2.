@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { ChevronLeft, RefreshCcw, Download, Droplets, Calculator } from 'lucide-react';
+import { ChevronLeft, RefreshCcw, Download, Droplets, Calculator, CloudUpload } from 'lucide-react';
 import { Customer } from '../types';
 import { formatCurrency, getMeterStatus } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -10,11 +10,12 @@ interface StatsViewProps {
   activeTab: string;
   onBack: () => void;
   onClosePeriod: () => void;
+  onBackupHistory?: () => void;
   onExport: (listType?: string) => void;
   onSelectCustomer?: (id: string) => void;
 }
 
-export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBack, onClosePeriod, onExport, onSelectCustomer }) => {
+export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBack, onClosePeriod, onBackupHistory, onExport, onSelectCustomer }) => {
   const [masterMeter, setMasterMeter] = useState<string>('');
   const [compareMode, setCompareMode] = useState<'current' | 'all'>('all');
 
@@ -225,8 +226,21 @@ export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBa
             <Download size={16}/> Xuất Excel Bộ 02
           </button>
         </div>
-        <button onClick={onClosePeriod} className="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase flex justify-center items-center gap-2 shadow-md active:scale-95 border-b-4 border-amber-700 text-xs tracking-widest">
-          <RefreshCcw size={18}/> Chốt kỳ & Mở kỳ mới (Tải cả 2 Bộ)
+
+        {onBackupHistory && (
+          <button 
+            onClick={onBackupHistory} 
+            className="w-full bg-teal-600 text-white py-3.5 rounded-xl font-black uppercase flex justify-center items-center gap-2 shadow-md active:scale-95 border-b-4 border-teal-800 text-xs tracking-wider"
+          >
+            <CloudUpload size={18}/> 1. Tạo Lịch Sử 2 Bộ Lên Google Sheets
+          </button>
+        )}
+
+        <button 
+          onClick={onClosePeriod} 
+          className="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase flex justify-center items-center gap-2 shadow-md active:scale-95 border-b-4 border-amber-700 text-xs tracking-widest"
+        >
+          <RefreshCcw size={18}/> 2. Chốt Kỳ & Mở Kỳ Mới (Tải cả 2 Bộ)
         </button>
       </div>
     </div>

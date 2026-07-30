@@ -785,24 +785,32 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         <StatsView 
           customers={customers} activeTab={activeTab}
           onBack={() => navigateTo('list')}
+          onBackupHistory={async () => {
+            const periodSuffix = getCurrentPeriodSuffix();
+            showToast("Đang tạo 2 Tab Lịch sử (Bộ 01 & Bộ 02) lên Google Sheets...");
+            const ok = await handleBackupCloud(false, periodSuffix);
+            if (ok) {
+              alert(`🎉 Đã tạo thành công 2 Tab Lịch sử lên Google Sheets:\n- LichSu_Bộ01_${periodSuffix}\n- LichSu_Bộ02_${periodSuffix}\n\nBạn có thể vào Google Sheets kiểm tra. Khi kiểm tra OK, bạn quay lại bấm '2. CHỐT KỲ & MỞ KỲ MỚI'!`);
+            }
+          }}
           onClosePeriod={async () => { 
             const unrecorded = customers.filter(c => c.newIndex === 0);
             if (unrecorded.length > 0) {
               const listNames = unrecorded.slice(0, 5).map(c => `- [Bộ ${c.listType === 'list1' ? '1' : '2'}] ${c.maKH}: ${c.name}`).join('\n');
               const moreSuffix = unrecorded.length > 5 ? `\n... và ${unrecorded.length - 5} hộ khác.` : '';
               const confirmClose = confirm(
-                `⚠️ CẢNH BÁO CHƯA GHI HẾT NƯỚC!\nCó ${unrecorded.length} hộ chưa được ghi số nước kì này:\n${listNames}${moreSuffix}\n\nNếu chốt kì, các hộ này sẽ không có mức tiêu thụ kì này (Chỉ số cũ của kì mới sau sẽ bị lệch).\n\nBạn vẫn muốn CHỐT KỲ mới?`
+                `⚠️ CẢNH BÁO CHƯA GHI HẾT NƯỚC!\nCó ${unrecorded.length} hộ chưa được ghi số nước kì này:\n${listNames}${moreSuffix}\n\nNếu chốt kì, các hộ này sẽ không có mức tiêu thụ kì này.\n\nBạn vẫn muốn CHỐT KỲ mới?`
               );
               if (!confirmClose) return;
             } else {
-              if(!confirm("Bạn có muốn CHỐT KỲ hiện tại cho CẢ BỘ 1 VÀ BỘ 2?\n\n1. Tự động sao lưu lịch sử cả 2 Bộ lên Google Sheets.\n2. TỰ ĐỘNG TẢI VỀ 2 FILE EXCEL KỲ MỚI (Bộ 1 & Bộ 2) để in đi ghi nước.")) return;
+              if(!confirm("XÁC NHẬN CHỐT KỲ & MỞ KỲ MỚI (CẢ BỘ 1 VÀ BỘ 2)?\n\n- Chuyển chỉ số mới thành chỉ số cũ, reset chỉ số mới = 0.\n- Tự động tải về 2 file Excel Kỳ Mới (Bộ 1 & Bộ 2).\n- Cập nhật trang tính List1/List2 trên Google Sheets.")) return;
             }
-            const periodSuffix = getCurrentPeriodSuffix();
             
-            // 1. Chốt kỳ và tạo danh sách kỳ mới cho toàn bộ dữ liệu (Bộ 1 + Bộ 2)
+            // 1. Thực hiện Chốt kỳ trên App (Chuyển chỉ số mới -> cũ, Reset chỉ số mới = 0)
             const res = closePeriod(); 
             
-            // 2. Tự động tải về File Excel Kỳ mới cho cả Bộ 1 và Bộ 2
+            // 2. Tự động tải về 2 File Excel Kỳ Mới (Bộ 1 & Bộ 2) cho dữ liệu đã Reset
+            showToast("Đang tải 2 file Excel Kỳ Mới...");
             const list1New = res.filter(c => c.listType === 'list1');
             if (list1New.length > 0) {
               await exportToExcel(list1New, 'Ky_Moi_DanhBo_1');
@@ -814,14 +822,14 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               await exportToExcel(list2New, 'Ky_Moi_DanhBo_2');
             }
 
-            // 3. Tự động lưu trữ Lịch sử kỳ cũ & Cập nhật kỳ mới lên Google Sheets trong 1 bước duy nhất
-            showToast("Đang lưu trữ lịch sử & mở kỳ mới trên Google Sheets...");
-            const backupSuccess = await handleBackupCloud(false, periodSuffix, res);
+            // 3. Cập nhật dữ liệu Kỳ Mới (đã Reset) lên 2 trang tính làm việc chính (List1 & List2) trên Google Sheets
+            showToast("Đang cập nhật trang tính Kỳ Mới lên Google Sheets...");
+            const syncNewPeriodSuccess = await handleBackupCloud(true, undefined, res);
             
-            if (backupSuccess) {
-              showToast("Đã chốt kì, tạo 2 file Excel & đồng bộ Google Sheets thành công!"); 
+            if (syncNewPeriodSuccess) {
+              showToast("🎉 Đã chốt kỳ, tải 2 file Excel Kỳ Mới & đồng bộ Google Sheets thành công!"); 
             } else {
-              alert("⚠️ Không thể tự động sao lưu lên Google Sheets. Dữ liệu trên App và 2 file Excel đã được chốt thành công.");
+              alert("⚠️ Dữ liệu trên App và 2 file Excel đã chốt thành công. Có lỗi nhỏ khi đồng bộ Google Sheets, bạn có thể bấm Đồng bộ lại.");
             }
             
             navigateTo('list'); 

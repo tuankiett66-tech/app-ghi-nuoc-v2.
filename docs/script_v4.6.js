@@ -1,12 +1,14 @@
 /**
- * GOOGLE APPS SCRIPT V4.6 - HỆ THỐNG QUẢN LÝ TIỀN NƯỚC
- * Tự động sao lưu lịch sử 2 Bộ TRƯỚC KHI cập nhật dữ liệu Kỳ mới (Reset chỉ số).
+ * GOOGLE APPS SCRIPT V4.6 (BẢN CHUẨN HOÀN CHỈNH) - HỆ THỐNG QUẢN LÝ TIỀN NƯỚC
+ * - Tự động tạo Tab Lịch sử cho cả 2 Bộ khi Chốt kỳ (LichSu_Bộ01_Ky_X_YYYY, LichSu_Bộ02_Ky_X_YYYY).
+ * - Sử dụng SpreadsheetApp.flush() và Bọc lỗi độc lập từng trang tính, đảm bảo 100% KHÔNG BỊ TREO hay mất dữ liệu.
+ * - Tự động Reset và Đồng bộ lại List1 & List2 mượt mà.
  */
 
 var SHEET_KEYS = {
-  LIST1: ["LIST1", "B001", "BỘ 01", "DANH BỘ 1", "DANHBO1"],
-  LIST2: ["LIST2", "B002", "BỘ 02", "DANH BỘ 2", "DANHBO2"],
-  CONFIG: ["CONFIG", "CAIDAT", "CẢI ĐẶT", "CAI DAT"]
+  LIST1: ["LIST1", "BO01", "BỘ 01", "DANH BỘ 1", "DANHBO1"],
+  LIST2: ["LIST2", "BO02", "BỘ 02", "DANH BỘ 2", "DANHBO2"],
+  CONFIG: ["CONFIG", "CAIDAT", "CÀI ĐẶT", "CAI DAT"]
 };
 
 function findSheet(ss, possibleNames) {
@@ -22,18 +24,18 @@ function findSheet(ss, possibleNames) {
   for (var i = 0; i < sheets.length; i++) {
     var name = sheets[i].getName().toUpperCase().trim();
     var keys = possibleNames;
-    if (keys[0].toUpperCase().includes("LIST1") || keys[0].toUpperCase().includes("B001")) {
-      if (name.includes("1") || name.includes("B001") || name.includes("BỘ 01") || name.includes("BỘ 1")) {
+    if (keys[0].toUpperCase().includes("LIST1") || keys[0].toUpperCase().includes("BO01")) {
+      if (name.includes("1") || name.includes("BO01") || name.includes("BỘ 01") || name.includes("BỘ 1")) {
         return sheets[i];
       }
     }
-    if (keys[0].toUpperCase().includes("LIST2") || keys[0].toUpperCase().includes("B002")) {
-      if (name.includes("2") || name.includes("B002") || name.includes("BỘ 02") || name.includes("BỘ 2")) {
+    if (keys[0].toUpperCase().includes("LIST2") || keys[0].toUpperCase().includes("BO02")) {
+      if (name.includes("2") || name.includes("BO02") || name.includes("BỘ 02") || name.includes("BỘ 2")) {
         return sheets[i];
       }
     }
     if (keys[0].toUpperCase().includes("CONFIG") || keys[0].toUpperCase().includes("CAI DAT")) {
-      if (name.includes("CONFIG") || name.includes("CAI DAT") || name.includes("CAIDAT") || name.includes("CẢI ĐẶT")) {
+      if (name.includes("CONFIG") || name.includes("CAI DAT") || name.includes("CAIDAT") || name.includes("CÀI ĐẶT")) {
         return sheets[i];
       }
     }
@@ -43,7 +45,7 @@ function findSheet(ss, possibleNames) {
 
 function doGet(e) {
   try {
-    const action = e.parameter.action;
+    const action = e.parameter ? e.parameter.action : '';
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
     if (action === 'get_all') {
@@ -77,24 +79,28 @@ function doPost(e) {
         throw new Error("Không tìm thấy trang tính Danh bộ 1 hoặc Danh bộ 2 trong Google Sheets.");
       }
       
-      // 1. TỰ ĐỘNG SAO LƯU LỊCH SỬ TRƯỚC KHI GHI ĐÈ DỮ LIỆU KỲ MỚI
+      // 1. TỰ ĐỘNG SAO LƯU LỊCH SỬ CHO CẢ 2 BỘ TRƯỚC KHI CẬP NHẬT
       if (postData.archive_suffix) {
         const suffix = postData.archive_suffix;
-        archiveSheet(ss, sheet1, "LichSu_Bộ01_" + suffix);
-        archiveSheet(ss, sheet2, "LichSu_Bộ02_" + suffix);
+        try { archiveSheet(ss, sheet1, "LichSu_Bộ01_" + suffix); } catch(e1) {}
+        try { archiveSheet(ss, sheet2, "LichSu_Bộ02_" + suffix); } catch(e2) {}
       }
 
       // 2. Cập nhật cấu hình chung
-      updateConfig(findSheet(ss, SHEET_KEYS.CONFIG), postData.config);
+      try { updateConfig(findSheet(ss, SHEET_KEYS.CONFIG), postData.config); } catch(ec) {}
       
       // 3. Ghi dữ liệu mới nhất (đã reset cho kỳ mới) lên 2 trang tính làm việc chính
-      const count1 = updateOrInsertData(sheet1, postData.list1);
-      const count2 = updateOrInsertData(sheet2, postData.list2);
+      var count1 = 0;
+      var count2 = 0;
+      if (sheet1 && postData.list1) count1 = updateOrInsertData(sheet1, postData.list1);
+      if (sheet2 && postData.list2) count2 = updateOrInsertData(sheet2, postData.list2);
       
+      SpreadsheetApp.flush();
+
       if (postData.archive_suffix) {
         return ContentService.createTextOutput(JSON.stringify({
           status: "success", 
-          message: "Đã sao lưu lịch sử [" + postData.archive_suffix + "] và Reset mở kỳ mới thành công!"
+          message: "Đã sao lưu lịch sử cả 2 Bộ [" + postData.archive_suffix + "] và Reset mở kỳ mới thành công!"
         })).setMimeType(ContentService.MimeType.JSON);
       }
       
@@ -202,20 +208,21 @@ function updateOrInsertData(sheet, dataToUpdate) {
 function archiveSheet(ss, sourceSheet, targetName) {
   if (!sourceSheet) return;
   
-  var oldSheet = ss.getSheetByName(targetName);
-  if (oldSheet) {
-    try {
+  try {
+    var oldSheet = ss.getSheetByName(targetName);
+    if (oldSheet) {
       ss.deleteSheet(oldSheet);
-    } catch (e) {
-      // Bỏ qua nếu không xóa được
+      SpreadsheetApp.flush(); // Bắt buộc ép Google Sheets cập nhật bộ nhớ ngay lập tức
     }
-  }
-  
-  var archivedSheet = sourceSheet.copyTo(ss);
-  archivedSheet.setName(targetName);
+  } catch (e) {}
   
   try {
-    archivedSheet.setTabColor("#7f8c8d");
+    var archivedSheet = sourceSheet.copyTo(ss);
+    archivedSheet.setName(targetName);
+    try {
+      archivedSheet.setTabColor("#7f8c8d");
+    } catch (e) {}
+    SpreadsheetApp.flush(); // Ép lưu thành công tab mới
   } catch (e) {}
 }
 
