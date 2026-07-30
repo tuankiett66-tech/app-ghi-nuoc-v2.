@@ -783,20 +783,20 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           customers={customers} activeTab={activeTab}
           onBack={() => navigateTo('list')}
           onClosePeriod={async () => { 
-            const unrecorded = customers.filter(c => c.listType === activeTab && c.newIndex === 0);
+            const unrecorded = customers.filter(c => c.newIndex === 0);
             if (unrecorded.length > 0) {
-              const listNames = unrecorded.slice(0, 5).map(c => `- ${c.maKH}: ${c.name}`).join('\n');
+              const listNames = unrecorded.slice(0, 5).map(c => `- [Bộ ${c.listType === 'list1' ? '1' : '2'}] ${c.maKH}: ${c.name}`).join('\n');
               const moreSuffix = unrecorded.length > 5 ? `\n... và ${unrecorded.length - 5} hộ khác.` : '';
               const confirmClose = confirm(
                 `⚠️ CẢNH BÁO CHƯA GHI HẾT NƯỚC!\nCó ${unrecorded.length} hộ chưa được ghi số nước kì này:\n${listNames}${moreSuffix}\n\nNếu chốt kì, các hộ này sẽ không có mức tiêu thụ kì này (Chỉ số cũ của kì mới sau sẽ bị lệch).\n\nBạn vẫn muốn CHỐT KỲ mới?`
               );
               if (!confirmClose) return;
             } else {
-              if(!confirm("Bạn có muốn chốt kì hiện tại và mở kì mới?")) return;
+              if(!confirm("Bạn có muốn chốt kì hiện tại và mở kì mới cho tất cả các Bộ danh bộ?")) return;
             }
             const periodSuffix = getCurrentPeriodSuffix();
             
-            // 1. Tự động lưu trữ lịch sử kỳ này lên Google Sheets
+            // 1. Tự động lưu trữ lịch sử kỳ này lên Google Sheets (Lưu cả Bộ 1 & Bộ 2)
             showToast("Đang tự động lưu trữ lịch sử lên Google Sheets...");
             const backupSuccess = await handleBackupCloud(false, periodSuffix);
             
@@ -805,9 +805,9 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               if (!proceed) return;
             }
 
-            // 2. Chốt kỳ và tạo danh sách kỳ mới trong bộ nhớ cục bộ
+            // 2. Chốt kỳ và tạo danh sách kỳ mới cho toàn bộ dữ liệu (Bộ 1 + Bộ 2)
             const res = closePeriod(); 
-            await exportToExcel(res, 'Ky_Moi'); 
+            await exportToExcel(res.filter(c => c.listType === activeTab), 'Ky_Moi'); 
             showToast("Đã chốt kì và tạo kì mới thành công!"); 
 
             // 3. Tự động đồng bộ kỳ mới lên Google Sheets để khởi tạo các trang tính chính

@@ -298,19 +298,16 @@ export const ensureUniqueIds = (list: Customer[]): Customer[] => {
 
 export const getBillingMonthYear = () => {
   const d = new Date();
-  let year = d.getFullYear();
-  let month = d.getMonth() + 1; // 1 to 12
-  
-  if (d.getDate() >= 25) {
-    month += 1;
-    if (month > 12) {
-      month = 1;
-      year += 1;
-    }
+  const actualMonth = d.getMonth() + 1;
+  const actualYear = d.getFullYear();
+  let ky = actualMonth - 1;
+  let kyYear = actualYear;
+  if (ky === 0) {
+    ky = 12;
+    kyYear = actualYear - 1;
   }
-  
-  const m = month.toString().padStart(2, '0');
-  return `${m}/${year}`;
+  const m = ky.toString().padStart(2, '0');
+  return `${m}/${kyYear}`;
 };
 
 export const getZaloBillingHeader = (customTimestamp?: number) => {
@@ -319,22 +316,11 @@ export const getZaloBillingHeader = (customTimestamp?: number) => {
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();
 
-  let year = actualYear;
-  let month = actualMonth;
-  
-  if (day >= 25) {
-    month += 1;
-    if (month > 12) {
-      month = 1;
-      year += 1;
-    }
-  }
-  
-  let ky = month - 1;
-  let kyYear = year;
+  let ky = actualMonth - 1;
+  let kyYear = actualYear;
   if (ky === 0) {
     ky = 12;
-    kyYear = year - 1;
+    kyYear = actualYear - 1;
   }
   
   return `Tiền nước  KỲ ${ky}/${kyYear}_Ngày ghi chỉ số:${day}/${actualMonth}/${actualYear}.`;
@@ -342,26 +328,14 @@ export const getZaloBillingHeader = (customTimestamp?: number) => {
 
 export const getCurrentPeriodSuffix = () => {
   const d = new Date();
-  const day = d.getDate();
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();
 
-  let year = actualYear;
-  let month = actualMonth;
-  
-  if (day >= 25) {
-    month += 1;
-    if (month > 12) {
-      month = 1;
-      year += 1;
-    }
-  }
-  
-  let ky = month - 1;
-  let kyYear = year;
+  let ky = actualMonth - 1;
+  let kyYear = actualYear;
   if (ky === 0) {
     ky = 12;
-    kyYear = year - 1;
+    kyYear = actualYear - 1;
   }
   
   return `Ky_${ky}_${kyYear}`;

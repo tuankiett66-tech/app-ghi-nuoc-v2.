@@ -114,8 +114,8 @@ export const useWaterData = () => {
       bankId: 'vcb', 
       accountNo: '1066386342', 
       accountName: 'HKD TRAN NGOC TONG (CS CAP NUOC SINH HOA)',
-      groupBankId: 'agribank',
-      groupAccountNo: '8888942444224',
+      groupBankId: 'vcb',
+      groupAccountNo: '9942444224',
       groupAccountName: 'TO TUAN KIET',
       globalMessage: 'Quy khach vui long thanh toan truoc ngay 10 hang thang.',
       lastSyncTime: 0,
@@ -135,6 +135,12 @@ export const useWaterData = () => {
       }
 
       const merged = { ...defaults, ...parsed };
+      // Auto-update to Vietcombank if old agribank account was stored
+      if (merged.groupBankId === 'agribank' || merged.groupAccountNo === '8888942444224') {
+        merged.groupBankId = 'vcb';
+        merged.groupAccountNo = '9942444224';
+        merged.groupAccountName = 'TO TUAN KIET';
+      }
       // Ensure waterRate is a valid number
       if (typeof merged.waterRate !== 'number' || isNaN(merged.waterRate)) {
         merged.waterRate = defaults.waterRate;
@@ -223,10 +229,7 @@ export const useWaterData = () => {
   };
 
   const closePeriod = () => {
-    const currentTabCustomers = customers.filter(c => c.listType === activeTab);
-    const otherTabCustomers = customers.filter(c => c.listType !== activeTab);
-    
-    const nextMonthCustomers = currentTabCustomers.map(c => {
+    const nextMonthCustomers = customers.map(c => {
       const nextOldIndex = c.newIndex > 0 ? c.newIndex : c.oldIndex;
       return calculateRow({
         ...c,
@@ -242,7 +245,7 @@ export const useWaterData = () => {
       }, config.waterRate);
     });
 
-    setCustomers([...otherTabCustomers, ...nextMonthCustomers].sort((a, b) => String(a.maKH || "").localeCompare(String(b.maKH || ""), undefined, { numeric: true, sensitivity: 'base' })));
+    setCustomers(nextMonthCustomers.sort((a, b) => String(a.maKH || "").localeCompare(String(b.maKH || ""), undefined, { numeric: true, sensitivity: 'base' })));
     setGroups(prev => prev.map(g => ({ ...g, isProcessed: false })));
     return nextMonthCustomers;
   };
@@ -384,8 +387,8 @@ export const useWaterData = () => {
       bankId: 'vcb', 
       accountNo: '1066386342', 
       accountName: 'HKD TRAN NGOC TONG (CS CAP NUOC SINH HOA)',
-      groupBankId: 'agribank',
-      groupAccountNo: '8888942444224',
+      groupBankId: 'vcb',
+      groupAccountNo: '9942444224',
       groupAccountName: 'TO TUAN KIET'
     };
     setConfig(prev => ({ ...prev, ...defaults }));

@@ -279,13 +279,38 @@ function updateOrInsertData(sheet, dataToUpdate) {
 function archiveSheet(ss, sourceSheet, targetName) {
   if (!sourceSheet) return;
   
-  // Nếu trang tính lịch sử cùng kỳ đã tồn tại, xóa trước để tránh lỗi đè
+  // Kiểm tra an toàn: Nếu trang tính lịch sử đã tồn tại và đã có dữ liệu Chỉ số mới,
+  // kiểm tra xem trang tính nguồn có đang bị reset về 0 hay không.
   var oldSheet = ss.getSheetByName(targetName);
   if (oldSheet) {
     try {
+      var oldData = oldSheet.getDataRange().getValues();
+      var sourceData = sourceSheet.getDataRange().getValues();
+      
+      var oldHasReadings = false;
+      for (var i = 4; i < oldData.length; i++) {
+        if (Number(oldData[i][4] || 0) > 0) {
+          oldHasReadings = true;
+          break;
+        }
+      }
+      
+      var sourceHasReadings = false;
+      for (var j = 4; j < sourceData.length; j++) {
+        if (Number(sourceData[j][4] || 0) > 0) {
+          sourceHasReadings = true;
+          break;
+        }
+      }
+      
+      // Nếu trang lịch sử cũ đã có số ghi, nhưng nguồn bị reset về 0 -> Giữ nguyên lịch sử cũ
+      if (oldHasReadings && !sourceHasReadings) {
+        return;
+      }
+      
       ss.deleteSheet(oldSheet);
     } catch (e) {
-      // Bỏ qua lỗi
+      // Bỏ qua lỗi xóa sheet
     }
   }
   
