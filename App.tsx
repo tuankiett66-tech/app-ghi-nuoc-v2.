@@ -792,7 +792,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               );
               if (!confirmClose) return;
             } else {
-              if(!confirm("Bạn có muốn chốt kì hiện tại và mở kì mới cho tất cả các Bộ danh bộ?")) return;
+              if(!confirm("Bạn có muốn CHỐT KỲ hiện tại cho CẢ BỘ 1 VÀ BỘ 2?\n\n1. Tự động sao lưu lịch sử cả 2 Bộ lên Google Sheets.\n2. TỰ ĐỘNG TẢI VỀ 2 FILE EXCEL KỲ MỚI (Bộ 1 & Bộ 2) để in đi ghi nước.")) return;
             }
             const periodSuffix = getCurrentPeriodSuffix();
             
@@ -807,8 +807,20 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
 
             // 2. Chốt kỳ và tạo danh sách kỳ mới cho toàn bộ dữ liệu (Bộ 1 + Bộ 2)
             const res = closePeriod(); 
-            await exportToExcel(res.filter(c => c.listType === activeTab), 'Ky_Moi'); 
-            showToast("Đã chốt kì và tạo kì mới thành công!"); 
+            
+            // Tự động tải về File Excel Kỳ mới cho cả Bộ 1 và Bộ 2
+            const list1New = res.filter(c => c.listType === 'list1');
+            if (list1New.length > 0) {
+              await exportToExcel(list1New, 'Ky_Moi_DanhBo_1');
+            }
+            
+            await new Promise(r => setTimeout(r, 500));
+            const list2New = res.filter(c => c.listType === 'list2');
+            if (list2New.length > 0) {
+              await exportToExcel(list2New, 'Ky_Moi_DanhBo_2');
+            }
+
+            showToast("Đã chốt kì và tải về 2 file Excel Kỳ Mới cho cả Bộ 1 & Bộ 2!"); 
 
             // 3. Tự động đồng bộ kỳ mới lên Google Sheets để khởi tạo các trang tính chính
             showToast("Đang khởi tạo kỳ mới lên Google Sheets...");
@@ -816,12 +828,20 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             
             navigateTo('list'); 
           }}
-          onExport={async () => {
-            const unrecorded = customers.filter(c => c.listType === activeTab && c.newIndex === 0);
-            if (unrecorded.length > 0) {
-              if (!confirm(`⚠️ Có ${unrecorded.length} hộ chưa ghi nước. Bạn có chắc chắn muốn xuất báo cáo Excel?`)) return;
+          onExport={async (targetListType?: string) => {
+            const target = targetListType || activeTab;
+            const targetName = target === 'list1' ? 'Bộ 01' : 'Bộ 02';
+            const targetCustomers = customers.filter(c => c.listType === target);
+            
+            const unrecorded = targetCustomers.filter(c => c.newIndex === 0);
+            const isAllNewPeriod = targetCustomers.length > 0 && targetCustomers.every(c => c.newIndex === 0);
+
+            if (unrecorded.length > 0 && !isAllNewPeriod) {
+              if (!confirm(`⚠️ [${targetName}] Có ${unrecorded.length} hộ chưa ghi nước. Bạn có chắc chắn muốn xuất báo cáo Excel?`)) return;
             }
-            await exportToExcel(customers.filter(c => c.listType === activeTab), 'Bao_Cao');
+            
+            const fileNamePrefix = isAllNewPeriod ? 'Ky_Moi' : 'Bao_Cao';
+            await exportToExcel(targetCustomers, `${fileNamePrefix}_DanhBo_${target === 'list1' ? '1' : '2'}`);
           }}
           onSelectCustomer={(id) => {
             setSelectedId(id);

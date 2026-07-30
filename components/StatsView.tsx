@@ -10,7 +10,7 @@ interface StatsViewProps {
   activeTab: string;
   onBack: () => void;
   onClosePeriod: () => void;
-  onExport: () => void;
+  onExport: (listType?: string) => void;
   onSelectCustomer?: (id: string) => void;
 }
 
@@ -211,8 +211,23 @@ export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBa
       </div>
 
       <div className="space-y-3">
-        <button onClick={onExport} className="w-full bg-blue-700 text-white py-4 rounded-xl font-black uppercase flex justify-center items-center gap-2 shadow-md active:scale-95 border-b-4 border-blue-900 text-xs tracking-widest"><Download size={18}/> Xuất báo cáo Excel</button>
-        <button onClick={onClosePeriod} className="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase flex justify-center items-center gap-2 shadow-md active:scale-95 border-b-4 border-amber-700 text-xs tracking-widest"><RefreshCcw size={18}/> Chốt kỳ & Mở kỳ mới</button>
+        <div className="grid grid-cols-2 gap-2">
+          <button 
+            onClick={() => onExport('list1')} 
+            className="bg-blue-700 text-white py-3.5 px-2 rounded-xl font-black uppercase flex justify-center items-center gap-1.5 shadow-md active:scale-95 border-b-4 border-blue-900 text-[11px] tracking-wider"
+          >
+            <Download size={16}/> Xuất Excel Bộ 01
+          </button>
+          <button 
+            onClick={() => onExport('list2')} 
+            className="bg-indigo-700 text-white py-3.5 px-2 rounded-xl font-black uppercase flex justify-center items-center gap-1.5 shadow-md active:scale-95 border-b-4 border-indigo-900 text-[11px] tracking-wider"
+          >
+            <Download size={16}/> Xuất Excel Bộ 02
+          </button>
+        </div>
+        <button onClick={onClosePeriod} className="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase flex justify-center items-center gap-2 shadow-md active:scale-95 border-b-4 border-amber-700 text-xs tracking-widest">
+          <RefreshCcw size={18}/> Chốt kỳ & Mở kỳ mới (Tải cả 2 Bộ)
+        </button>
       </div>
     </div>
   );
