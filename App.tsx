@@ -295,7 +295,7 @@ const App: React.FC = () => {
     finally { if (!silent) setIsSyncing(false); }
   };
 
-  const handleBackupCloud = async (silent = false, archiveSuffix?: string): Promise<boolean> => {
+  const handleBackupCloud = async (silent = false, archiveSuffix?: string, customCustomers?: Customer[]): Promise<boolean> => {
     const url = config.sheetUrl?.trim();
     if (!url) {
       if (!silent) showToast("Chưa có Link Script!");
@@ -307,8 +307,11 @@ const App: React.FC = () => {
       return false;
     }
     
+    // Sử dụng customCustomers nếu được truyền vào (dành cho Chốt kỳ mới) hoặc dùng state customers
+    const sourceCustomers = customCustomers || customers;
+
     // Sắp xếp dữ liệu trước khi gửi để đảm bảo thứ tự trên Sheet khớp với App
-    const sortedCustomers = [...customers].sort((a, b) => 
+    const sortedCustomers = [...sourceCustomers].sort((a, b) => 
       String(a.maKH || "").localeCompare(String(b.maKH || ""), undefined, { numeric: true, sensitivity: 'base' })
     );
 
@@ -796,19 +799,10 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             }
             const periodSuffix = getCurrentPeriodSuffix();
             
-            // 1. Tự động lưu trữ lịch sử kỳ này lên Google Sheets (Lưu cả Bộ 1 & Bộ 2)
-            showToast("Đang tự động lưu trữ lịch sử lên Google Sheets...");
-            const backupSuccess = await handleBackupCloud(false, periodSuffix);
-            
-            if (!backupSuccess) {
-              const proceed = confirm("⚠️ Không thể tự động sao lưu lịch sử lên Google Sheets.\nBạn có muốn bỏ qua và tiếp tục CHỐT KỲ offline (vẫn xuất file Excel kì mới) không?");
-              if (!proceed) return;
-            }
-
-            // 2. Chốt kỳ và tạo danh sách kỳ mới cho toàn bộ dữ liệu (Bộ 1 + Bộ 2)
+            // 1. Chốt kỳ và tạo danh sách kỳ mới cho toàn bộ dữ liệu (Bộ 1 + Bộ 2)
             const res = closePeriod(); 
             
-            // Tự động tải về File Excel Kỳ mới cho cả Bộ 1 và Bộ 2
+            // 2. Tự động tải về File Excel Kỳ mới cho cả Bộ 1 và Bộ 2
             const list1New = res.filter(c => c.listType === 'list1');
             if (list1New.length > 0) {
               await exportToExcel(list1New, 'Ky_Moi_DanhBo_1');
@@ -820,11 +814,15 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               await exportToExcel(list2New, 'Ky_Moi_DanhBo_2');
             }
 
-            showToast("Đã chốt kì và tải về 2 file Excel Kỳ Mới cho cả Bộ 1 & Bộ 2!"); 
-
-            // 3. Tự động đồng bộ kỳ mới lên Google Sheets để khởi tạo các trang tính chính
-            showToast("Đang khởi tạo kỳ mới lên Google Sheets...");
-            await handleBackupCloud(true); // Đồng bộ ngầm để reset chỉ số cũ/mới của kỳ mới
+            // 3. Tự động lưu trữ Lịch sử kỳ cũ & Cập nhật kỳ mới lên Google Sheets trong 1 bước duy nhất
+            showToast("Đang lưu trữ lịch sử & mở kỳ mới trên Google Sheets...");
+            const backupSuccess = await handleBackupCloud(false, periodSuffix, res);
+            
+            if (backupSuccess) {
+              showToast("Đã chốt kì, tạo 2 file Excel & đồng bộ Google Sheets thành công!"); 
+            } else {
+              alert("⚠️ Không thể tự động sao lưu lên Google Sheets. Dữ liệu trên App và 2 file Excel đã được chốt thành công.");
+            }
             
             navigateTo('list'); 
           }}
