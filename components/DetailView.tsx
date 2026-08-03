@@ -30,6 +30,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [isEditingInstallDate, setIsEditingInstallDate] = useState(false);
   const [tempInstallDate, setTempInstallDate] = useState(customer.installDate || "");
   const [copiedName, setCopiedName] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // QUAN TRONG: Reset o nhap lieu moi khi chuyen sang khach hang khac (customer.id thay doi)
   useEffect(() => {
@@ -142,6 +143,11 @@ export const DetailView: React.FC<DetailViewProps> = ({
                 autoComplete="one-time-code"
                 autoCorrect="off"
                 spellCheck="false"
+                readOnly={focusedField !== 'ni'}
+                onFocus={() => setFocusedField('ni')}
+                onTouchStart={() => setFocusedField('ni')}
+                onMouseDown={() => setFocusedField('ni')}
+                onBlur={() => setFocusedField(null)}
               />
             </div>
           </div>
@@ -187,6 +193,11 @@ export const DetailView: React.FC<DetailViewProps> = ({
               autoComplete="one-time-code"
               autoCorrect="off"
               spellCheck="false"
+              readOnly={focusedField !== 'pi'}
+              onFocus={() => setFocusedField('pi')}
+              onTouchStart={() => setFocusedField('pi')}
+              onMouseDown={() => setFocusedField('pi')}
+              onBlur={() => setFocusedField(null)}
             />
             {pi && <button onClick={() => setPi('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-300 active:scale-90 p-1"><X size={20}/></button>}
           </div>

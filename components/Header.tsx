@@ -32,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -193,12 +194,21 @@ export const Header: React.FC<HeaderProps> = ({
                 className="w-full bg-white rounded-2xl py-3.5 pl-11 pr-24 shadow-md border-2 border-slate-200 focus:border-blue-500 outline-none text-[15px] font-bold text-slate-800 placeholder:text-slate-400" 
                 placeholder="Tìm tên, Mã KH, điện thoại..." 
                 value={searchQuery} 
-                onFocus={() => setShowHistory(true)}
-                onBlur={handleInputBlur}
+                onFocus={() => {
+                  setShowHistory(true);
+                  setFocusedField('search');
+                }}
+                onBlur={(e) => {
+                  handleInputBlur();
+                  setFocusedField(null);
+                }}
                 onChange={e => handleInputChange(e.target.value)} 
                 autoComplete="one-time-code"
                 autoCorrect="off"
                 spellCheck="false"
+                readOnly={focusedField !== 'search'}
+                onTouchStart={() => setFocusedField('search')}
+                onMouseDown={() => setFocusedField('search')}
               />
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
               <div className="absolute right-3 flex gap-1 items-center">

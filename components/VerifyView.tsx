@@ -14,6 +14,7 @@ export const VerifyView: React.FC<VerifyViewProps> = ({ customers, activeTab, on
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'recorded' | 'paid'>('all');
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // 1. Grouping and filtering logic
   const groupedHistory = useMemo(() => {
@@ -147,6 +148,11 @@ export const VerifyView: React.FC<VerifyViewProps> = ({ customers, activeTab, on
               autoComplete="one-time-code"
               autoCorrect="off"
               spellCheck="false"
+              readOnly={focusedField !== 'search'}
+              onFocus={() => setFocusedField('search')}
+              onTouchStart={() => setFocusedField('search')}
+              onMouseDown={() => setFocusedField('search')}
+              onBlur={() => setFocusedField(null)}
             />
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             {searchQuery && (

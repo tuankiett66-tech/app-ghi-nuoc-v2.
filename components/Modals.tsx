@@ -19,6 +19,7 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
   const [formData, setFormData] = useState({ 
     name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: '', oldIndex: 0, oldDebt: 0, installDate: '', isSubMeter: false
   });
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
     if (view === 'edit_customer' && selectedCustomer) {
@@ -62,6 +63,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                     autoComplete="one-time-code"
                     autoCorrect="off"
                     spellCheck="false"
+                    readOnly={focusedField !== 'maKH'}
+                    onFocus={() => setFocusedField('maKH')}
+                    onTouchStart={() => setFocusedField('maKH')}
+                    onMouseDown={() => setFocusedField('maKH')}
+                    onBlur={() => setFocusedField(null)}
                   />
                </div>
                <div className="col-span-3">
@@ -74,6 +80,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                     autoComplete="one-time-code"
                     autoCorrect="off"
                     spellCheck="false"
+                    readOnly={focusedField !== 'name'}
+                    onFocus={() => setFocusedField('name')}
+                    onTouchStart={() => setFocusedField('name')}
+                    onMouseDown={() => setFocusedField('name')}
+                    onBlur={() => setFocusedField(null)}
                   />
                </div>
             </div>
@@ -88,10 +99,15 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                 autoComplete="one-time-code"
                 autoCorrect="off"
                 spellCheck="false"
+                readOnly={focusedField !== 'address'}
+                onFocus={() => setFocusedField('address')}
+                onTouchStart={() => setFocusedField('address')}
+                onMouseDown={() => setFocusedField('address')}
+                onBlur={() => setFocusedField(null)}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-black uppercase text-blue-700 ml-1 italic">SĐT Khách thuê</label>
                 <input 
@@ -102,6 +118,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                   autoComplete="one-time-code"
                   autoCorrect="off"
                   spellCheck="false"
+                  readOnly={focusedField !== 'phoneTenant'}
+                  onFocus={() => setFocusedField('phoneTenant')}
+                  onTouchStart={() => setFocusedField('phoneTenant')}
+                  onMouseDown={() => setFocusedField('phoneTenant')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </div>
               <div>
@@ -114,11 +135,16 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                   autoComplete="one-time-code"
                   autoCorrect="off"
                   spellCheck="false"
+                  readOnly={focusedField !== 'phoneLandlord'}
+                  onFocus={() => setFocusedField('phoneLandlord')}
+                  onTouchStart={() => setFocusedField('phoneLandlord')}
+                  onMouseDown={() => setFocusedField('phoneLandlord')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Số cũ (m3)</label>
                 <input 
@@ -129,6 +155,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                   autoComplete="one-time-code"
                   autoCorrect="off"
                   spellCheck="false"
+                  readOnly={focusedField !== 'oldIndex'}
+                  onFocus={() => setFocusedField('oldIndex')}
+                  onTouchStart={() => setFocusedField('oldIndex')}
+                  onMouseDown={() => setFocusedField('oldIndex')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </div>
               <div>
@@ -141,6 +172,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                   autoComplete="one-time-code"
                   autoCorrect="off"
                   spellCheck="false"
+                  readOnly={focusedField !== 'oldDebt'}
+                  onFocus={() => setFocusedField('oldDebt')}
+                  onTouchStart={() => setFocusedField('oldDebt')}
+                  onMouseDown={() => setFocusedField('oldDebt')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </div>
             </div>
@@ -217,6 +253,11 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
           autoComplete="one-time-code"
           autoCorrect="off"
           spellCheck="false"
+          readOnly={focusedField !== 'globalMessage'}
+          onFocus={() => setFocusedField('globalMessage')}
+          onTouchStart={() => setFocusedField('globalMessage')}
+          onMouseDown={() => setFocusedField('globalMessage')}
+          onBlur={() => setFocusedField(null)}
         />
         <button onClick={() => setView('list')} className="w-full bg-amber-500 text-white py-5 rounded-[1.8rem] font-black uppercase shadow-xl flex items-center justify-center gap-2 active:scale-95 border-b-4 border-amber-700 tracking-widest"><Save size={24} /> Lưu tin nhắn mẫu</button>
       </div>

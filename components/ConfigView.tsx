@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { X, UploadCloud, FileSpreadsheet, Trash2, Globe } from 'lucide-react';
 import { SystemConfig } from '../types';
 import { parseSafe } from '../utils';
@@ -17,6 +17,7 @@ interface ConfigViewProps {
 }
 
 export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBack, onImport, onExport, onBackupCloud, onClear, onResetBank }) => {
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   return (
     <div className="h-full bg-slate-50 p-6 pt-[calc(1.5rem+var(--sat))] overflow-y-auto">
       <header className="flex justify-between items-center mb-8 bg-white/80 backdrop-blur-md p-4 rounded-3xl border shadow-sm sticky top-0 z-50">
@@ -43,6 +44,11 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
               autoComplete="one-time-code"
               autoCorrect="off"
               spellCheck="false"
+              readOnly={focusedField !== 'waterRate'}
+              onFocus={() => setFocusedField('waterRate')}
+              onTouchStart={() => setFocusedField('waterRate')}
+              onMouseDown={() => setFocusedField('waterRate')}
+              onBlur={() => setFocusedField(null)}
             />
           </div>
 
@@ -62,6 +68,11 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                   autoComplete="one-time-code"
                   autoCorrect="off"
                   spellCheck="false"
+                  readOnly={focusedField !== 'sheetUrl'}
+                  onFocus={() => setFocusedField('sheetUrl')}
+                  onTouchStart={() => setFocusedField('sheetUrl')}
+                  onMouseDown={() => setFocusedField('sheetUrl')}
+                  onBlur={() => setFocusedField(null)}
                 />
              </div>
              <button onClick={onBackupCloud} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 active:scale-95 shadow-md border-b-4 border-blue-900 mt-2">
@@ -99,6 +110,11 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                  autoComplete="one-time-code"
                  autoCorrect="off"
                  spellCheck="false"
+                 readOnly={focusedField !== 'bankId'}
+                 onFocus={() => setFocusedField('bankId')}
+                 onTouchStart={() => setFocusedField('bankId')}
+                 onMouseDown={() => setFocusedField('bankId')}
+                 onBlur={() => setFocusedField(null)}
                />
                <input 
                  className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" 
@@ -108,6 +124,11 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                  autoComplete="one-time-code"
                  autoCorrect="off"
                  spellCheck="false"
+                 readOnly={focusedField !== 'accountNo'}
+                 onFocus={() => setFocusedField('accountNo')}
+                 onTouchStart={() => setFocusedField('accountNo')}
+                 onMouseDown={() => setFocusedField('accountNo')}
+                 onBlur={() => setFocusedField(null)}
                />
                <input 
                  className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" 
@@ -117,6 +138,11 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                  autoComplete="one-time-code"
                  autoCorrect="off"
                  spellCheck="false"
+                 readOnly={focusedField !== 'accountName'}
+                 onFocus={() => setFocusedField('accountName')}
+                 onTouchStart={() => setFocusedField('accountName')}
+                 onMouseDown={() => setFocusedField('accountName')}
+                 onBlur={() => setFocusedField(null)}
                />
              </div>
           </div>
@@ -132,6 +158,11 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                  autoComplete="one-time-code"
                  autoCorrect="off"
                  spellCheck="false"
+                 readOnly={focusedField !== 'groupBankId'}
+                 onFocus={() => setFocusedField('groupBankId')}
+                 onTouchStart={() => setFocusedField('groupBankId')}
+                 onMouseDown={() => setFocusedField('groupBankId')}
+                 onBlur={() => setFocusedField(null)}
                />
                <input 
                  className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" 
@@ -141,6 +172,11 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                  autoComplete="one-time-code"
                  autoCorrect="off"
                  spellCheck="false"
+                 readOnly={focusedField !== 'groupAccountNo'}
+                 onFocus={() => setFocusedField('groupAccountNo')}
+                 onTouchStart={() => setFocusedField('groupAccountNo')}
+                 onMouseDown={() => setFocusedField('groupAccountNo')}
+                 onBlur={() => setFocusedField(null)}
                />
                <input 
                  className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" 
@@ -150,6 +186,11 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                  autoComplete="one-time-code"
                  autoCorrect="off"
                  spellCheck="false"
+                 readOnly={focusedField !== 'groupAccountName'}
+                 onFocus={() => setFocusedField('groupAccountName')}
+                 onTouchStart={() => setFocusedField('groupAccountName')}
+                 onMouseDown={() => setFocusedField('groupAccountName')}
+                 onBlur={() => setFocusedField(null)}
                />
              </div>
           </div>
