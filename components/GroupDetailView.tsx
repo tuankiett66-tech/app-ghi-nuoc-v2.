@@ -280,6 +280,9 @@ Nội dung: TT NUOC ${cleanGroupName}`;
                   value={maKHInput}
                   onChange={e => setMaKHInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAddMember()}
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
                 />
                 <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
                     {maKHInput && <button onClick={() => setMaKHInput('')} className="p-1 text-rose-400"><X size={14}/></button>}
@@ -306,6 +309,9 @@ Nội dung: TT NUOC ${cleanGroupName}`;
               className="bg-slate-50 p-1.5 rounded-lg font-black text-slate-600 text-[14px] outline-none border-2 border-transparent focus:border-indigo-300 text-center"
               value={group.oldIndex || 0}
               onChange={e => handleUpdateIndices(e.target.value, (group.newIndex || 0).toString())}
+              autoComplete="one-time-code"
+              autoCorrect="off"
+              spellCheck="false"
             />
           </div>
           <div className="bg-white p-2 rounded-xl border-2 border-blue-50 shadow-sm flex flex-col gap-1">
@@ -317,13 +323,24 @@ Nội dung: TT NUOC ${cleanGroupName}`;
               className="bg-blue-50/50 p-1.5 rounded-lg font-black text-blue-700 text-[14px] outline-none border-2 border-transparent focus:border-blue-300 text-center"
               value={group.newIndex || 0}
               onChange={e => handleUpdateIndices((group.oldIndex || 0).toString(), e.target.value)}
+              autoComplete="one-time-code"
+              autoCorrect="off"
+              spellCheck="false"
             />
           </div>
         </div>
 
         <div className="bg-white p-1.5 rounded-xl border shadow-sm flex items-center gap-2">
             <label className="text-[8px] font-black text-slate-400 uppercase tracking-tighter whitespace-nowrap px-1">Zalo Chu nhom</label>
-            <input className="flex-1 bg-indigo-50/50 p-1.5 rounded-lg font-black text-indigo-700 text-[12px] outline-none border border-transparent focus:border-indigo-300" value={group.masterSdt || ''} onChange={e => onUpdateGroup(group.id, { masterSdt: e.target.value })} placeholder="09xxxx..." />
+            <input 
+              className="flex-1 bg-indigo-50/50 p-1.5 rounded-lg font-black text-indigo-700 text-[12px] outline-none border border-transparent focus:border-indigo-300" 
+              value={group.masterSdt || ''} 
+              onChange={e => onUpdateGroup(group.id, { masterSdt: e.target.value })} 
+              placeholder="09xxxx..." 
+              autoComplete="one-time-code"
+              autoCorrect="off"
+              spellCheck="false"
+            />
         </div>
       </div>
 

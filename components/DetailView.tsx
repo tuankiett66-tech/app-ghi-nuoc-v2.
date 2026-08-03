@@ -132,7 +132,17 @@ export const DetailView: React.FC<DetailViewProps> = ({
             </div>
             <div className="space-y-1.5">
               <p className="text-[11px] font-black text-blue-700 uppercase ml-1">Số mới</p>
-              <input autoFocus type="number" className="w-full bg-white p-4 rounded-2xl border-2 border-blue-200 font-black text-2xl text-blue-700 shadow-sm focus:border-blue-500 outline-none" value={ni} onChange={e => setNi(e.target.value)} onKeyDown={handleKeyDown} />
+              <input 
+                autoFocus 
+                type="number" 
+                className="w-full bg-white p-4 rounded-2xl border-2 border-blue-200 font-black text-2xl text-blue-700 shadow-sm focus:border-blue-500 outline-none" 
+                value={ni} 
+                onChange={e => setNi(e.target.value)} 
+                onKeyDown={handleKeyDown} 
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck="false"
+              />
             </div>
           </div>
           <p className="text-[10px] font-bold text-slate-500 text-center mt-3.5 flex items-center justify-center gap-1">
@@ -168,7 +178,16 @@ export const DetailView: React.FC<DetailViewProps> = ({
         <div className="grid grid-cols-12 gap-3">
           <div className="col-span-8 bg-emerald-50 rounded-2xl p-4 border-2 border-emerald-200 relative shadow-sm">
             <p className="text-[11px] font-black text-emerald-700 uppercase ml-1 mb-1">Khách trả tiền</p>
-            <input type="number" className="w-full bg-transparent text-3xl font-black text-emerald-700 outline-none" value={pi} onChange={e => setPi(e.target.value)} onKeyDown={handleKeyDown} />
+            <input 
+              type="number" 
+              className="w-full bg-transparent text-3xl font-black text-emerald-700 outline-none" 
+              value={pi} 
+              onChange={e => setPi(e.target.value)} 
+              onKeyDown={handleKeyDown} 
+              autoComplete="one-time-code"
+              autoCorrect="off"
+              spellCheck="false"
+            />
             {pi && <button onClick={() => setPi('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-300 active:scale-90 p-1"><X size={20}/></button>}
           </div>
           <div className="col-span-4 flex flex-col gap-2">
@@ -271,6 +290,9 @@ export const DetailView: React.FC<DetailViewProps> = ({
                 className="w-full bg-white p-3 rounded-2xl border-2 border-sky-100 font-black text-slate-800 text-sm focus:outline-none focus:border-sky-500" 
                 value={tempInstallDate} 
                 onChange={e => setTempInstallDate(e.target.value)} 
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck="false"
               />
               
               <div className="flex gap-2">

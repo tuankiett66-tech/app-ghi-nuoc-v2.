@@ -278,11 +278,27 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Kỳ</label>
-                      <input value={period} onChange={e => setPeriod(e.target.value)} placeholder="VD: 12" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-lg font-black outline-none focus:border-blue-500 shadow-inner" />
+                      <input 
+                        value={period} 
+                        onChange={e => setPeriod(e.target.value)} 
+                        placeholder="VD: 12" 
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-lg font-black outline-none focus:border-blue-500 shadow-inner" 
+                        autoComplete="one-time-code"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block tracking-wider">Tháng</label>
-                      <input value={month} onChange={e => setMonth(e.target.value)} placeholder="VD: Dec-25" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-lg font-black outline-none focus:border-blue-500 shadow-inner" />
+                      <input 
+                        value={month} 
+                        onChange={e => setMonth(e.target.value)} 
+                        placeholder="VD: Dec-25" 
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3.5 text-lg font-black outline-none focus:border-blue-500 shadow-inner" 
+                        autoComplete="one-time-code"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
                     </div>
                   </div>
 
@@ -297,16 +313,52 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                   <div className="bg-slate-50 p-5 rounded-[2rem] space-y-3.5 border-2 border-slate-100/50 shadow-sm">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center italic">Đồng hồ tổng số 1</p>
                     <div className="grid grid-cols-2 gap-4">
-                      <input type="number" value={m1New} onChange={e => setM1New(e.target.value)} placeholder="Số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" />
-                      <input type="number" value={m1Old} onChange={e => setM1Old(e.target.value)} placeholder="Số cũ" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" />
+                      <input 
+                        type="number" 
+                        value={m1New} 
+                        onChange={e => setM1New(e.target.value)} 
+                        placeholder="Số mới" 
+                        className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" 
+                        autoComplete="one-time-code"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
+                      <input 
+                        type="number" 
+                        value={m1Old} 
+                        onChange={e => setM1Old(e.target.value)} 
+                        placeholder="Số cũ" 
+                        className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" 
+                        autoComplete="one-time-code"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
                     </div>
                   </div>
 
                   <div className="bg-slate-50 p-5 rounded-[2rem] space-y-3.5 border-2 border-slate-100/50 shadow-sm">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center italic">Đồng hồ tổng số 2</p>
                     <div className="grid grid-cols-2 gap-4">
-                      <input type="number" value={m2New} onChange={e => setM2New(e.target.value)} placeholder="Số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" />
-                      <input type="number" value={m2Old} onChange={e => setM2Old(e.target.value)} placeholder="Số cũ" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" />
+                      <input 
+                        type="number" 
+                        value={m2New} 
+                        onChange={e => setM2New(e.target.value)} 
+                        placeholder="Số mới" 
+                        className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" 
+                        autoComplete="one-time-code"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
+                      <input 
+                        type="number" 
+                        value={m2Old} 
+                        onChange={e => setM2Old(e.target.value)} 
+                        placeholder="Số cũ" 
+                        className="w-full bg-white border-2 border-slate-200 rounded-2xl px-4 py-4 text-xl font-black outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all text-center placeholder:text-slate-300 shadow-sm" 
+                        autoComplete="one-time-code"
+                        autoCorrect="off"
+                        spellCheck="false"
+                      />
                     </div>
                   </div>
 
@@ -315,11 +367,27 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-[8px] font-black text-blue-400 uppercase ml-2 mb-1 block">Bộ 01</label>
-                        <input type="number" value={manualList1Vol} onChange={e => setManualList1Vol(e.target.value)} className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black outline-none focus:border-blue-500" />
+                        <input 
+                          type="number" 
+                          value={manualList1Vol} 
+                          onChange={e => setManualList1Vol(e.target.value)} 
+                          className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black outline-none focus:border-blue-500" 
+                          autoComplete="one-time-code"
+                          autoCorrect="off"
+                          spellCheck="false"
+                        />
                       </div>
                       <div>
                         <label className="text-[8px] font-black text-blue-400 uppercase ml-2 mb-1 block">Bộ 02</label>
-                        <input type="number" value={manualList2Vol} onChange={e => setManualList2Vol(e.target.value)} className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black outline-none focus:border-blue-500" />
+                        <input 
+                          type="number" 
+                          value={manualList2Vol} 
+                          onChange={e => setManualList2Vol(e.target.value)} 
+                          className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black outline-none focus:border-blue-500" 
+                          autoComplete="one-time-code"
+                          autoCorrect="off"
+                          spellCheck="false"
+                        />
                       </div>
                     </div>
                     <p className="text-[8px] font-bold text-blue-300 italic text-center">* App tự điền số hiện tại, bạn có thể sửa nếu nhập cho tháng cũ</p>
@@ -398,11 +466,25 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-[9px] font-black text-blue-400 uppercase ml-2 mb-1 block">Kỳ</label>
-                          <input value={editData.period || ''} onChange={e => setEditData({...editData, period: e.target.value})} className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black" />
+                          <input 
+                            value={editData.period || ''} 
+                            onChange={e => setEditData({...editData, period: e.target.value})} 
+                            className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black" 
+                            autoComplete="one-time-code"
+                            autoCorrect="off"
+                            spellCheck="false"
+                          />
                         </div>
                         <div>
                           <label className="text-[9px] font-black text-blue-400 uppercase ml-2 mb-1 block">Tháng</label>
-                          <input value={editData.month || ''} onChange={e => setEditData({...editData, month: e.target.value})} className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black" />
+                          <input 
+                            value={editData.month || ''} 
+                            onChange={e => setEditData({...editData, month: e.target.value})} 
+                            className="w-full bg-white border-2 border-blue-100 rounded-xl px-4 py-2 text-sm font-black" 
+                            autoComplete="one-time-code"
+                            autoCorrect="off"
+                            spellCheck="false"
+                          />
                         </div>
                       </div>
 
@@ -417,13 +499,49 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                            <p className="text-[9px] font-black text-blue-500 uppercase text-center italic">Đồng hồ 1</p>
-                           <input type="number" value={editData.master1New} onChange={e => setEditData({...editData, master1New: parseFloat(e.target.value) || 0})} placeholder="Mới" className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
-                           <input type="number" value={editData.master1Old} onChange={e => setEditData({...editData, master1Old: parseFloat(e.target.value) || 0})} placeholder="Cũ" className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
+                           <input 
+                             type="number" 
+                             value={editData.master1New} 
+                             onChange={e => setEditData({...editData, master1New: parseFloat(e.target.value) || 0})} 
+                             placeholder="Mới" 
+                             className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" 
+                             autoComplete="one-time-code"
+                             autoCorrect="off"
+                             spellCheck="false"
+                           />
+                           <input 
+                             type="number" 
+                             value={editData.master1Old} 
+                             onChange={e => setEditData({...editData, master1Old: parseFloat(e.target.value) || 0})} 
+                             placeholder="Cũ" 
+                             className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" 
+                             autoComplete="one-time-code"
+                             autoCorrect="off"
+                             spellCheck="false"
+                           />
                         </div>
                         <div className="space-y-2">
                            <p className="text-[9px] font-black text-blue-500 uppercase text-center italic">Đồng hồ 2</p>
-                           <input type="number" value={editData.master2New} onChange={e => setEditData({...editData, master2New: parseFloat(e.target.value) || 0})} placeholder="Mới" className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
-                           <input type="number" value={editData.master2Old} onChange={e => setEditData({...editData, master2Old: parseFloat(e.target.value) || 0})} placeholder="Cũ" className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" />
+                           <input 
+                             type="number" 
+                             value={editData.master2New} 
+                             onChange={e => setEditData({...editData, master2New: parseFloat(e.target.value) || 0})} 
+                             placeholder="Mới" 
+                             className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" 
+                             autoComplete="one-time-code"
+                             autoCorrect="off"
+                             spellCheck="false"
+                           />
+                           <input 
+                             type="number" 
+                             value={editData.master2Old} 
+                             onChange={e => setEditData({...editData, master2Old: parseFloat(e.target.value) || 0})} 
+                             placeholder="Cũ" 
+                             className="w-full bg-white border-2 border-blue-100 rounded-xl px-3 py-2 text-sm font-black text-center" 
+                             autoComplete="one-time-code"
+                             autoCorrect="off"
+                             spellCheck="false"
+                           />
                         </div>
                       </div>
 
@@ -432,11 +550,27 @@ export const LossView: React.FC<LossViewProps> = ({ records, customers, dailySup
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-[9px] font-black text-blue-400 uppercase ml-2 mb-1 block">Bộ 01 (M3)</label>
-                            <input type="number" value={editData.list1Volume} onChange={e => setEditData({...editData, list1Volume: parseFloat(e.target.value) || 0})} className="w-full bg-white border-2 border-blue-200 rounded-2xl px-4 py-2 text-lg font-black text-center outline-none focus:border-blue-600" />
+                            <input 
+                              type="number" 
+                              value={editData.list1Volume} 
+                              onChange={e => setEditData({...editData, list1Volume: parseFloat(e.target.value) || 0})} 
+                              className="w-full bg-white border-2 border-blue-200 rounded-2xl px-4 py-2 text-lg font-black text-center outline-none focus:border-blue-600" 
+                              autoComplete="one-time-code"
+                              autoCorrect="off"
+                              spellCheck="false"
+                            />
                           </div>
                           <div>
                             <label className="text-[9px] font-black text-blue-400 uppercase ml-2 mb-1 block">Bộ 02 (M3)</label>
-                            <input type="number" value={editData.list2Volume} onChange={e => setEditData({...editData, list2Volume: parseFloat(e.target.value) || 0})} className="w-full bg-white border-2 border-blue-200 rounded-2xl px-4 py-2 text-lg font-black text-center outline-none focus:border-blue-600" />
+                            <input 
+                              type="number" 
+                              value={editData.list2Volume} 
+                              onChange={e => setEditData({...editData, list2Volume: parseFloat(e.target.value) || 0})} 
+                              className="w-full bg-white border-2 border-blue-200 rounded-2xl px-4 py-2 text-lg font-black text-center outline-none focus:border-blue-600" 
+                              autoComplete="one-time-code"
+                              autoCorrect="off"
+                              spellCheck="false"
+                            />
                           </div>
                         </div>
                       </div>

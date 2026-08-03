@@ -553,6 +553,9 @@ Trong phần cài đặt quét của Google Drive, hãy chọn định dạng Đ
                             className={`w-full bg-white px-2 py-1 rounded-md border text-sm font-black mt-0.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none ${
                               isLower ? 'border-rose-400 text-rose-600 bg-rose-50' : 'border-blue-200 text-blue-700'
                             }`}
+                            autoComplete="one-time-code"
+                            autoCorrect="off"
+                            spellCheck="false"
                           />
                         </div>
                         <div>

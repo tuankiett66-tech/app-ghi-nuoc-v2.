@@ -579,27 +579,71 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-black text-slate-400 uppercase ml-3 mb-1.5 block">Ngày ghi</label>
-                  <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-black outline-none focus:border-blue-500 shadow-inner" />
+                  <input 
+                    type="date" 
+                    value={date} 
+                    onChange={e => setDate(e.target.value)} 
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-black outline-none focus:border-blue-500 shadow-inner" 
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    spellCheck="false"
+                  />
                 </div>
                 <div>
                   <label className="text-[10px] font-black text-slate-400 uppercase ml-3 mb-1.5 block">Giờ ghi</label>
-                  <input type="time" value={time} onChange={e => setTime(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-black outline-none focus:border-blue-500 shadow-inner" />
+                  <input 
+                    type="time" 
+                    value={time} 
+                    onChange={e => setTime(e.target.value)} 
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-black outline-none focus:border-blue-500 shadow-inner" 
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    spellCheck="false"
+                  />
                 </div>
               </div>
 
               <div className="bg-slate-50 p-6 rounded-[2.2rem] border-2 border-slate-100/50 shadow-sm space-y-4">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center italic">Đồng hồ tổng số 1</p>
-                <input type="number" inputMode="decimal" value={m1} onChange={e => setM1(e.target.value)} placeholder="Nhập chỉ số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-5 text-2xl font-black text-center outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-100 transition-all placeholder:text-slate-200 shadow-sm" />
+                <input 
+                  type="number" 
+                  inputMode="decimal" 
+                  value={m1} 
+                  onChange={e => setM1(e.target.value)} 
+                  placeholder="Nhập chỉ số mới" 
+                  className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-5 text-2xl font-black text-center outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-100 transition-all placeholder:text-slate-200 shadow-sm" 
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
               </div>
 
               <div className="bg-slate-50 p-6 rounded-[2.2rem] border-2 border-slate-100/50 shadow-sm space-y-4">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center italic">Đồng hồ tổng số 2</p>
-                <input type="number" inputMode="decimal" value={m2} onChange={e => setM2(e.target.value)} placeholder="Nhập chỉ số mới" className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-5 text-2xl font-black text-center outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-100 transition-all placeholder:text-slate-200 shadow-sm" />
+                <input 
+                  type="number" 
+                  inputMode="decimal" 
+                  value={m2} 
+                  onChange={e => setM2(e.target.value)} 
+                  placeholder="Nhập chỉ số mới" 
+                  className="w-full bg-white border-2 border-slate-200 rounded-2xl px-6 py-5 text-2xl font-black text-center outline-none focus:border-blue-600 focus:ring-8 focus:ring-blue-100 transition-all placeholder:text-slate-200 shadow-sm" 
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
               </div>
 
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase ml-3 mb-1.5 block tracking-widest">Ghi chú (nếu có)</label>
-                <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Vd: Đã đi kiểm tra đường ống..." className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:border-blue-500 shadow-inner h-24" />
+                <textarea 
+                  value={notes} 
+                  onChange={e => setNotes(e.target.value)} 
+                  placeholder="Vd: Đã đi kiểm tra đường ống..." 
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:border-blue-500 shadow-inner h-24" 
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
               </div>
             </div>
 
@@ -1058,6 +1102,9 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                                           setDailyScanResults(copy);
                                         }}
                                         className="w-full bg-white font-black text-blue-600 border border-slate-200 rounded-lg py-1 px-1 text-center text-xs focus:ring-2 focus:ring-indigo-500"
+                                        autoComplete="one-time-code"
+                                        autoCorrect="off"
+                                        spellCheck="false"
                                       />
                                     </td>
                                     <td className="p-1">
@@ -1071,6 +1118,9 @@ export const LossDailyTracking: React.FC<LossDailyTrackingProps> = ({ readings, 
                                           setDailyScanResults(copy);
                                         }}
                                         className="w-full bg-white font-black text-rose-500 border border-slate-200 rounded-lg py-1 px-1 text-center text-xs focus:ring-2 focus:ring-indigo-500"
+                                        autoComplete="one-time-code"
+                                        autoCorrect="off"
+                                        spellCheck="false"
                                       />
                                     </td>
                                   </tr>

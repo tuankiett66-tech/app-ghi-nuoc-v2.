@@ -196,6 +196,9 @@ export const Header: React.FC<HeaderProps> = ({
                 onFocus={() => setShowHistory(true)}
                 onBlur={handleInputBlur}
                 onChange={e => handleInputChange(e.target.value)} 
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck="false"
               />
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
               <div className="absolute right-3 flex gap-1 items-center">

@@ -262,6 +262,9 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
               className="w-full bg-slate-50 p-3.5 pl-10 pr-10 rounded-2xl border-2 border-slate-100 font-black text-sm text-slate-800 outline-none focus:border-indigo-500"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
+              autoComplete="one-time-code"
+              autoCorrect="off"
+              spellCheck="false"
             />
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
               <Search size={18} />
@@ -292,6 +295,9 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
                     value={newGroupName}
                     onChange={e => setNewGroupName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleManualAdd()}
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    spellCheck="false"
                 />
                 <button onClick={handleManualAdd} className="w-full bg-indigo-600 text-white py-4.5 rounded-2xl font-black uppercase shadow-lg border-b-4 border-indigo-900 active:scale-95 transition-transform">Lưu vào máy</button>
             </div>
@@ -311,6 +317,9 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleSaveEdit()}
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    spellCheck="false"
                 />
                 <button onClick={handleSaveEdit} className="w-full bg-indigo-600 text-white py-4.5 rounded-2xl font-black uppercase shadow-lg border-b-4 border-indigo-900 active:scale-95 transition-transform">Cập nhật</button>
             </div>

@@ -144,6 +144,9 @@ export const VerifyView: React.FC<VerifyViewProps> = ({ customers, activeTab, on
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full bg-slate-100 rounded-xl py-2.5 pl-9 pr-4 text-xs font-bold text-slate-800 outline-none border border-slate-200 focus:border-blue-500 focus:bg-white transition-all"
+              autoComplete="one-time-code"
+              autoCorrect="off"
+              spellCheck="false"
             />
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             {searchQuery && (

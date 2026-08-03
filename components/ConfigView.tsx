@@ -3,7 +3,7 @@ import React from 'react';
 import { X, UploadCloud, FileSpreadsheet, Trash2, Globe } from 'lucide-react';
 import { SystemConfig } from '../types';
 import { parseSafe } from '../utils';
-import { APPS_SCRIPT_V4_4 } from './ScriptContent';
+import { APPS_SCRIPT_V4_6 } from './ScriptContent';
 
 interface ConfigViewProps {
   config: SystemConfig;
@@ -35,7 +35,15 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
         <div className="space-y-5">
           <div className="bg-white p-5 rounded-[2rem] border-2 border-slate-100 shadow-sm">
             <label className="text-[11px] font-black uppercase text-slate-800 ml-1 mb-2 block tracking-wider">Đơn giá nước (VNĐ/m3)</label>
-            <input className="w-full bg-blue-50 p-5 rounded-2xl text-3xl font-black text-blue-700 outline-none border-2 border-blue-100 focus:border-blue-500" type="number" value={config.waterRate} onChange={e => setConfig({...config, waterRate: parseSafe(e.target.value)})} />
+            <input 
+              className="w-full bg-blue-50 p-5 rounded-2xl text-3xl font-black text-blue-700 outline-none border-2 border-blue-100 focus:border-blue-500" 
+              type="number" 
+              value={config.waterRate} 
+              onChange={e => setConfig({...config, waterRate: parseSafe(e.target.value)})} 
+              autoComplete="one-time-code"
+              autoCorrect="off"
+              spellCheck="false"
+            />
           </div>
 
           {/* Cloud Sync Links */}
@@ -46,7 +54,15 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
              </div>
              <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Link Script Duy Nhất</label>
-                <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-[10px] font-mono font-bold text-blue-900" placeholder="https://script.google.com/..." value={config.sheetUrl} onChange={e => setConfig({...config, sheetUrl: e.target.value})} />
+                <input 
+                  className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-[10px] font-mono font-bold text-blue-900" 
+                  placeholder="https://script.google.com/..." 
+                  value={config.sheetUrl} 
+                  onChange={e => setConfig({...config, sheetUrl: e.target.value})} 
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
              </div>
              <button onClick={onBackupCloud} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 active:scale-95 shadow-md border-b-4 border-blue-900 mt-2">
                 <UploadCloud size={20} /> Sao lưu lên Cloud
@@ -54,20 +70,20 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
 
              <div className="pt-2 border-t border-slate-100 space-y-2">
                 <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-                  💡 <b>ĐỒNG BỘ THẤT THOÁT & GHI NƯỚC (V4.4):</b> Bản cập nhật này đồng bộ trực tiếp các trang tính độc lập <i>LossRecords</i> (Thất thoát) và <i>DailySupply</i> (Ghi nước hàng ngày) lên Google Sheets, đồng thời tự động lưu trữ lịch sử trang hoạt động khi chốt kỳ. Vui lòng copy và cập nhật Apps Script của bạn:
+                  💡 <b>ĐỒNG BỘ CHUẨN VÀ TỰ ĐỘNG LƯU TRỮ (V4.6):</b> Bản cập nhật này tối ưu hóa đồng bộ, hỗ trợ tự động lưu trữ 2 Tab Lịch sử (Bộ 01 & Bộ 02) độc lập khi chốt kỳ. Bạn có thể xóa hoàn toàn các tab không dùng (như <i>DailySupply</i>, <i>LossRecords</i>) trên Google Sheets mà không sợ bị script tự động tạo lại. Vui lòng sao chép và cập nhật mã Apps Script của bạn:
                 </p>
                 <button 
                   onClick={async () => {
                     try {
-                      await navigator.clipboard.writeText(APPS_SCRIPT_V4_4);
-                      alert("📋 Đã sao chép mã Google Apps Script V4.4 thành công!\n\nHướng dẫn:\n1. Mở file Google Sheets của bạn.\n2. Vào Tiện ích mở rộng (Extensions) > Apps Script.\n3. Chọn toàn bộ mã cũ và dán đè mã mới này vào.\n4. Nhấn nút Save (Biểu tượng đĩa) và nhấn Triển khai (Deploy) > Tùy chọn triển khai mới (New Deployment) > Chọn loại Web App > Nhấn Deploy.");
+                      await navigator.clipboard.writeText(APPS_SCRIPT_V4_6);
+                      alert("📋 Đã sao chép mã Google Apps Script V4.6 thành công!\n\nHướng dẫn:\n1. Mở file Google Sheets của bạn.\n2. Vào Tiện ích mở rộng (Extensions) > Apps Script.\n3. Chọn toàn bộ mã cũ và dán đè mã mới này vào.\n4. Nhấn nút Save (Biểu tượng đĩa) và nhấn Triển khai (Deploy) > Tùy chọn triển khai mới (New Deployment) > Chọn loại Web App > Nhấn Deploy.");
                     } catch (err) {
                       alert("Lỗi tải script: " + (err instanceof Error ? err.message : String(err)));
                     }
                   }} 
                   className="w-full bg-slate-100 text-slate-800 hover:bg-slate-200 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border border-slate-200 active:scale-95"
                 >
-                  📋 Copy mã Apps Script V4.4 mới nhất
+                  📋 Copy mã Apps Script V4.6 mới nhất
                 </button>
              </div>
           </div>
@@ -75,18 +91,66 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
           <div className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-200 space-y-4 shadow-sm">
              <p className="text-[13px] font-black text-slate-900 uppercase text-center tracking-widest mb-2 italic">Tài khoản 1 (Thu chung)</p>
              <div className="space-y-3">
-               <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" placeholder="Mã Ngân Hàng (vcb, bidv...)" value={config.bankId} onChange={e => setConfig({...config, bankId: e.target.value})} />
-               <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" placeholder="Số Tài Khoản" value={config.accountNo} onChange={e => setConfig({...config, accountNo: e.target.value})} />
-               <input className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" placeholder="Tên Tài Khoản (KHONG DAU)" value={config.accountName} onChange={e => setConfig({...config, accountName: e.target.value})} />
+               <input 
+                 className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" 
+                 placeholder="Mã Ngân Hàng (vcb, bidv...)" 
+                 value={config.bankId} 
+                 onChange={e => setConfig({...config, bankId: e.target.value})} 
+                 autoComplete="one-time-code"
+                 autoCorrect="off"
+                 spellCheck="false"
+               />
+               <input 
+                 className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" 
+                 placeholder="Số Tài Khoản" 
+                 value={config.accountNo} 
+                 onChange={e => setConfig({...config, accountNo: e.target.value})} 
+                 autoComplete="one-time-code"
+                 autoCorrect="off"
+                 spellCheck="false"
+               />
+               <input 
+                 className="w-full bg-slate-50 p-4 border-2 border-slate-100 rounded-2xl text-sm font-black text-slate-800" 
+                 placeholder="Tên Tài Khoản (KHONG DAU)" 
+                 value={config.accountName} 
+                 onChange={e => setConfig({...config, accountName: e.target.value})} 
+                 autoComplete="one-time-code"
+                 autoCorrect="off"
+                 spellCheck="false"
+               />
              </div>
           </div>
 
           <div className="bg-white p-6 rounded-[2.5rem] border-2 border-indigo-100 space-y-4 shadow-sm">
              <p className="text-[13px] font-black text-indigo-900 uppercase text-center tracking-widest mb-2 italic">Tài khoản 2 (Thu Nhóm - TK Cũ)</p>
              <div className="space-y-3">
-               <input className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" placeholder="Mã Ngân Hàng (agribank...)" value={config.groupBankId || ''} onChange={e => setConfig({...config, groupBankId: e.target.value})} />
-               <input className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" placeholder="Số Tài Khoản Nhóm" value={config.groupAccountNo || ''} onChange={e => setConfig({...config, groupAccountNo: e.target.value})} />
-               <input className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" placeholder="Tên Tài Khoản Nhóm (KHONG DAU)" value={config.groupAccountName || ''} onChange={e => setConfig({...config, groupAccountName: e.target.value})} />
+               <input 
+                 className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" 
+                 placeholder="Mã Ngân Hàng (agribank...)" 
+                 value={config.groupBankId || ''} 
+                 onChange={e => setConfig({...config, groupBankId: e.target.value})} 
+                 autoComplete="one-time-code"
+                 autoCorrect="off"
+                 spellCheck="false"
+               />
+               <input 
+                 className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" 
+                 placeholder="Số Tài Khoản Nhóm" 
+                 value={config.groupAccountNo || ''} 
+                 onChange={e => setConfig({...config, groupAccountNo: e.target.value})} 
+                 autoComplete="one-time-code"
+                 autoCorrect="off"
+                 spellCheck="false"
+               />
+               <input 
+                 className="w-full bg-indigo-50/50 p-4 border-2 border-indigo-100 rounded-2xl text-sm font-black text-indigo-800" 
+                 placeholder="Tên Tài Khoản Nhóm (KHONG DAU)" 
+                 value={config.groupAccountName || ''} 
+                 onChange={e => setConfig({...config, groupAccountName: e.target.value})} 
+                 autoComplete="one-time-code"
+                 autoCorrect="off"
+                 spellCheck="false"
+               />
              </div>
           </div>
           

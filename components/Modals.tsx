@@ -55,38 +55,93 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
             <div className="grid grid-cols-4 gap-3">
                <div className="col-span-1">
                   <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Mã KH</label>
-                  <input className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-200 font-black text-center text-blue-700" value={formData.maKH} onChange={e => setFormData({...formData, maKH: e.target.value})} />
+                  <input 
+                    className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-200 font-black text-center text-blue-700" 
+                    value={formData.maKH} 
+                    onChange={e => setFormData({...formData, maKH: e.target.value})} 
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    spellCheck="false"
+                  />
                </div>
                <div className="col-span-3">
                   <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Tên khách hàng</label>
-                  <input className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800" placeholder="Nhập tên..." value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                  <input 
+                    className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800" 
+                    placeholder="Nhập tên..." 
+                    value={formData.name} 
+                    onChange={e => setFormData({...formData, name: e.target.value})} 
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    spellCheck="false"
+                  />
                </div>
             </div>
             
             <div>
               <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Địa chỉ</label>
-              <input className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 text-sm" placeholder="Địa chỉ..." value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+              <input 
+                className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 text-sm" 
+                placeholder="Địa chỉ..." 
+                value={formData.address} 
+                onChange={e => setFormData({...formData, address: e.target.value})} 
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck="false"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-black uppercase text-blue-700 ml-1 italic">SĐT Khách thuê</label>
-                <input className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-100 font-black text-blue-700" placeholder="09xxxx..." value={formData.phoneTenant} onChange={e => setFormData({...formData, phoneTenant: e.target.value})} />
+                <input 
+                  className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-100 font-black text-blue-700" 
+                  placeholder="09xxxx..." 
+                  value={formData.phoneTenant} 
+                  onChange={e => setFormData({...formData, phoneTenant: e.target.value})} 
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
               </div>
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-600 ml-1">SĐT Chủ nhà</label>
-                <input className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-100 font-black text-slate-600" placeholder="09xxxx..." value={formData.phoneLandlord} onChange={e => setFormData({...formData, phoneLandlord: e.target.value})} />
+                <input 
+                  className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-100 font-black text-slate-600" 
+                  placeholder="09xxxx..." 
+                  value={formData.phoneLandlord} 
+                  onChange={e => setFormData({...formData, phoneLandlord: e.target.value})} 
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Số cũ (m3)</label>
-                <input type="number" className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800" value={formData.oldIndex} onChange={e => setFormData({...formData, oldIndex: parseFloat(e.target.value) || 0})} />
+                <input 
+                  type="number" 
+                  className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800" 
+                  value={formData.oldIndex} 
+                  onChange={e => setFormData({...formData, oldIndex: parseFloat(e.target.value) || 0})} 
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
               </div>
               <div>
                 <label className="text-[10px] font-black uppercase text-rose-600 ml-1">Nợ tồn (đ)</label>
-                <input type="number" className="w-full bg-rose-50 p-3.5 rounded-2xl border-2 border-rose-100 font-black text-rose-600" value={formData.oldDebt} onChange={e => setFormData({...formData, oldDebt: parseFloat(e.target.value) || 0})} />
+                <input 
+                  type="number" 
+                  className="w-full bg-rose-50 p-3.5 rounded-2xl border-2 border-rose-100 font-black text-rose-600" 
+                  value={formData.oldDebt} 
+                  onChange={e => setFormData({...formData, oldDebt: parseFloat(e.target.value) || 0})} 
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
               </div>
             </div>
 
@@ -105,7 +160,15 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
 
             <div>
               <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Tháng lắp đặt (Theo dõi 5 năm)</label>
-              <input type="month" className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800" value={formData.installDate} onChange={e => setFormData({...formData, installDate: e.target.value})} />
+              <input 
+                type="month" 
+                className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800" 
+                value={formData.installDate} 
+                onChange={e => setFormData({...formData, installDate: e.target.value})} 
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck="false"
+              />
             </div>
 
             <button 
@@ -147,7 +210,14 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
           <button onClick={() => setView('list')} className="p-3 bg-slate-100 rounded-full text-slate-800 active:scale-90"><X size={24}/></button>
         </header>
         <p className="text-[11px] font-black text-slate-600 mb-3 uppercase tracking-wider ml-1">Nội dung này sẽ hiện ở cuối tin nhắn Zalo:</p>
-        <textarea className="w-full bg-slate-100 p-5 rounded-[2rem] border-2 border-slate-200 font-bold text-slate-800 text-[16px] flex-1 mb-8 outline-none focus:border-amber-500 shadow-inner" value={config.globalMessage} onChange={e => setConfig({...config, globalMessage: e.target.value})} />
+        <textarea 
+          className="w-full bg-slate-100 p-5 rounded-[2rem] border-2 border-slate-200 font-bold text-slate-800 text-[16px] flex-1 mb-8 outline-none focus:border-amber-500 shadow-inner" 
+          value={config.globalMessage} 
+          onChange={e => setConfig({...config, globalMessage: e.target.value})} 
+          autoComplete="one-time-code"
+          autoCorrect="off"
+          spellCheck="false"
+        />
         <button onClick={() => setView('list')} className="w-full bg-amber-500 text-white py-5 rounded-[1.8rem] font-black uppercase shadow-xl flex items-center justify-center gap-2 active:scale-95 border-b-4 border-amber-700 tracking-widest"><Save size={24} /> Lưu tin nhắn mẫu</button>
       </div>
     );
