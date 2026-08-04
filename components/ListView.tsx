@@ -297,7 +297,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase active:scale-95 shadow-md border-b-2 transition-all ${
                      c.status === 'paid' 
                        ? 'bg-slate-200 text-slate-400 border-slate-300 pointer-events-none shadow-none border-b-0' 
-                       : 'bg-emerald-600 text-white border-emerald-800'
+                       : 'bg-teal-600 text-white border-teal-800 hover:bg-teal-700'
                    }`}
                  >
                    <Wallet size={12}/> Thu đủ

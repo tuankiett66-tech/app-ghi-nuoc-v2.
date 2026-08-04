@@ -391,7 +391,7 @@ Nội dung: TT NUOC ${cleanGroupName}`;
             <p className="text-2xl font-black text-indigo-700 tracking-tighter leading-none">{formatCurrency(totals.total)}</p>
         </div>
         <div className="grid grid-cols-12 gap-2">
-            <button onClick={() => onMarkGroupPaid(group.id)} disabled={groupData.length === 0} className="col-span-2 bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-emerald-900 disabled:opacity-50 text-[10px]"><UserCheck size={18}/></button>
+            <button onClick={() => onMarkGroupPaid(group.id)} disabled={groupData.length === 0} className="col-span-2 bg-teal-600 text-white hover:bg-teal-700 py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-teal-800 disabled:opacity-50 text-[10px]"><UserCheck size={18}/></button>
             <button onClick={() => onSendZalo(generateGroupMsg(), group.masterSdt || '')} disabled={groupData.length === 0} className="col-span-5 bg-indigo-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg active:scale-95 border-b-2 border-indigo-900 disabled:opacity-50 text-[10px]"><MessageCircle size={18}/> GUI ZALO</button>
             <button 
               onClick={() => {

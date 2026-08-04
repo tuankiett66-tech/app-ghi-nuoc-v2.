@@ -194,7 +194,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
             {pi && <button onClick={() => setPi('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300 active:scale-90 p-1"><X size={16}/></button>}
           </div>
           <div className="col-span-4 flex flex-col gap-1.5">
-            <button onClick={handleThuDu} className="flex-1 bg-emerald-600 text-white rounded-lg font-black uppercase text-[10px] py-1.5 shadow-sm active:scale-95 border-b-2 border-emerald-800">Thu đủ</button>
+            <button onClick={handleThuDu} className="flex-1 bg-teal-600 text-white rounded-lg font-black uppercase text-[10px] py-1.5 shadow-sm active:scale-95 border-b-2 border-teal-800 hover:bg-teal-700">Thu đủ</button>
             <button onClick={onBack} className="flex-1 bg-slate-800 text-white rounded-lg font-black uppercase text-[10px] py-1.5 shadow-sm active:scale-95 border-b-2 border-slate-950">Lưu & Về</button>
           </div>
         </div>

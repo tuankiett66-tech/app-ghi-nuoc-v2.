@@ -263,7 +263,7 @@ Nội dung: TT NUOC ${cleanGroupName}`;
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase active:scale-95 transition-all border ${
                 isAllPaid 
                   ? 'bg-slate-100 text-slate-400 border-slate-200 pointer-events-none' 
-                  : 'bg-emerald-600 text-white border-emerald-800 shadow-md border-b-2'
+                  : 'bg-teal-600 text-white border-teal-800 hover:bg-teal-700 shadow-md border-b-2'
               }`}
             >
               {isAllPaid ? <Check size={13}/> : <UserCheck size={13}/>}
