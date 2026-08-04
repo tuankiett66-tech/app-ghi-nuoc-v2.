@@ -435,6 +435,7 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
     }
 
     const customer = sorted[R - 1];
+    if (!customer) continue;
     const isZalo = !!(customer.isZalo || customer.isZaloFriend);
     
     // Style the "KHÁCH HÀNG" column (Col 1)

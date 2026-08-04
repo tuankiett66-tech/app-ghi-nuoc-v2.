@@ -725,12 +725,13 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
 
       {view === 'group_list' && (
         <GroupListView 
-          groups={groups} customers={customers}
+          groups={groups} customers={customers} config={config}
           onBack={() => navigateTo('list')}
           onSelectGroup={(id) => { setSelectedGroupId(id); navigateTo('group_detail'); }}
           onAddGroup={addGroup} onDeleteGroup={deleteGroup}
           onUpdateGroup={updateGroup}
           onReorderGroups={setGroups}
+          onMarkGroupPaid={handleMarkGroupPaid}
         />
       )}
 
@@ -794,60 +795,70 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             }
           }}
           onClosePeriod={async () => { 
-            const unrecorded = customers.filter(c => c.newIndex === 0);
-            if (unrecorded.length > 0) {
-              const listNames = unrecorded.slice(0, 5).map(c => `- [Bộ ${c.listType === 'list1' ? '1' : '2'}] ${c.maKH}: ${c.name}`).join('\n');
-              const moreSuffix = unrecorded.length > 5 ? `\n... và ${unrecorded.length - 5} hộ khác.` : '';
-              const confirmClose = confirm(
-                `⚠️ CẢNH BÁO CHƯA GHI HẾT NƯỚC!\nCó ${unrecorded.length} hộ chưa được ghi số nước kì này:\n${listNames}${moreSuffix}\n\nNếu chốt kì, các hộ này sẽ không có mức tiêu thụ kì này.\n\nBạn vẫn muốn CHỐT KỲ mới?`
-              );
-              if (!confirmClose) return;
-            } else {
-              if(!confirm("XÁC NHẬN CHỐT KỲ & MỞ KỲ MỚI (CẢ BỘ 1 VÀ BỘ 2)?\n\n- Chuyển chỉ số mới thành chỉ số cũ, reset chỉ số mới = 0.\n- Tự động tải về 2 file Excel Kỳ Mới (Bộ 1 & Bộ 2).\n- Cập nhật trang tính List1/List2 trên Google Sheets.")) return;
-            }
-            
-            // 1. Thực hiện Chốt kỳ trên App (Chuyển chỉ số mới -> cũ, Reset chỉ số mới = 0)
-            const res = closePeriod(); 
-            
-            // 2. Tự động tải về 2 File Excel Kỳ Mới (Bộ 1 & Bộ 2) cho dữ liệu đã Reset
-            showToast("Đang tải 2 file Excel Kỳ Mới...");
-            const list1New = res.filter(c => c.listType === 'list1');
-            if (list1New.length > 0) {
-              await exportToExcel(list1New, 'Ky_Moi_DanhBo_1');
-            }
-            
-            await new Promise(r => setTimeout(r, 500));
-            const list2New = res.filter(c => c.listType === 'list2');
-            if (list2New.length > 0) {
-              await exportToExcel(list2New, 'Ky_Moi_DanhBo_2');
-            }
+            try {
+              const unrecorded = customers.filter(c => c.newIndex === 0);
+              if (unrecorded.length > 0) {
+                const listNames = unrecorded.slice(0, 5).map(c => `- [Bộ ${c.listType === 'list1' ? '1' : '2'}] ${c.maKH}: ${c.name}`).join('\n');
+                const moreSuffix = unrecorded.length > 5 ? `\n... và ${unrecorded.length - 5} hộ khác.` : '';
+                const confirmClose = confirm(
+                  `⚠️ CẢNH BÁO CHƯA GHI HẾT NƯỚC!\nCó ${unrecorded.length} hộ chưa được ghi số nước kì này:\n${listNames}${moreSuffix}\n\nNếu chốt kì, các hộ này sẽ không có mức tiêu thụ kì này.\n\nBạn vẫn muốn CHỐT KỲ mới?`
+                );
+                if (!confirmClose) return;
+              } else {
+                if(!confirm("XÁC NHẬN CHỐT KỲ & MỞ KỲ MỚI (CẢ BỘ 1 VÀ BỘ 2)?\n\n- Chuyển chỉ số mới thành chỉ số cũ, reset chỉ số mới = 0.\n- Tự động tải về 2 file Excel Kỳ Mới (Bộ 1 & Bộ 2).\n- Cập nhật trang tính List1/List2 trên Google Sheets.")) return;
+              }
+              
+              // 1. Thực hiện Chốt kỳ trên App (Chuyển chỉ số mới -> cũ, Reset chỉ số mới = 0)
+              const res = closePeriod(); 
+              
+              // 2. Tự động tải về 2 File Excel Kỳ Mới (Bộ 1 & Bộ 2) cho dữ liệu đã Reset
+              showToast("Đang tải 2 file Excel Kỳ Mới...");
+              const list1New = res.filter(c => c.listType === 'list1');
+              if (list1New.length > 0) {
+                await exportToExcel(list1New, 'Ky_Moi_DanhBo_1');
+              }
+              
+              await new Promise(r => setTimeout(r, 500));
+              const list2New = res.filter(c => c.listType === 'list2');
+              if (list2New.length > 0) {
+                await exportToExcel(list2New, 'Ky_Moi_DanhBo_2');
+              }
 
-            // 3. Cập nhật dữ liệu Kỳ Mới (đã Reset) lên 2 trang tính làm việc chính (List1 & List2) trên Google Sheets
-            showToast("Đang cập nhật trang tính Kỳ Mới lên Google Sheets...");
-            const syncNewPeriodSuccess = await handleBackupCloud(true, undefined, res);
-            
-            if (syncNewPeriodSuccess) {
-              showToast("🎉 Đã chốt kỳ, tải 2 file Excel Kỳ Mới & đồng bộ Google Sheets thành công!"); 
-            } else {
-              alert("⚠️ Dữ liệu trên App và 2 file Excel đã chốt thành công. Có lỗi nhỏ khi đồng bộ Google Sheets, bạn có thể bấm Đồng bộ lại.");
+              // 3. Cập nhật dữ liệu Kỳ Mới (đã Reset) lên 2 trang tính làm việc chính (List1 & List2) trên Google Sheets
+              showToast("Đang cập nhật trang tính Kỳ Mới lên Google Sheets...");
+              const syncNewPeriodSuccess = await handleBackupCloud(true, undefined, res);
+              
+              if (syncNewPeriodSuccess) {
+                showToast("🎉 Đã chốt kỳ, tải 2 file Excel Kỳ Mới & đồng bộ Google Sheets thành công!"); 
+              } else {
+                alert("⚠️ Dữ liệu trên App và 2 file Excel đã chốt thành công. Có lỗi nhỏ khi đồng bộ Google Sheets, bạn có thể bấm Đồng bộ lại.");
+              }
+              
+              navigateTo('list'); 
+            } catch (err: any) {
+              console.error("Lỗi khi chốt kỳ:", err);
+              alert("⚠️ Có lỗi xảy ra trong quá trình chốt kỳ hoặc tải file Excel mới: " + (err?.message || err));
             }
-            
-            navigateTo('list'); 
           }}
           onExport={async (targetListType?: string) => {
-            const target = targetListType || activeTab;
-            const targetName = target === 'list1' ? 'Bộ 01' : 'Bộ 02';
-            const targetCustomers = customers.filter(c => c.listType === target);
-            
-            const unrecorded = targetCustomers.filter(c => c.newIndex === 0);
-            const isAllNewPeriod = targetCustomers.length > 0 && targetCustomers.every(c => c.newIndex === 0);
+            try {
+              const target = targetListType || activeTab;
+              const targetName = target === 'list1' ? 'Bộ 01' : 'Bộ 02';
+              const targetCustomers = customers.filter(c => c.listType === target);
+              
+              const unrecorded = targetCustomers.filter(c => c.newIndex === 0);
+              const isAllNewPeriod = targetCustomers.length > 0 && targetCustomers.every(c => c.newIndex === 0);
 
-            if (unrecorded.length > 0 && !isAllNewPeriod) {
-              if (!confirm(`⚠️ [${targetName}] Có ${unrecorded.length} hộ chưa ghi nước. Bạn có chắc chắn muốn xuất báo cáo Excel?`)) return;
+              if (unrecorded.length > 0 && !isAllNewPeriod) {
+                if (!confirm(`⚠️ [${targetName}] Có ${unrecorded.length} hộ chưa ghi nước. Bạn có chắc chắn muốn xuất báo cáo Excel?`)) return;
+              }
+              
+              const fileNamePrefix = isAllNewPeriod ? 'Ky_Moi' : 'Bao_Cao';
+              await exportToExcel(targetCustomers, `${fileNamePrefix}_DanhBo_${target === 'list1' ? '1' : '2'}`);
+            } catch (err: any) {
+              console.error("Lỗi khi xuất file Excel:", err);
+              alert("⚠️ Có lỗi xảy ra khi xuất file Excel báo cáo: " + (err?.message || err));
             }
-            
-            const fileNamePrefix = isAllNewPeriod ? 'Ky_Moi' : 'Bao_Cao';
-            await exportToExcel(targetCustomers, `${fileNamePrefix}_DanhBo_${target === 'list1' ? '1' : '2'}`);
           }}
           onSelectCustomer={(id) => {
             setSelectedId(id);
