@@ -60,6 +60,19 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      // Nhập số mới > Enter: Vừa THU ĐỦ và QUA KH TIẾP THEO
+      const vol = (parseSafe(ni) > 0 && parseSafe(ni) >= customer.oldIndex) ? (parseSafe(ni) - customer.oldIndex) : 0;
+      const totalAmount = Math.round((vol * config.waterRate) + customer.oldDebt);
+      
+      setPi(totalAmount.toString());
+      onUpdate({ newIndex: parseSafe(ni), paid: totalAmount });
+      
+      // Đợi tí cho state update hoặc navigate ngay
+      onNavigate('next');
+    } else if (e.key === '+') {
+      e.preventDefault();
+      // Nút + sẽ thực hiện QUA KH TIẾP THEO (chỉ lưu số không thu đủ)
+      onUpdate({ newIndex: parseSafe(ni), paid: parseSafe(pi) });
       onNavigate('next');
     }
   };

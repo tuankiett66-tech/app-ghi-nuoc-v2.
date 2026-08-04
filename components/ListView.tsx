@@ -44,9 +44,16 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
     setFocusedIndex(-1);
   }, [customers]);
 
+  const lastScrolledIdRef = useRef<string | null>(null);
+
   // Auto-scroll to selected customer (e.g. 2750) when returning from detail or when list updates
   useEffect(() => {
-    if (!selectedId) return;
+    if (!selectedId) {
+      lastScrolledIdRef.current = null;
+      return;
+    }
+    if (lastScrolledIdRef.current === selectedId) return;
+
     const timer = setTimeout(() => {
       const container = containerRef.current || (document.getElementById('main-list-container') as HTMLDivElement);
       const el = document.getElementById(`cust-${selectedId}`);
@@ -55,10 +62,11 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
         const containerTop = container.offsetTop;
         const targetScroll = Math.max(0, elTop - containerTop - 12);
         container.scrollTop = targetScroll;
+        lastScrolledIdRef.current = selectedId;
       }
     }, 50);
     return () => clearTimeout(timer);
-  }, [selectedId, customers]);
+  }, [selectedId]);
 
   // Sync scroll position when container scrolls naturally
   const handleScroll = () => {

@@ -83,14 +83,16 @@ const App: React.FC = () => {
       setTimeout(() => {
         const listEl = document.getElementById('main-list-container');
         const savedScroll = listScrollTop.current[activeTab];
-        if (listEl && savedScroll > 0) {
-          listEl.scrollTop = savedScroll;
-        } else if (lastScrollId.current) {
+        if (lastScrollId.current) {
           const el = document.getElementById(`cust-${lastScrollId.current}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (el && listEl) {
+            const elTop = el.offsetTop;
+            const containerTop = listEl.offsetTop;
+            listEl.scrollTop = Math.max(0, elTop - containerTop - 12);
           }
           lastScrollId.current = null;
+        } else if (listEl && savedScroll > 0) {
+          listEl.scrollTop = savedScroll;
         }
       }, 100);
     }
@@ -536,6 +538,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               const listEl = document.getElementById('main-list-container');
               if (listEl && view === 'list') listScrollTop.current[activeTab] = listEl.scrollTop;
               setActiveTab('list1'); 
+              setSelectedId(null);
               navigateTo('list'); 
             }} 
             className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${activeTab === 'list1' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
@@ -565,6 +568,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               const listEl = document.getElementById('main-list-container');
               if (listEl && view === 'list') listScrollTop.current[activeTab] = listEl.scrollTop;
               setActiveTab('list2'); 
+              setSelectedId(null);
               navigateTo('list'); 
             }} 
             className={`flex-1 px-2 py-3 rounded-[1.8rem] text-[8px] font-black uppercase transition-all ${activeTab === 'list2' && view === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-400'}`}
