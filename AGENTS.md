@@ -51,4 +51,20 @@
 - The app uses a Google Apps Script for cloud backup.
 - **Double-Backup Fallback**: To ensure backward compatibility, `isSubMeter` status must be saved both directly inside each customer row and consolidated inside the `extra_sync_data` JSON string (under `subMeters`). This guarantees that if a user uses an older script version, their sub-meter properties are still preserved during restore.
 - Update the Apps Script reference in `/docs/script_v4.4.js` to support 18 columns, including `isSubMeter` in Column R.
-- Ensure `handleBackupCloud` in `App.tsx` maps all critical fields: `isProcessed`, `isZalo`, `isSubMeter`, `dailySupplyReadings`, `groups`, `lossRecords`, `master1Initial`, `master2Initial`.
+- Ensure `handleBackupCloud` in `useWaterSync.ts` maps all critical fields: `isProcessed`, `isZalo`, `isSubMeter`, `dailySupplyReadings`, `groups`, `lossRecords`, `master1Initial`, `master2Initial`.
+
+## Code Architecture & Modularization
+To prevent information overload and make updates fast, the application codebase is strictly organized by functional modules:
+1. **Core Data State (`/hooks/useWaterData.ts`)**:
+   - Manages customers, configuration, group structures, loss records, and local storage state.
+   - Contains functions like `updateCustomer`, `closePeriod`, `addNewCustomer`, `deleteCustomer`, etc.
+2. **Cloud Synchronization (`/hooks/useWaterSync.ts`)**:
+   - Manages cloud backup and restore procedures (`handleBackupCloud`, `handleSyncCloud`).
+   - Keeps sync states (`isSyncing`, `syncStatus`, `lastAutoBackup`) separate from the UI components.
+3. **Helper Utilities (`/utils.ts`)**:
+   - Houses Excel generation, import parsers, calculation logic (`calculateRow`), date formatters, and Zalo message formatting.
+4. **Isolated Components (`/components/*`)**:
+   - Individual modules for `ListView`, `DetailView`, `LossView`, `StatsView`, `GroupListView`, `GroupDetailView`, etc.
+   - Any state-dependent screen or visual subsystem must be built in its own file under `/components` rather than bundled into `App.tsx`.
+5. **Main Entry & Routing (`/App.tsx`)**:
+   - Orchestrates screen switching and ties hooks (`useWaterData`, `useWaterSync`) with visual components. Do not put data-fetching or backup business logic directly in `App.tsx` — delegate to dedicated hooks.

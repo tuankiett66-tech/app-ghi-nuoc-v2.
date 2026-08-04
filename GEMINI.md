@@ -78,9 +78,16 @@
   - Refactored `getXLSX()` in `utils.ts` to return `mod.default || mod`.
   - Added robust null-safety, safe value parsing (`parseSafe`), explicit cell typing (`t: 'n' | 's'`), and safe filename sanitization to `exportLossPeriodReportToExcel`.
 
+### 14. Code Modularization & App.tsx Refactoring (Fixed in V5.0)
+- **Problem**: As features grew (loss logs, multiple billing groups, backup mechanisms), the main `App.tsx` file became bloated (nearly 1,000 lines), resulting in high information density and making incremental updates extremely slow or prone to context window limits.
+- **Solution**:
+  - Refactored and split out the complex cloud synchronization mechanisms (`handleSyncCloud`, `handleBackupCloud`, sync state states) into a custom hook `/hooks/useWaterSync.ts`.
+  - Re-anchored `App.tsx` strictly as an orchestrator and route dispatcher, dramatically improving build speeds, lint/compile feedback times, and readability.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel`, `exportLossPeriodReportToExcel` (safe Excel generation).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).
+- `hooks/useWaterSync.ts`: `handleSyncCloud`, `handleBackupCloud` (cloud synchronization and backup logic).
 - `components/ListView.tsx`: Auto-hiding fast scrubber icon, customer auto-scroll positioning (`selectedId`).
 - `components/DetailView.tsx`: Header layout and inline QR display.
 - `components/LossView.tsx`: Loss management & report generation.

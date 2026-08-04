@@ -417,43 +417,47 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   
   const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
   
-  // Force specific columns to be text type and add styling
-  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-  for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-    // Check if it's the summary row (last row)
-    const isSummaryRow = R === range.e.r;
+  try {
+    // Force specific columns to be text type and add styling
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+      // Check if it's the summary row (last row)
+      const isSummaryRow = R === range.e.r;
 
-    if (isSummaryRow) {
-      // Bold the entire summary row
-      for (let C = range.s.c; C <= range.e.c; ++C) {
+      if (isSummaryRow) {
+        // Bold the entire summary row
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+          if (ws[cellRef]) {
+            ws[cellRef].s = { font: { bold: true }, fill: { fgColor: { rgb: "F1F5F9" } } };
+          }
+        }
+        continue;
+      }
+
+      const customer = sorted[R - 1];
+      if (!customer) continue;
+      const isZalo = !!(customer.isZalo || customer.isZaloFriend);
+      
+      // Style the "KHÁCH HÀNG" column (Col 1)
+      const nameCellRef = XLSX.utils.encode_cell({r: R, c: 1});
+      if (ws[nameCellRef] && isZalo) {
+        ws[nameCellRef].s = {
+          font: { bold: true }
+        };
+      }
+
+      // Mã KH (Col 0), Địa chỉ (Col 2), Điện thoại (Col 3)
+      [0, 2, 3].forEach(C => {
         const cellRef = XLSX.utils.encode_cell({r: R, c: C});
         if (ws[cellRef]) {
-          ws[cellRef].s = { font: { bold: true }, fill: { fgColor: { rgb: "F1F5F9" } } };
+          ws[cellRef].t = 's'; // Force string type
+          ws[cellRef].z = '@'; // Force text format
         }
-      }
-      continue;
+      });
     }
-
-    const customer = sorted[R - 1];
-    if (!customer) continue;
-    const isZalo = !!(customer.isZalo || customer.isZaloFriend);
-    
-    // Style the "KHÁCH HÀNG" column (Col 1)
-    const nameCellRef = XLSX.utils.encode_cell({r: R, c: 1});
-    if (ws[nameCellRef] && isZalo) {
-      ws[nameCellRef].s = {
-        font: { bold: true }
-      };
-    }
-
-    // Mã KH (Col 0), Địa chỉ (Col 2), Điện thoại (Col 3)
-    [0, 2, 3].forEach(C => {
-      const cellRef = XLSX.utils.encode_cell({r: R, c: C});
-      if (ws[cellRef]) {
-        ws[cellRef].t = 's'; // Force string type
-        ws[cellRef].z = '@'; // Force text format
-      }
-    });
+  } catch (styleErr) {
+    console.warn("Lỗi khi thêm định dạng/style cho Excel (sẽ bỏ qua style):", styleErr);
   }
 
   const wb = XLSX.utils.book_new();
