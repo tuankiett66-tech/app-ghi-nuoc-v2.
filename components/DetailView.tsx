@@ -84,10 +84,10 @@ export const DetailView: React.FC<DetailViewProps> = ({
         </div>
       </header>
 
-      <div className="flex-1 space-y-5 overflow-y-auto px-1 pb-10">
+      <div className="flex-1 space-y-3 overflow-y-auto px-1 pb-8">
         <div className="border-l-[6px] border-blue-700 pl-4 py-1 relative">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="bg-blue-700 text-white text-[13px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm">Mã KH: {customer.maKH}</span>
+            <span className="bg-amber-400 text-slate-950 text-[16px] font-black px-3.5 py-1 rounded-lg uppercase shadow-md border border-amber-500">Mã KH: {customer.maKH}</span>
             {customer.isSubMeter && (
               <span className="bg-purple-600 text-white text-[11px] font-black px-2.5 py-1 rounded-lg uppercase shadow-sm animate-pulse">Đồng hồ phụ</span>
             )}
@@ -110,7 +110,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
         </div>
 
         {showQrInline && (
-          <div className="bg-white border-2 border-slate-200 rounded-[2rem] p-4 shadow-xl animate-in zoom-in-95 duration-200 flex flex-col items-center">
+          <div className="bg-white border-2 border-slate-200 rounded-2xl p-4 shadow-xl animate-in zoom-in-95 duration-200 flex flex-col items-center">
             <div className="w-full flex justify-between items-center mb-2 px-2">
               <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mã QR Thanh toán</span>
               <button onClick={() => setShowQrInline(false)} className="text-slate-400"><X size={18}/></button>
@@ -125,18 +125,19 @@ export const DetailView: React.FC<DetailViewProps> = ({
           </div>
         )}
 
-        <div className="bg-slate-100 rounded-[2rem] p-5 border-2 border-slate-200 shadow-inner">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-black text-slate-700 uppercase ml-1">Số cũ</p>
-              <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 font-black text-2xl text-slate-400">{customer.oldIndex}</div>
+        {/* THẺ 1 - SỐ CŨ & SỐ MỚI (THU NHỎ KÍCH THƯỚC) */}
+        <div className="bg-slate-100 rounded-2xl p-2.5 border border-slate-200 shadow-inner">
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-slate-700 uppercase ml-1">Số cũ</p>
+              <div className="bg-white py-1.5 px-3 rounded-lg border border-slate-100 font-black text-xl text-slate-400">{customer.oldIndex}</div>
             </div>
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-black text-blue-700 uppercase ml-1">Số mới</p>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-blue-700 uppercase ml-1">Số mới</p>
               <input 
                 autoFocus 
                 type="number" 
-                className="w-full bg-white p-4 rounded-2xl border-2 border-blue-200 font-black text-2xl text-blue-700 shadow-sm focus:border-blue-500 outline-none" 
+                className="w-full bg-white py-1.5 px-3 rounded-lg border border-blue-200 font-black text-xl text-blue-700 shadow-sm focus:border-blue-500 outline-none" 
                 value={ni} 
                 onChange={e => setNi(e.target.value)} 
                 onKeyDown={handleKeyDown} 
@@ -151,42 +152,33 @@ export const DetailView: React.FC<DetailViewProps> = ({
               />
             </div>
           </div>
-          <p className="text-[10px] font-bold text-slate-500 text-center mt-3.5 flex items-center justify-center gap-1">
-            ⌨️ Phím tắt PC: Bấm <span className="font-black text-slate-800 bg-slate-200 px-1 py-0.5 rounded">Enter</span> để chuyển nhanh khách hàng
-          </p>
         </div>
 
-        <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-5 shadow-md space-y-3">
-          <div className="flex justify-between items-center text-[15px] font-bold text-slate-600">
+        {/* THẺ 2 - CHI TIẾT THANH TOÁN (THU NHỎ KÍCH THƯỚC) */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-2.5 shadow-sm space-y-1.5">
+          <div className="flex justify-between items-center text-[13px] font-bold text-slate-600">
             <span>Tiêu thụ:</span>
             <span className="text-slate-900 font-black flex items-center gap-1">
-               <span className="text-[18px]">{customer.volume} m³</span>
-               <span className="text-[15px] text-slate-900 font-black">
+               <span className="text-[16px]">{customer.volume} m³</span>
+               <span className="text-[13px] text-slate-900 font-black">
                  (x {config.waterRate.toLocaleString('vi-VN')} = {formatCurrency(customer.amount)})
                </span>
             </span>
           </div>
-          <div className="flex justify-between text-[15px] font-bold text-rose-500"><span>Nợ kỳ trước:</span><span className="font-black">{formatCurrency(customer.oldDebt)}</span></div>
-          <div className="border-t-2 border-dashed pt-3 mt-1 flex justify-between items-center">
-            <span className="text-blue-700 font-black uppercase text-sm italic tracking-tight">Còn lại phải thu:</span>
-            <span className="text-3xl font-black text-blue-700 tracking-tighter">{formatCurrency(customer.balance)}</span>
+          <div className="flex justify-between text-[13px] font-bold text-rose-500"><span>Nợ kỳ trước:</span><span className="font-black">{formatCurrency(customer.oldDebt)}</span></div>
+          <div className="border-t border-dashed pt-1.5 mt-0.5 flex justify-between items-center">
+            <span className="text-blue-700 font-black uppercase text-[11px] italic tracking-tight">Còn lại phải thu:</span>
+            <span className="text-[24px] font-black text-blue-700 tracking-tighter">{formatCurrency(customer.balance)}</span>
           </div>
         </div>
 
-        {showPreview && (
-          <div className="animate-in slide-in-from-top-2 duration-300">
-            <div className="bg-slate-800 text-emerald-400 p-4 rounded-2xl font-mono text-[12px] leading-relaxed shadow-2xl border-2 border-slate-700">
-               <pre className="whitespace-pre-wrap">{generateMsg(customer, ni, pi)}</pre>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-12 gap-3">
-          <div className="col-span-8 bg-emerald-50 rounded-2xl p-4 border-2 border-emerald-200 relative shadow-sm">
-            <p className="text-[11px] font-black text-emerald-700 uppercase ml-1 mb-1">Khách trả tiền</p>
+        {/* THẺ 3 - KHÁCH TRẢ TIỀN & THU ĐỦ, LƯU & VỀ (THU NHỎ KÍCH THƯỚC) */}
+        <div className="grid grid-cols-12 gap-2.5">
+          <div className="col-span-8 bg-emerald-50 rounded-2xl p-2 px-3 border border-emerald-200 relative shadow-sm flex flex-col justify-center">
+            <p className="text-[10px] font-black text-emerald-700 uppercase ml-0.5 mb-0.5">Khách trả tiền</p>
             <input 
               type="number" 
-              className="w-full bg-transparent text-3xl font-black text-emerald-700 outline-none" 
+              className="w-full bg-transparent text-2xl font-black text-emerald-700 outline-none" 
               value={pi} 
               onChange={e => setPi(e.target.value)} 
               onKeyDown={handleKeyDown} 
@@ -199,15 +191,24 @@ export const DetailView: React.FC<DetailViewProps> = ({
               onMouseDown={() => setFocusedField('pi')}
               onBlur={() => setFocusedField(null)}
             />
-            {pi && <button onClick={() => setPi('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-300 active:scale-90 p-1"><X size={20}/></button>}
+            {pi && <button onClick={() => setPi('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300 active:scale-90 p-1"><X size={16}/></button>}
           </div>
-          <div className="col-span-4 flex flex-col gap-2">
-            <button onClick={handleThuDu} className="flex-1 bg-emerald-600 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg shadow-emerald-100 active:scale-95 border-b-4 border-emerald-800">Thu đủ</button>
-            <button onClick={onBack} className="flex-1 bg-slate-800 text-white rounded-2xl font-black uppercase text-[11px] shadow-lg active:scale-95 border-b-4 border-slate-950">Lưu & Về</button>
+          <div className="col-span-4 flex flex-col gap-1.5">
+            <button onClick={handleThuDu} className="flex-1 bg-emerald-600 text-white rounded-lg font-black uppercase text-[10px] py-1.5 shadow-sm active:scale-95 border-b-2 border-emerald-800">Thu đủ</button>
+            <button onClick={onBack} className="flex-1 bg-slate-800 text-white rounded-lg font-black uppercase text-[10px] py-1.5 shadow-sm active:scale-95 border-b-2 border-slate-950">Lưu & Về</button>
           </div>
         </div>
 
-        <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-5 rounded-[1.8rem] font-black uppercase flex items-center justify-center gap-3 shadow-2xl shadow-blue-200 active:scale-95 border-b-4 border-blue-900"><MessageCircle size={24}/> Gửi Zalo & Chốt số</button>
+        {/* NÚT GỬI ZALO & CHỐT SỐ (ĐƯỢC ĐẶT DƯỚI THẺ KHÁCH TRẢ TIỀN) */}
+        <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 border-b-4 border-blue-900 text-sm"><MessageCircle size={18}/> Gửi Zalo & Chốt số</button>
+
+        {showPreview && (
+          <div className="animate-in slide-in-from-top-2 duration-300">
+            <div className="bg-slate-800 text-emerald-400 p-4 rounded-xl font-mono text-[12px] leading-relaxed shadow-2xl border-2 border-slate-700">
+               <pre className="whitespace-pre-wrap">{generateMsg(customer, ni, pi)}</pre>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <button 
@@ -340,6 +341,11 @@ export const DetailView: React.FC<DetailViewProps> = ({
             </div>
           </div>
         )}
+
+        {/* Phím tắt được chuyển xuống dưới cùng của tab để không chiếm diện tích vùng trên */}
+        <p className="text-[10px] font-bold text-slate-400 text-center mt-2 pb-1 flex items-center justify-center gap-1">
+          ⌨️ Phím tắt PC: Bấm <span className="font-black text-slate-600 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">Enter</span> để chuyển nhanh khách hàng
+        </p>
       </div>
     </div>
   );

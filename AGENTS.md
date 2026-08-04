@@ -36,6 +36,7 @@
    - The QR button must be prioritized in the header for mobile visibility.
    - QR code display should be inline within `DetailView` (using `showQrInline` state) to avoid modal overlay issues on mobile.
    - Always provide a "Copy Name" button next to the customer name in `DetailView`.
+   - **Optimized DetailView Layout (Zalo Position)**: The "Gửi Zalo & Chốt số" button must be positioned high up in the detail layout, immediately below the "Còn lại phải thu" block and above the "Khách trả tiền" form. This prevents having to scroll down on mobile screens. Keep card padding compact (`p-4` or `p-3.5`) and border radius to a neat `rounded-2xl` to ensure the entire primary flow fits within the mobile viewport.
 
 4. **Excel Export**:
    - When exporting for a new period (file name starts with `Ky_Moi`), the "NỢ LẠI" column (Column K) must be blank to allow the collector to write in it.

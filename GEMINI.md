@@ -84,6 +84,10 @@
   - Refactored and split out the complex cloud synchronization mechanisms (`handleSyncCloud`, `handleBackupCloud`, sync state states) into a custom hook `/hooks/useWaterSync.ts`.
   - Re-anchored `App.tsx` strictly as an orchestrator and route dispatcher, dramatically improving build speeds, lint/compile feedback times, and readability.
 
+### 15. Optimizing Detail View Action Flow (Fixed in V5.1)
+- **Problem**: In physical field-recording conditions, scrolling down to execute the "Gửi Zalo & Chốt số" action was tedious and slowed down progress on standard phone screens.
+- **Solution**: Shifted the primary Zalo action button higher up (positioned immediately below the calculation values of "Còn lại phải thu" and above the "Khách trả tiền" input). Standardized component border-radius to `rounded-2xl` and compacted container padding to `p-4` to fit the critical input-and-send flow entirely inside the initial screen viewport.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel`, `exportLossPeriodReportToExcel` (safe Excel generation).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).

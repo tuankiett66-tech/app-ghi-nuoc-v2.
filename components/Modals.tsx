@@ -53,11 +53,31 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
           </header>
           
           <div className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
-            <div className="grid grid-cols-4 gap-3">
-               <div className="col-span-1">
+            {/* TÊN KHÁCH HÀNG HIỂN THỊ TRỌN VẸN 1 DÒNG FULL-WIDTH */}
+            <div>
+              <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Tên khách hàng</label>
+              <input 
+                className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800 text-[16px]" 
+                placeholder="Nhập tên..." 
+                value={formData.name} 
+                onChange={e => setFormData({...formData, name: e.target.value})} 
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck="false"
+                readOnly={focusedField !== 'name'}
+                onFocus={() => setFocusedField('name')}
+                onTouchStart={() => setFocusedField('name')}
+                onMouseDown={() => setFocusedField('name')}
+                onBlur={() => setFocusedField(null)}
+              />
+            </div>
+
+            {/* CHIA HÀNG RA 1 BÊN LÀ MÃ KH, 1 BÊN LÀ ĐỊA CHỈ */}
+            <div className="grid grid-cols-12 gap-3">
+               <div className="col-span-5">
                   <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Mã KH</label>
                   <input 
-                    className="w-full bg-blue-50 p-3.5 rounded-2xl border-2 border-blue-200 font-black text-center text-blue-700" 
+                    className="w-full bg-blue-50 py-3.5 px-2 rounded-2xl border-2 border-blue-200 font-black text-center text-blue-700 text-[15px]" 
                     value={formData.maKH} 
                     onChange={e => setFormData({...formData, maKH: e.target.value})} 
                     autoComplete="one-time-code"
@@ -70,41 +90,23 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                     onBlur={() => setFocusedField(null)}
                   />
                </div>
-               <div className="col-span-3">
-                  <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Tên khách hàng</label>
+               <div className="col-span-7">
+                  <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Địa chỉ</label>
                   <input 
-                    className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-black text-slate-800" 
-                    placeholder="Nhập tên..." 
-                    value={formData.name} 
-                    onChange={e => setFormData({...formData, name: e.target.value})} 
+                    className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 text-sm" 
+                    placeholder="Địa chỉ..." 
+                    value={formData.address} 
+                    onChange={e => setFormData({...formData, address: e.target.value})} 
                     autoComplete="one-time-code"
                     autoCorrect="off"
                     spellCheck="false"
-                    readOnly={focusedField !== 'name'}
-                    onFocus={() => setFocusedField('name')}
-                    onTouchStart={() => setFocusedField('name')}
-                    onMouseDown={() => setFocusedField('name')}
+                    readOnly={focusedField !== 'address'}
+                    onFocus={() => setFocusedField('address')}
+                    onTouchStart={() => setFocusedField('address')}
+                    onMouseDown={() => setFocusedField('address')}
                     onBlur={() => setFocusedField(null)}
                   />
                </div>
-            </div>
-            
-            <div>
-              <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Địa chỉ</label>
-              <input 
-                className="w-full bg-slate-50 p-3.5 rounded-2xl border-2 border-slate-200 font-bold text-slate-800 text-sm" 
-                placeholder="Địa chỉ..." 
-                value={formData.address} 
-                onChange={e => setFormData({...formData, address: e.target.value})} 
-                autoComplete="one-time-code"
-                autoCorrect="off"
-                spellCheck="false"
-                readOnly={focusedField !== 'address'}
-                onFocus={() => setFocusedField('address')}
-                onTouchStart={() => setFocusedField('address')}
-                onMouseDown={() => setFocusedField('address')}
-                onBlur={() => setFocusedField(null)}
-              />
             </div>
 
              <div className="grid grid-cols-2 gap-3">
@@ -181,6 +183,22 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
               </div>
             </div>
 
+            {/* THẺ LƯU DỮ LIỆU KHÁCH ĐƯỢC ĐƯA LÊN TRÊN THẺ ĐỒNG HỒ PHỤ THEO YÊU CẦU CỦA USER */}
+            <button 
+              onClick={() => { 
+                if (isEdit && selectedCustomer) {
+                  updateCustomer(selectedCustomer.id, formData);
+                  setView('detail'); // QUAY LẠI CHI TIẾT SAU KHI SỬA
+                } else {
+                  addCustomer(formData);
+                  setView('list'); // VỀ DANH SÁCH NẾU THÊM MỚI
+                }
+              }} 
+              className="w-full bg-blue-700 text-white py-4 rounded-[1.5rem] font-black uppercase shadow-lg mt-1.5 active:scale-95 border-b-4 border-blue-900"
+            >
+              Lưu dữ liệu khách
+            </button>
+
             <div className="flex items-center gap-3 bg-purple-50 p-3.5 rounded-2xl border-2 border-purple-100 mt-2">
               <input 
                 id="isSubMeter"
@@ -206,21 +224,6 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                 spellCheck="false"
               />
             </div>
-
-            <button 
-              onClick={() => { 
-                if (isEdit && selectedCustomer) {
-                  updateCustomer(selectedCustomer.id, formData);
-                  setView('detail'); // QUAY LẠI CHI TIẾT SAU KHI SỬA
-                } else {
-                  addCustomer(formData);
-                  setView('list'); // VỀ DANH SÁCH NẾU THÊM MỚI
-                }
-              }} 
-              className="w-full bg-blue-700 text-white py-4.5 rounded-[1.5rem] font-black uppercase shadow-2xl mt-4 active:scale-95 border-b-4 border-blue-900"
-            >
-              Lưu dữ liệu khách
-            </button>
 
             {isEdit && selectedCustomer && (
               <button 
