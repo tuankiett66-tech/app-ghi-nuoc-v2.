@@ -197,6 +197,7 @@ export const useWaterSync = ({
             isZaloFriend: parseSafeBool(item.isZaloFriend),
             isProcessed: parseSafeBool(item.isProcessed),
             isSubMeter: item.isSubMeter !== undefined ? parseSafeBool(item.isSubMeter) : (Array.isArray(extraData.subMeters) && extraData.subMeters.includes(`list1:${maKH}`)),
+            recordDate: item.recordDate || (Array.isArray(extraData.recordDates) ? (extraData.recordDates.find((x: any) => x.key === `list1:${maKH}`)?.date || "") : ""),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
@@ -241,6 +242,7 @@ export const useWaterSync = ({
             isZaloFriend: parseSafeBool(item.isZaloFriend),
             isProcessed: parseSafeBool(item.isProcessed),
             isSubMeter: item.isSubMeter !== undefined ? parseSafeBool(item.isSubMeter) : (Array.isArray(extraData.subMeters) && extraData.subMeters.includes(`list2:${maKH}`)),
+            recordDate: item.recordDate || (Array.isArray(extraData.recordDates) ? (extraData.recordDates.find((x: any) => x.key === `list2:${maKH}`)?.date || "") : ""),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
@@ -295,6 +297,7 @@ export const useWaterSync = ({
       isZaloFriend: !!c.isZaloFriend,
       isProcessed: !!c.isProcessed,
       isSubMeter: !!c.isSubMeter,
+      recordDate: c.recordDate || "",
       installDate: c.installDate || "",
       note: "'" + (c.note || ""),
       updatedAt: c.updatedAt || 0
@@ -316,6 +319,7 @@ export const useWaterSync = ({
       isZaloFriend: !!c.isZaloFriend,
       isProcessed: !!c.isProcessed,
       isSubMeter: !!c.isSubMeter,
+      recordDate: c.recordDate || "",
       installDate: c.installDate || "",
       note: "'" + (c.note || ""),
       updatedAt: c.updatedAt || 0
@@ -353,7 +357,8 @@ export const useWaterSync = ({
               dailySupplyReadings: [...dailySupplyReadings]
                 .sort((a, b) => b.date.localeCompare(a.date))
                 .slice(0, 90),
-              subMeters: customers.filter(c => c.isSubMeter).map(c => `${c.listType}:${c.maKH}`)
+              subMeters: customers.filter(c => c.isSubMeter).map(c => `${c.listType}:${c.maKH}`),
+              recordDates: customers.filter(c => c.recordDate).map(c => ({ key: `${c.listType}:${c.maKH}`, date: c.recordDate }))
             })
           },
           list1: data1,

@@ -153,7 +153,16 @@ const App: React.FC = () => {
     const accountNo = isGroup ? (config.groupAccountNo || config.accountNo) : config.accountNo;
     const accountName = isGroup ? (config.groupAccountName || config.accountName) : config.accountName;
     
-    let msg = `${getZaloBillingHeader(c.updatedAt)}
+    let timestampToUse = c.updatedAt;
+    if (c.recordDate) {
+      const parts = c.recordDate.split('-');
+      if (parts.length === 3) {
+        const recordDateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        timestampToUse = recordDateObj.getTime();
+      }
+    }
+
+    let msg = `${getZaloBillingHeader(timestampToUse)}
 MÃ KH: ${c.maKH}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}

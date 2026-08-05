@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, MessageSquare, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2 } from 'lucide-react';
+import { ChevronLeft, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2 } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
 import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo, generateVietQrUrl } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -27,6 +27,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [pi, setPi] = useState(customer.paid > 0 ? Math.round(customer.paid).toString() : "");
   const [showPreview, setShowPreview] = useState(false);
   const [showQrInline, setShowQrInline] = useState(false);
+  const [showDatePickerInline, setShowDatePickerInline] = useState(false);
   const [isEditingInstallDate, setIsEditingInstallDate] = useState(false);
   const [tempInstallDate, setTempInstallDate] = useState(customer.installDate || "");
   const [copiedName, setCopiedName] = useState(false);
@@ -38,6 +39,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
     setPi(customer.paid > 0 ? Math.round(customer.paid).toString() : "");
     setShowPreview(false);
     setShowQrInline(false);
+    setShowDatePickerInline(false);
     setIsEditingInstallDate(false);
     setTempInstallDate(customer.installDate || "");
     setCopiedName(false);
@@ -89,7 +91,19 @@ export const DetailView: React.FC<DetailViewProps> = ({
         </div>
         <div className="flex gap-1 items-center">
           <button onClick={() => setShowQrInline(!showQrInline)} className={`p-2.5 rounded-xl shadow-lg active:scale-90 shrink-0 transition-all ${showQrInline ? 'bg-rose-600 text-white' : 'bg-blue-600 text-white'}`}><QrCode size={20}/></button>
-          <button onClick={() => setShowPreview(!showPreview)} className={`p-2.5 rounded-xl border transition-all shrink-0 ${showPreview ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-slate-50 border-slate-200 text-slate-700'}`}><MessageSquare size={20}/></button>
+          <button 
+            onClick={() => setShowDatePickerInline(!showDatePickerInline)} 
+            className={`p-2.5 rounded-xl border transition-all shrink-0 active:scale-90 ${
+              customer.recordDate 
+                ? 'bg-amber-500 text-white border-amber-500 shadow-md' 
+                : showDatePickerInline 
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
+            }`}
+            title="Sửa ngày ghi nước"
+          >
+            <Calendar size={20}/>
+          </button>
           <button onClick={onEditInfo} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 active:scale-90 shrink-0" title="Chỉnh sửa"><Pencil size={20}/></button>
           <button onClick={onDelete} className="p-2.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-600 active:scale-90 shrink-0" title="Xóa khách hàng"><Trash2 size={20}/></button>
         </div>
@@ -133,6 +147,42 @@ export const DetailView: React.FC<DetailViewProps> = ({
               referrerPolicy="no-referrer"
             />
             <p className="mt-3 text-[11px] font-black text-blue-700 uppercase tracking-tighter">Quét để thanh toán {formatCurrency(customer.balance)}</p>
+          </div>
+        )}
+
+        {showDatePickerInline && (
+          <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 shadow-inner animate-in zoom-in-95 duration-200 space-y-3">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[12px] font-black uppercase text-slate-700">Chỉnh sửa Ngày Ghi Chỉ Số</span>
+              <button onClick={() => setShowDatePickerInline(false)} className="text-slate-400 active:scale-90"><X size={18}/></button>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <input 
+                type="date" 
+                className="w-full bg-white p-3 rounded-xl border border-slate-200 font-black text-slate-800 text-base focus:outline-none focus:border-blue-500 outline-none shadow-sm" 
+                value={customer.recordDate || new Date().toISOString().slice(0, 10)} 
+                onChange={e => onUpdate({ recordDate: e.target.value })} 
+              />
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowDatePickerInline(false)}
+                  className="flex-1 bg-blue-700 text-white font-black uppercase text-[11px] py-2.5 rounded-xl shadow-md border-b-2 border-blue-900 active:scale-95"
+                >
+                  Xác nhận ngày
+                </button>
+                {customer.recordDate && (
+                  <button 
+                    onClick={() => {
+                      onUpdate({ recordDate: "" });
+                      setShowDatePickerInline(false);
+                    }}
+                    className="px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 transition-all active:scale-95 text-[11px] font-black uppercase"
+                  >
+                    Dùng Ngày Tự Động
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -213,7 +263,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
         {/* NÚT GỬI ZALO & CHỐT SỐ (ĐƯỢC ĐẶT DƯỚI THẺ KHÁCH TRẢ TIỀN) */}
         <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 border-b-4 border-blue-900 text-sm"><MessageCircle size={18}/> Gửi Zalo & Chốt số</button>
 
-        {showPreview && (
+        {(showPreview || parseSafe(ni) > 0 || showDatePickerInline) && (
           <div className="animate-in slide-in-from-top-2 duration-300">
             <div className="bg-slate-800 text-emerald-400 p-4 rounded-xl font-mono text-[12px] leading-relaxed shadow-2xl border-2 border-slate-700">
                <pre className="whitespace-pre-wrap">{generateMsg(customer, ni, pi)}</pre>
