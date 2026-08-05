@@ -245,7 +245,12 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
               <div className="flex items-start gap-2.5">
                 <div className="flex flex-col items-center gap-1 shrink-0">
                   <div className="text-[9px] font-extrabold text-slate-400 uppercase leading-none tracking-wider">Mã KH</div>
-                  <div className={`px-2.5 py-1.5 rounded-xl min-w-[42px] text-center text-white text-[14px] font-black shadow-sm leading-none ${c.isProcessed ? 'bg-emerald-500' : c.isZaloFriend ? 'bg-blue-600' : c.isZalo ? 'bg-indigo-600' : 'bg-slate-800'}`}>{c.maKH}</div>
+                  <div className={`px-2.5 py-1.5 rounded-xl min-w-[42px] text-center text-white text-[17px] font-black shadow-sm leading-none ${
+                    c.isProcessed ? 'bg-emerald-500' : 
+                    c.isZaloFriend ? 'bg-blue-600' : 
+                    c.isZalo ? 'bg-indigo-600' : 
+                    'bg-slate-800'
+                  }`}>{c.maKH}</div>
                   <div className={`p-1 rounded-full border-2 -mt-1 ${
                     c.isProcessed ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 
                     c.isZaloFriend ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 
@@ -289,7 +294,7 @@ export const ListView: React.FC<ListViewProps> = ({ customers, selectedId, onSel
                   {c.newIndex > 0 ? (
                     <div className="text-[12px] sm:text-[14px] font-black text-white bg-emerald-600 px-2.5 py-1 rounded-xl shadow-md inline-flex items-center tracking-tight gap-1 border border-emerald-500">
                       <span className="text-[8px] font-extrabold text-emerald-100 uppercase">SỐ:</span>
-                      <span className="text-[14px] sm:text-[15px] font-black leading-none">{c.newIndex}</span>
+                      <span className="text-[16px] sm:text-[18px] font-black leading-none">{c.newIndex}</span>
                     </div>
                   ) : (
                     <div className="text-[10px] sm:text-[11px] font-black text-rose-500 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-lg uppercase tracking-wider animate-pulse">
