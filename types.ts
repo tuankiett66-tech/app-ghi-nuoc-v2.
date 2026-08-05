@@ -58,6 +58,7 @@ export interface SystemConfig {
   master1Initial?: number;
   master2Initial?: number;
   masterInitialDate?: string;
+  globalRecordDate?: string; // Ngày ghi nước thủ công toàn cục được giữ lại cho tất cả KH ghi sau
 }
 
 export interface LossRecord {

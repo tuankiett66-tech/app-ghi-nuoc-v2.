@@ -120,7 +120,8 @@ export const useWaterData = () => {
       globalMessage: 'Quy khach vui long thanh toan truoc ngay 10 hang thang.',
       lastSyncTime: 0,
       master1Initial: 0,
-      master2Initial: 0
+      master2Initial: 0,
+      globalRecordDate: ''
     };
     try {
       const saved = localStorage.getItem('water_config_v21');
@@ -183,9 +184,16 @@ export const useWaterData = () => {
           (updates.oldDebt !== undefined && updates.oldDebt !== c.oldDebt) ||
           (updates.paid !== undefined && updates.paid !== c.paid);
 
+        // Tự động gán recordDate từ config.globalRecordDate nếu có thiết lập toàn cục
+        // và updates không ghi đè recordDate khác
+        const recordDateToUse = updates.recordDate !== undefined 
+          ? updates.recordDate 
+          : (c.recordDate || config.globalRecordDate || "");
+
         const merged = { 
           ...c, 
           ...updates, 
+          recordDate: recordDateToUse,
           updatedAt: isCoreDataChanged ? Date.now() : (c.updatedAt || 0) 
         };
         if (updates.phoneTenant !== undefined) merged.phone = updates.phoneTenant;
@@ -241,12 +249,14 @@ export const useWaterData = () => {
         isZaloFriend: c.isZaloFriend,
         isProcessed: false,
         note: '',
-        updatedAt: undefined
+        updatedAt: undefined,
+        recordDate: undefined
       }, config.waterRate);
     });
 
     setCustomers(nextMonthCustomers.sort((a, b) => String(a.maKH || "").localeCompare(String(b.maKH || ""), undefined, { numeric: true, sensitivity: 'base' })));
     setGroups(prev => prev.map(g => ({ ...g, isProcessed: false })));
+    setConfig(prev => ({ ...prev, globalRecordDate: "" }));
     return nextMonthCustomers;
   };
 

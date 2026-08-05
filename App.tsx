@@ -154,8 +154,9 @@ const App: React.FC = () => {
     const accountName = isGroup ? (config.groupAccountName || config.accountName) : config.accountName;
     
     let timestampToUse = c.updatedAt;
-    if (c.recordDate) {
-      const parts = c.recordDate.split('-');
+    const finalRecordDate = c.recordDate || config.globalRecordDate;
+    if (finalRecordDate) {
+      const parts = finalRecordDate.split('-');
       if (parts.length === 3) {
         const recordDateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
         timestampToUse = recordDateObj.getTime();
@@ -336,6 +337,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             }
           }}
           onUpdate={(upd) => updateCustomer(selectedId!, upd)}
+          onUpdateConfig={(upd) => setConfig(prev => ({ ...prev, ...upd }))}
           onShowQr={() => setShowQr(true)}
           onEditInfo={() => navigateTo('edit_customer', false)}
           onDelete={() => {

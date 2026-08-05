@@ -11,6 +11,7 @@ interface DetailViewProps {
   onBack: () => void;
   onNavigate: (dir: 'next' | 'prev' | 'next10' | 'prev10') => void;
   onUpdate: (updates: Partial<Customer>) => void;
+  onUpdateConfig?: (updates: Partial<SystemConfig>) => void;
   onShowQr: () => void;
   onEditInfo: () => void;
   onDelete: () => void;
@@ -20,7 +21,7 @@ interface DetailViewProps {
 }
 
 export const DetailView: React.FC<DetailViewProps> = ({ 
-  customer, config, onBack, onNavigate, onUpdate, onShowQr, onEditInfo, onDelete, onAddAfter, onSendZalo, generateMsg 
+  customer, config, onBack, onNavigate, onUpdate, onUpdateConfig, onShowQr, onEditInfo, onDelete, onAddAfter, onSendZalo, generateMsg 
 }) => {
   // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -30,6 +31,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [showDatePickerInline, setShowDatePickerInline] = useState(false);
   const [isEditingInstallDate, setIsEditingInstallDate] = useState(false);
   const [tempInstallDate, setTempInstallDate] = useState(customer.installDate || "");
+  const [tempRecordDate, setTempRecordDate] = useState(customer.recordDate || config.globalRecordDate || new Date().toISOString().slice(0, 10));
   const [copiedName, setCopiedName] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
@@ -42,8 +44,9 @@ export const DetailView: React.FC<DetailViewProps> = ({
     setShowDatePickerInline(false);
     setIsEditingInstallDate(false);
     setTempInstallDate(customer.installDate || "");
+    setTempRecordDate(customer.recordDate || config.globalRecordDate || new Date().toISOString().slice(0, 10));
     setCopiedName(false);
-  }, [customer.id]);
+  }, [customer.id, config.globalRecordDate]);
 
   // Cap nhat du lieu len store khi nguoi dung nhap lieu
   useEffect(() => {
@@ -94,7 +97,7 @@ export const DetailView: React.FC<DetailViewProps> = ({
           <button 
             onClick={() => setShowDatePickerInline(!showDatePickerInline)} 
             className={`p-2.5 rounded-xl border transition-all shrink-0 active:scale-90 ${
-              customer.recordDate 
+              customer.recordDate || config.globalRecordDate
                 ? 'bg-amber-500 text-white border-amber-500 shadow-md' 
                 : showDatePickerInline 
                   ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
@@ -160,20 +163,30 @@ export const DetailView: React.FC<DetailViewProps> = ({
               <input 
                 type="date" 
                 className="w-full bg-white p-3 rounded-xl border border-slate-200 font-black text-slate-800 text-base focus:outline-none focus:border-blue-500 outline-none shadow-sm" 
-                value={customer.recordDate || new Date().toISOString().slice(0, 10)} 
-                onChange={e => onUpdate({ recordDate: e.target.value })} 
+                value={tempRecordDate} 
+                onChange={e => setTempRecordDate(e.target.value)} 
               />
               <div className="flex gap-2">
                 <button 
-                  onClick={() => setShowDatePickerInline(false)}
+                  onClick={() => {
+                    onUpdate({ recordDate: tempRecordDate });
+                    if (onUpdateConfig) {
+                      onUpdateConfig({ globalRecordDate: tempRecordDate });
+                    }
+                    setShowDatePickerInline(false);
+                  }}
                   className="flex-1 bg-blue-700 text-white font-black uppercase text-[11px] py-2.5 rounded-xl shadow-md border-b-2 border-blue-900 active:scale-95"
                 >
                   Xác nhận ngày
                 </button>
-                {customer.recordDate && (
+                {(customer.recordDate || config.globalRecordDate) && (
                   <button 
                     onClick={() => {
                       onUpdate({ recordDate: "" });
+                      if (onUpdateConfig) {
+                        onUpdateConfig({ globalRecordDate: "" });
+                      }
+                      setTempRecordDate(new Date().toISOString().slice(0, 10));
                       setShowDatePickerInline(false);
                     }}
                     className="px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 transition-all active:scale-95 text-[11px] font-black uppercase"
