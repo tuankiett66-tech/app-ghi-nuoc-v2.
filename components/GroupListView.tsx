@@ -219,8 +219,22 @@ Nội dung: TT NUOC ${cleanGroupName}`;
             {group.name}
           </h3>
           
+          {/* MÃ KH của các thành viên trong nhóm */}
+          {groupData.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1 items-center">
+              <span className="text-[9px] font-extrabold text-indigo-400 uppercase tracking-wider">Mã KH:</span>
+              <div className="flex flex-wrap gap-1">
+                {groupData.map((c) => (
+                  <span key={`${c.maKH}-${c.source}`} className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded-md text-[10px] font-black border border-indigo-100/50 leading-none">
+                    {c.maKH}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {group.isProcessed && (
-            <div className="mt-1">
+            <div className="mt-1.5">
               <span className="text-emerald-700 font-black bg-emerald-100/60 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider">
                 ĐÃ COPY
               </span>

@@ -47,20 +47,47 @@ export const useWaterSync = ({
       
       let extraData: any = {};
       if (result.config) {
-        if (result.config.extra_sync_data) {
+        let fullExtraSyncData = result.config.extra_sync_data || "";
+        
+        // Nếu không có extra_sync_data nguyên vẹn, hãy tìm kiếm các chunk để ghép lại
+        if (!fullExtraSyncData) {
+          const chunks: { index: number; val: string }[] = [];
+          Object.keys(result.config).forEach(key => {
+            if (key.startsWith('extra_sync_chunk_')) {
+              const idx = parseInt(key.replace('extra_sync_chunk_', ''));
+              if (!isNaN(idx)) {
+                chunks.push({ index: idx, val: String(result.config[key] || "") });
+              }
+            }
+          });
+          if (chunks.length > 0) {
+            chunks.sort((a, b) => a.index - b.index);
+            fullExtraSyncData = chunks.map(c => c.val).join('');
+          }
+        }
+
+        if (fullExtraSyncData) {
           try {
-            extraData = JSON.parse(result.config.extra_sync_data);
+            extraData = JSON.parse(fullExtraSyncData);
           } catch (e) {
             console.error("Error parsing extra sync data", e);
           }
         }
 
+        // Lọc sạch config để loại bỏ các chunk rác khỏi state của React
+        const cleanConfig: Record<string, any> = {};
+        Object.keys(result.config).forEach(key => {
+          if (!key.startsWith('extra_sync_chunk_')) {
+            cleanConfig[key] = result.config[key];
+          }
+        });
+
         setConfig(prev => ({ 
           ...prev, 
-          ...result.config, 
-          master1Initial: parseStringOrDateToNumber(result.config.master1Initial) || 0,
-          master2Initial: parseStringOrDateToNumber(result.config.master2Initial) || 0,
-          masterInitialDate: normalizeDate(result.config.masterInitialDate),
+          ...cleanConfig, 
+          master1Initial: parseStringOrDateToNumber(cleanConfig.master1Initial) || 0,
+          master2Initial: parseStringOrDateToNumber(cleanConfig.master2Initial) || 0,
+          masterInitialDate: normalizeDate(cleanConfig.masterInitialDate),
           lastSyncTime: Date.now() 
         }));
 
@@ -334,10 +361,20 @@ export const useWaterSync = ({
         mode: 'cors',
         redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: safeJsonStringify({
-          action: 'update_all',
-          archive_suffix: archiveSuffix || "",
-          config: {
+        body: (() => {
+          const extraSyncDataStr = safeJsonStringify({
+            groups,
+            lossRecords: [...lossRecords]
+              .sort((a, b) => b.createdAt - a.createdAt)
+              .slice(0, 24),
+            dailySupplyReadings: [...dailySupplyReadings]
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .slice(0, 90),
+            subMeters: customers.filter(c => c.isSubMeter).map(c => `${c.listType}:${c.maKH}`),
+            recordDates: customers.filter(c => c.recordDate).map(c => ({ key: `${c.listType}:${c.maKH}`, date: c.recordDate }))
+          });
+
+          const configToBackup: Record<string, any> = {
             waterRate: config.waterRate,
             bankId: config.bankId,
             accountNo: config.accountNo,
@@ -348,25 +385,35 @@ export const useWaterSync = ({
             globalMessage: config.globalMessage,
             master1Initial: config.master1Initial || 0,
             master2Initial: config.master2Initial || 0,
-            masterInitialDate: config.masterInitialDate || "",
-            extra_sync_data: safeJsonStringify({
-              groups,
-              lossRecords: [...lossRecords]
-                .sort((a, b) => b.createdAt - a.createdAt)
-                .slice(0, 24),
-              dailySupplyReadings: [...dailySupplyReadings]
-                .sort((a, b) => b.date.localeCompare(a.date))
-                .slice(0, 90),
-              subMeters: customers.filter(c => c.isSubMeter).map(c => `${c.listType}:${c.maKH}`),
-              recordDates: customers.filter(c => c.recordDate).map(c => ({ key: `${c.listType}:${c.maKH}`, date: c.recordDate }))
-            })
-          },
-          list1: data1,
-          list2: data2,
-          groups: groups,
-          lossRecords: lossRecords,
-          dailySupplyReadings: dailySupplyReadings
-        })
+            masterInitialDate: config.masterInitialDate || ""
+          };
+
+          // Chia nhỏ extraSyncDataStr thành các phần nhỏ (mỗi phần tối đa 40,000 ký tự)
+          // để tránh lỗi giới hạn 50,000 ký tự của một ô đơn trên Google Sheets
+          const CHUNK_SIZE = 40000;
+          if (extraSyncDataStr.length <= CHUNK_SIZE) {
+            configToBackup.extra_sync_data = extraSyncDataStr;
+          } else {
+            configToBackup.extra_sync_data = ""; // Làm rỗng ô chính
+            const chunkCount = Math.ceil(extraSyncDataStr.length / CHUNK_SIZE);
+            for (let i = 0; i < chunkCount; i++) {
+              const start = i * CHUNK_SIZE;
+              const end = start + CHUNK_SIZE;
+              configToBackup[`extra_sync_chunk_${i + 1}`] = extraSyncDataStr.slice(start, end);
+            }
+          }
+
+          return safeJsonStringify({
+            action: 'update_all',
+            archive_suffix: archiveSuffix || "",
+            config: configToBackup,
+            list1: data1,
+            list2: data2,
+            groups: groups,
+            lossRecords: lossRecords,
+            dailySupplyReadings: dailySupplyReadings
+          });
+        })()
       });
       
       if (!response.ok) {
