@@ -176,20 +176,18 @@ export const Header: React.FC<HeaderProps> = ({
           )}
           <button 
             onClick={onSync} 
-            title="Tải từ Cloud về (TẢI XUỐNG ⬇️)" 
+            title="Tải từ Cloud về" 
             disabled={isSyncing} 
             className="p-2 text-blue-700 active:scale-90 touch-manipulation shrink-0 relative flex items-center justify-center"
           >
             {isSyncing ? <Loader2 className="animate-spin" size={20}/> : <CloudDownload size={20}/>}
-            <span className="absolute -bottom-0.5 -right-0.5 bg-blue-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white shadow-sm">⬇</span>
           </button>
           <button 
             onClick={onSave} 
-            title="Lưu lên Cloud (TẢI LÊN ⬆️)" 
+            title="Lưu lên Cloud" 
             className="p-2 text-emerald-600 active:scale-90 touch-manipulation shrink-0 relative flex items-center justify-center"
           >
             <Save size={20}/>
-            <span className="absolute -bottom-0.5 -right-0.5 bg-emerald-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white shadow-sm">⬆</span>
             {syncStatus === 'syncing' && (
               <div className="absolute -top-1 -right-1 bg-blue-600 text-white rounded-full p-0.5 animate-spin shadow-md">
                 <Loader2 size={8} strokeWidth={3} />
