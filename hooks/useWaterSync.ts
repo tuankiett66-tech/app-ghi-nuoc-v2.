@@ -88,7 +88,8 @@ export const useWaterSync = ({
           master1Initial: parseStringOrDateToNumber(cleanConfig.master1Initial) || 0,
           master2Initial: parseStringOrDateToNumber(cleanConfig.master2Initial) || 0,
           masterInitialDate: normalizeDate(cleanConfig.masterInitialDate),
-          lastSyncTime: Date.now() 
+          lastSyncTime: Date.now(),
+          lastSyncAction: 'download'
         }));
 
         const rawLoss = result.lossRecords || extraData.lossRecords;
@@ -423,7 +424,7 @@ export const useWaterSync = ({
       const result = await response.json();
       if (result.status === 'success') {
         setSyncStatus('synced');
-        setConfig(prev => ({ ...prev, lastSyncTime: Date.now() }));
+        setConfig(prev => ({ ...prev, lastSyncTime: Date.now(), lastSyncAction: 'upload' }));
         setLastAutoBackup(Date.now());
         if (!silent) {
           showToast(archiveSuffix ? `Đã tự động lưu trữ lịch sử ${archiveSuffix} lên Google Sheets!` : "Đã tải dữ liệu từ máy lên Cloud!");

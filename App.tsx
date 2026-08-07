@@ -286,6 +286,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
                showToast(newVal ? "Đang hiện hộ CHƯA GHI SỐ" : "Hiện tất cả");
             }}
             lastSyncTime={config.lastSyncTime}
+            lastSyncAction={config.lastSyncAction}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
             onShowScan={() => navigateTo('ai_scan')}

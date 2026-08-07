@@ -54,6 +54,7 @@ export interface SystemConfig {
   sheetUrl: string;
   globalMessage: string;
   lastSyncTime?: number;
+  lastSyncAction?: 'upload' | 'download';
   // Opening readings for Loss Tracking
   master1Initial?: number;
   master2Initial?: number;

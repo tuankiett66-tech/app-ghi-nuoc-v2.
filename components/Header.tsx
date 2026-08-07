@@ -22,13 +22,14 @@ interface HeaderProps {
   onToggleUnrecordedFilter?: () => void;
   onlyUnrecorded?: boolean;
   lastSyncTime?: number;
+  lastSyncAction?: 'upload' | 'download';
   onShowVerify: () => void;
   onShowGroups: () => void;
   onShowScan?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSearchExpanded, setIsSearchExpanded, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, onToggleUnrecordedFilter, onlyUnrecorded, lastSyncTime, onShowVerify, onShowGroups, onShowScan
+  title, searchQuery, setSearchQuery, isSearchExpanded, setIsSearchExpanded, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, onToggleUnrecordedFilter, onlyUnrecorded, lastSyncTime, lastSyncAction, onShowVerify, onShowGroups, onShowScan
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -137,6 +138,16 @@ export const Header: React.FC<HeaderProps> = ({
                   }
                 })()}
               </span>
+              {lastSyncAction === 'upload' && (
+                <span className="text-rose-600 font-black text-[13px] select-none flex items-center leading-none" title="Lần cuối: TẢI LÊN (Upload) ↑">
+                  <span className="animate-bounce">↑</span>
+                </span>
+              )}
+              {lastSyncAction === 'download' && (
+                <span className="text-blue-600 font-black text-[13px] select-none flex items-center leading-none" title="Lần cuối: TẢI XUỐNG (Download) ↓">
+                  <span className="animate-bounce">↓</span>
+                </span>
+              )}
             </div>
           )}
         </div>
