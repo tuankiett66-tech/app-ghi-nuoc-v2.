@@ -75,6 +75,11 @@ const App: React.FC = () => {
     await handleBackupCloud(false);
   };
 
+  const handleManualSync = async () => {
+    showToast("Đang tải dữ liệu từ Cloud...");
+    await handleSyncCloud();
+  };
+
   const selectedCustomer = useMemo(() => customers.find(c => c.id === selectedId) || null, [customers, selectedId]);
   const activeGroup = useMemo(() => groups.find(g => g.id === selectedGroupId), [groups, selectedGroupId]);
 
@@ -259,7 +264,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             title={activeTab === 'list1' ? 'BỘ 01' : 'BỘ 02'}
             searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             isSearchExpanded={isSearchExpanded} setIsSearchExpanded={setIsSearchExpanded}
-            isSyncing={isSyncing} onSync={handleSyncCloud}
+            isSyncing={isSyncing} onSync={handleManualSync}
             onSave={handleManualSave}
             syncStatus={syncStatus}
             onShowAdd={() => { setAfterMaKH(undefined); navigateTo('add_customer'); }}
@@ -422,7 +427,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onBack={() => navigateTo('list')}
           onImport={() => fileInputRef.current?.click()}
           onExport={async () => await exportToExcel(customers.filter(c => c.listType === activeTab), `Backup_${activeTab}`)}
-          onBackupCloud={handleBackupCloud}
+          onBackupCloud={handleManualSave}
           onClear={() => { if(confirm("Xoa sach du lieu?")) { localStorage.clear(); window.location.reload(); } }}
           onResetBank={resetBankInfo}
         />

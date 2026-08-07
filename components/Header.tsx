@@ -163,22 +163,35 @@ export const Header: React.FC<HeaderProps> = ({
           {onToggleUnrecordedFilter && (
             <button onClick={onToggleUnrecordedFilter} title="Lọc chưa ghi số" className={`p-2 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnrecorded ? 'text-amber-600 bg-amber-100' : 'text-slate-600'}`}><PenSquare size={20}/></button>
           )}
-          <button onClick={onSync} title="Tải từ Cloud về" disabled={isSyncing} className="p-2 text-blue-700 active:scale-90 touch-manipulation shrink-0">{isSyncing ? <Loader2 className="animate-spin" size={20}/> : <CloudDownload size={20}/>}</button>
-          <button onClick={onSave} title="Tải lên Cloud" className="p-2 text-emerald-600 active:scale-90 touch-manipulation relative shrink-0">
+          <button 
+            onClick={onSync} 
+            title="Tải từ Cloud về (TẢI XUỐNG ⬇️)" 
+            disabled={isSyncing} 
+            className="p-2 text-blue-700 active:scale-90 touch-manipulation shrink-0 relative flex items-center justify-center"
+          >
+            {isSyncing ? <Loader2 className="animate-spin" size={20}/> : <CloudDownload size={20}/>}
+            <span className="absolute -bottom-0.5 -right-0.5 bg-blue-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white shadow-sm">⬇</span>
+          </button>
+          <button 
+            onClick={onSave} 
+            title="Lưu lên Cloud (TẢI LÊN ⬆️)" 
+            className="p-2 text-emerald-600 active:scale-90 touch-manipulation shrink-0 relative flex items-center justify-center"
+          >
             <Save size={20}/>
+            <span className="absolute -bottom-0.5 -right-0.5 bg-emerald-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white shadow-sm">⬆</span>
             {syncStatus === 'syncing' && (
-              <div className="absolute -top-0.5 -right-0.5 bg-blue-600 text-white rounded-full p-1 animate-spin shadow-md">
-                <Loader2 size={10} strokeWidth={3} />
+              <div className="absolute -top-1 -right-1 bg-blue-600 text-white rounded-full p-0.5 animate-spin shadow-md">
+                <Loader2 size={8} strokeWidth={3} />
               </div>
             )}
             {syncStatus === 'synced' && (
-              <div className="absolute -top-0.5 -right-0.5 bg-emerald-500 text-white rounded-full p-1 shadow-md animate-in zoom-in duration-300">
-                <Check size={10} strokeWidth={4} />
+              <div className="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 shadow-md animate-in zoom-in duration-300">
+                <Check size={8} strokeWidth={4} />
               </div>
             )}
             {syncStatus === 'error' && (
-              <div className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white rounded-full p-1 shadow-md animate-bounce">
-                <X size={10} strokeWidth={4} />
+              <div className="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5 shadow-md animate-bounce">
+                <X size={8} strokeWidth={4} />
               </div>
             )}
           </button>

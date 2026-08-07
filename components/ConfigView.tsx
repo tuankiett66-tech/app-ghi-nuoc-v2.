@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, UploadCloud, FileSpreadsheet, Trash2, Globe } from 'lucide-react';
+import { X, CloudUpload, FileSpreadsheet, Trash2, Globe } from 'lucide-react';
 import { SystemConfig } from '../types';
 import { parseSafe } from '../utils';
 import { APPS_SCRIPT_V4_6 } from './ScriptContent';
@@ -28,7 +28,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
       <div className="space-y-7 pb-32">
         {/* Phan quan ly file */}
         <div className="bg-white border-2 border-dashed border-blue-200 p-7 rounded-[2.5rem] grid grid-cols-2 gap-4 text-center shadow-md">
-          <button onClick={onImport} className="bg-emerald-600 text-white p-5 rounded-2xl font-black uppercase flex flex-col items-center gap-2 active:scale-95 shadow-lg border-b-4 border-emerald-800"><UploadCloud size={26}/> Gộp File</button>
+          <button onClick={onImport} className="bg-emerald-600 text-white p-5 rounded-2xl font-black uppercase flex flex-col items-center gap-2 active:scale-95 shadow-lg border-b-4 border-emerald-800"><CloudUpload size={26}/> Gộp File</button>
           <button onClick={onExport} className="bg-slate-800 text-white p-5 rounded-2xl font-black uppercase flex flex-col items-center gap-2 active:scale-95 shadow-lg border-b-4 border-slate-950"><FileSpreadsheet size={26}/> Sao lưu</button>
         </div>
 
@@ -75,8 +75,8 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
                   onBlur={() => setFocusedField(null)}
                 />
              </div>
-             <button onClick={onBackupCloud} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 active:scale-95 shadow-md border-b-4 border-blue-900 mt-2">
-                <UploadCloud size={20} /> Sao lưu lên Cloud
+             <button onClick={onBackupCloud} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 active:scale-95 shadow-md border-b-4 border-emerald-800 mt-2">
+                <CloudUpload size={20} /> Tải lên Cloud ⬆️
              </button>
 
              <div className="pt-2 border-t border-slate-100 space-y-2">
