@@ -13,7 +13,6 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { AgentView } from './components/AgentView';
 import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
@@ -278,7 +277,6 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             lastSyncAction={config.lastSyncAction}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
-            onShowAgent={() => navigateTo('agent_view')}
           />
           <ListView 
             customers={filtered} 
@@ -348,15 +346,6 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           }}
           onSendZalo={handleSendZalo}
           generateMsg={generateMsg}
-        />
-      )}
-
-      {view === 'agent_view' && (
-        <AgentView 
-          customers={customers}
-          onBack={() => navigateTo('list')}
-          updateCustomer={updateCustomer}
-          showToast={showToast}
         />
       )}
 
