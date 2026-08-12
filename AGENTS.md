@@ -57,9 +57,20 @@
      - **Không tự ý phê duyệt**: Agent **TUYỆT ĐỐI KHÔNG CÓ QUYỀN** tự động đổi trạng thái khách hàng sang "Thu đủ" (paid = nợ cũ + tiền kỳ mới) hoặc dán nhãn màu xanh lá khi khách hàng chỉ tuyên bố bằng lời nhắn/tin nhắn chữ mà chưa gửi kèm ảnh chụp giao dịch thành công hoặc khi ngân hàng chưa thông báo nhận được tiền thực tế.
      - **Quyền quyết định thuộc về Con người**: Chỉ người quản lý (Con người) mới có quyền bấm phê duyệt lệnh "Thu đủ" trên hệ thống sau khi đã trực đối khớp chứng từ giao dịch hoặc tài khoản ngân hàng nhận tiền thành công.
    - **QUY TRÌNH 3 BƯỚC CHUẨN CỦA AGENT**:
-     - **Bước 1: Gửi thông báo nước (Copy Bill)**: Gửi thông báo chi tiết số nước, số tiền tiêu thụ kèm nợ cũ sang Zalo cho khách hàng.
-     - **Bước 2: Lập báo cáo đối soát (Chờ Kiểm Tra)**: Khi khách hàng chỉ nhắn báo đã chuyển tiền nhưng chưa gửi ảnh giao dịch chi tiết (hoặc ngân hàng chưa báo nhận tiền thực tế), người dùng/Agent phải đăng ký trạng thái của Mã KH đó là **"Thông báo đã chuyển khoản nhưng chưa có chi tiết giao dịch - Chờ kiểm tra"** (Verify View), tuyệt đối **KHÔNG** bấm "Thu đủ".
-     - **Bước 3: Duyệt Thu Đủ & Gửi Cảm Ơn**: Chỉ khi có ảnh chụp xác nhận giao dịch thành công hoặc ngân hàng báo biến động số dư thực tế, người dùng mới tiến hành duyệt "Thu đủ" trên hệ thống (đổi màu xanh lá) và dán gửi icon cảm ơn `"🙏"` trên Zalo cho khách hàng.
+     - **Bước 1: Gửi thông báo nước (Copy Bill)**:
+       - Agent đọc trên App danh sách các hộ thuộc Nhóm đã kết bạn Zalo và có dư nợ > 0, chọn tuần tự từ Mã KH nhỏ nhất (ví dụ: 1007).
+       - Qua ứng dụng Zalo Web để kiểm tra xem Mã KH này đã được gửi thông báo tiền nước của kỳ này chưa.
+       - *Trường hợp chưa gửi*: Nhấn **COPY BILL** trên App rồi dán (Paste) gửi thông báo nước sang Zalo cho khách hàng.
+       - *Trường hợp đã gửi rồi nhưng khách chưa thanh toán*: Bỏ qua và chuyển ngay sang Mã KH tiếp theo. Lặp lặp lại quy trình tuần tự cho đến khi hết danh sách.
+     - **Bước 2: Đối soát & Lập báo cáo Chờ Kiểm Tra (Chờ Duyệt)**:
+       - Khi có thông báo khách hàng gửi tin nhắn báo đã chuyển tiền hoặc gửi ảnh bill thanh toán trên Zalo, người quản lý/Agent kiểm tra tin nhắn để lấy Mã KH, sau đó quay lại App kiểm tra đối soát thông tin.
+       - Nếu thông tin trùng khớp, tiến hành đăng ký trạng thái của Mã KH đó là **"Thông báo đã chuyển khoản nhưng chưa có chi tiết giao dịch - Chờ kiểm tra"** (Verify View) để đưa vào danh sách Chờ duyệt, tuyệt đối **KHÔNG** bấm "Thu đủ" lúc này. Lặp lại quy trình đối soát này cho các tin nhắn tiếp theo.
+     - **Bước 3: Duyệt Thu Đủ & Gửi Sticker Cảm Ơn**:
+       - Chỉ thực hiện hành động duyệt **"Thu đủ"** (đổi màu xanh lá, dư nợ về 0) cho Mã KH có trong Báo cáo sau khi đã đối khớp xác nhận biến động số dư thực tế từ ngân hàng hoặc chứng từ chuyển khoản thành công.
+       - Ngay sau khi duyệt trên hệ thống, quay lại Zalo Web tìm đúng Mã KH tương ứng và gửi sticker Cảm ơn `"🙏"` để hoàn tất chu trình nợ.
+   - **LỌC TỐI ƯU DỮ LIỆU LỚN (1800+ KH)**:
+     - Để giải quyết vấn đề quá tải dữ liệu, Agent **CHỈ QUAN TÂM VÀ CHỈ HIỂN THỊ** các hộ dân thỏa mãn đồng thời hai điều kiện: **Chưa thanh toán** (balance > 0) và **Đã kết bạn Zalo** (`isZaloFriend === true`).
+     - Tự động bỏ qua các hộ đã ghi nhận "Thu Đủ" hoặc chưa kết bạn Zalo khỏi danh mục tác nghiệp của Agent và Payload gửi sang Gemini OCR nhằm tối ưu hóa chi phí, tốc độ xử lý và hạn chế tối đa sai lệch định danh.
 
 ## Synchronization
 - The app uses a Google Apps Script for cloud backup.

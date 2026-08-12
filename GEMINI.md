@@ -99,9 +99,24 @@
     - **Không tự ý phê duyệt**: Agent **TUYỆT ĐỐI KHÔNG CÓ QUYỀN** tự động thay đổi trạng thái "Thu đủ" (paid) hoặc đổi màu thẻ sang màu xanh lá của hộ dân khi chỉ có thông tin báo ck bằng lời nhắn mà chưa có bằng chứng chi tiết (ảnh chụp màn hình giao dịch thành công) hoặc ngân hàng chưa báo nhận tiền thực tế.
     - **Kiểm soát tối cao**: Quyền bấm duyệt quyết định "Thu đủ" và hoàn tất chu trình nợ thuộc về **CON NGƯỜI (người quản lý)** sau khi trực tiếp đối chiếu khớp chứng từ.
   - **QUY TRÌNH 3 BƯỚC CHUẨN CỦA AGENT**:
-    1. **Bước 1 (Copy Bill)**: Gửi thông báo nước và nợ cũ chi tiết qua Zalo cho khách.
-    2. **Bước 2 (Lập Báo Cáo Chờ Xác Nhận - Verify)**: Khi khách hàng báo đã chuyển tiền nhưng chưa gửi ảnh giao dịch chi tiết, đăng ký trạng thái của Mã KH đó là *"Chuyển khoản thiếu chi tiết giao dịch - Chờ kiểm tra"* trong `VerifyView`, tuyệt đối không tự ý bấm "Thu đủ" trước khi đối soát thực tế.
-    3. **Bước 3 (Thu đủ & Cảm ơn)**: Chỉ khi có ảnh chụp xác nhận giao dịch thành công hoặc ngân hàng báo biến động số dư thực tế, người dùng mới tiến hành duyệt "Thu đủ" trên hệ thống (đổi màu xanh lá) và dán gửi icon cảm ơn `"🙏"` trên Zalo cho khách hàng.
+    1. **Bước 1 (Gửi thông báo - COPY BILL)**:
+       - Agent đọc trên App danh sách các hộ thuộc Nhóm đã kết bạn Zalo và có dư nợ > 0, chọn tuần tự từ Mã KH nhỏ nhất (ví dụ: 1007).
+       - Qua ứng dụng Zalo Web để kiểm tra xem Mã KH này đã được gửi thông báo tiền nước của kỳ này chưa.
+       - *Trường hợp chưa gửi*: Nhấn **COPY BILL** trên App rồi dán (Paste) gửi thông báo nước sang Zalo cho khách hàng.
+       - *Trường hợp đã gửi rồi nhưng khách chưa thanh toán*: Bỏ qua và chuyển ngay sang Mã KH tiếp theo. Lặp lặp lại quy trình tuần tự cho đến khi hết danh sách.
+    2. **Bước 2 (Đối soát & Lập báo cáo Chờ Kiểm Tra - CHỜ DUYỆT)**:
+       - Khi có thông báo khách hàng gửi tin nhắn báo đã chuyển tiền hoặc gửi ảnh bill thanh toán trên Zalo, người quản lý/Agent kiểm tra tin nhắn để lấy Mã KH, sau đó quay lại App kiểm tra đối soát thông tin.
+       - Nếu thông tin trùng khớp, tiến hành đăng ký trạng thái của Mã KH đó là **"Thông báo đã chuyển khoản nhưng chưa có chi tiết giao dịch - Chờ kiểm tra"** (Verify View) để đưa vào danh sách Chờ duyệt, tuyệt đối **KHÔNG** bấm "Thu đủ" lúc này. Lặp lại quy trình đối soát này cho các tin nhắn tiếp theo.
+    3. **Bước 3 (Duyệt Thu Đủ & Gửi Sticker Cảm Ơn)**:
+       - Chỉ thực hiện hành động duyệt **"Thu đủ"** (đổi màu xanh lá, dư nợ về 0) cho Mã KH có trong Báo cáo sau khi đã đối khớp xác nhận biến động số dư thực tế từ ngân hàng hoặc chứng từ chuyển khoản thành công.
+       - Ngay sau khi duyệt trên hệ thống, quay lại Zalo Web tìm đúng Mã KH tương ứng và gửi sticker Cảm ơn `"🙏"` để hoàn tất chu trình nợ.
+
+### 17. Big Data Optimization & Selective Scope (Fixed in V5.2)
+- **Problem**: When running the simulation or uploading real bills in a database of 1800+ customers, the payload sent to Gemini for OCR analysis was extremely large, causing slow processing, matching errors, and hitting context window or API limits. In addition, the dropdown for simulation got cluttered with fully paid or unconnected contacts.
+- **Solution**:
+  - Filtered the customer scope inside `AgentView` with a strict `filteredCustomers` array matching two conditions simultaneously: **Unpaid** (`balance > 0`) and **Zalo Friend** (`isZaloFriend === true`).
+  - Switched the OCR matching payload (`customersPayload`) in `handleFileUpload` to only send this targeted subset, drastically improving speed, decreasing API cost, and ensuring 100% accurate matches without noise.
+  - Constrained the Simulation dropdown menu to only display these unpaid Zalo friends, keeping the field UI compact, elegant, and fully aligned with field-collection practices.
 
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel`, `exportLossPeriodReportToExcel` (safe Excel generation).

@@ -71,6 +71,13 @@ export const classifyZaloContact = (zaloName: string, dbOwnerName: string): 'lan
 export const AgentView: React.FC<AgentViewProps> = ({ customers, onBack, updateCustomer, showToast }) => {
   const [activeTab, setActiveTab] = useState<'simulation' | 'live'>('live');
   
+  // Filter only unpaid customers who are also Zalo friends to handle massive 1800+ database
+  const filteredCustomers = customers.filter(c => {
+    const isUnpaid = (c.amount + c.oldDebt - c.paid) > 0;
+    const isZaloFriend = c.isZaloFriend === true;
+    return isUnpaid && isZaloFriend;
+  });
+  
   // Rules State
   const [rules, setRules] = useState<RobotRule[]>([
     {
@@ -166,12 +173,16 @@ export const AgentView: React.FC<AgentViewProps> = ({ customers, onBack, updateC
     ]);
   }, [customers]);
 
-  // Default customer in simulation
+  // Default customer in simulation (Filtered to unpaid Zalo friends)
   useEffect(() => {
-    if (customers.length > 0 && !selectedCustomerId) {
-      setSelectedCustomerId(customers[0].id);
+    if (filteredCustomers.length > 0) {
+      if (!selectedCustomerId || !filteredCustomers.some(c => c.id === selectedCustomerId)) {
+        setSelectedCustomerId(filteredCustomers[0].id);
+      }
+    } else {
+      setSelectedCustomerId('');
     }
-  }, [customers, selectedCustomerId]);
+  }, [filteredCustomers, selectedCustomerId]);
 
   const handleToggleRule = (id: string) => {
     setRules(prev => prev.map(r => r.id === id ? { ...r, isActive: !r.isActive } : r));
@@ -211,9 +222,9 @@ export const AgentView: React.FC<AgentViewProps> = ({ customers, onBack, updateC
 
   // 1. Simulation Engine (Learn/Train Mode)
   const runSimulation = async () => {
-    const cust = customers.find(c => c.id === selectedCustomerId);
+    const cust = filteredCustomers.find(c => c.id === selectedCustomerId);
     if (!cust) {
-      alert("Vui lòng chọn một hộ dân để chạy mô phỏng!");
+      alert("Vui lòng chọn một hộ dân chưa thanh toán & đã kết bạn Zalo để chạy mô phỏng!");
       return;
     }
 
@@ -410,7 +421,8 @@ CÒN LẠI: ${balance.toLocaleString('vi-VN')}`;
         const base64Image = reader.result as string;
         setBillScanProgress("🧠 Đang gửi bill sang Gemini AI phân tích cấu trúc ngân hàng...");
 
-        const customersPayload = customers.map(c => ({
+        // Send only unpaid Zalo friends to optimize API context and prevent matching paid/unconnected users
+        const customersPayload = filteredCustomers.map(c => ({
           id: c.id,
           maKH: c.maKH,
           name: c.name,
@@ -744,25 +756,36 @@ CÒN LẠI: ${balance.toLocaleString('vi-VN')}`;
 
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Bước A: Chọn Hộ nước để Chạy thử</label>
-                    <select
-                      value={selectedCustomerId}
-                      onChange={(e) => setSelectedCustomerId(e.target.value)}
-                      className="w-full bg-slate-50 hover:bg-slate-100 rounded-2xl py-3 px-4 border border-slate-200 text-xs font-extrabold text-slate-800 focus:outline-none focus:border-indigo-500 transition-all"
-                    >
-                      {customers.map(c => {
-                        const statusLabel = c.newIndex === 0 ? '❌ Chưa ghi' : '✅ Đã ghi';
-                        return (
-                          <option key={c.id} value={c.id}>
-                            {c.maKH} - {c.name} ({statusLabel})
-                          </option>
-                        );
-                      })}
-                    </select>
+                    <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">
+                      Bước A: Chọn Hộ nước để Chạy thử 
+                      <span className="text-indigo-600 font-extrabold ml-1.5">(Đã lọc: Chưa thanh toán & Đã kết bạn Zalo - {filteredCustomers.length} hộ)</span>
+                    </label>
+                    {filteredCustomers.length === 0 ? (
+                      <div className="bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-extrabold p-3 rounded-2xl flex items-center gap-2">
+                        <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+                        <span>Không có hộ nào Chưa thanh toán & Đã kết bạn Zalo!</span>
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedCustomerId}
+                        onChange={(e) => setSelectedCustomerId(e.target.value)}
+                        className="w-full bg-slate-50 hover:bg-slate-100 rounded-2xl py-3 px-4 border border-slate-200 text-xs font-extrabold text-slate-800 focus:outline-none focus:border-indigo-500 transition-all"
+                      >
+                        {filteredCustomers.map(c => {
+                          const statusLabel = c.newIndex === 0 ? '❌ Chưa ghi' : '✅ Đã ghi';
+                          const balance = Math.round(c.amount + c.oldDebt - c.paid);
+                          return (
+                            <option key={c.id} value={c.id}>
+                              {c.maKH} - {c.name} (Còn nợ: {formatCurrency(balance)}) [{statusLabel}]
+                            </option>
+                          );
+                        })}
+                      </select>
+                    )}
                   </div>
 
                   {selectedCustomerId && (() => {
-                    const cust = customers.find(c => c.id === selectedCustomerId);
+                    const cust = filteredCustomers.find(c => c.id === selectedCustomerId);
                     if (!cust) return null;
                     return (
                       <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 space-y-2">
