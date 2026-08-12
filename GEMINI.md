@@ -88,6 +88,21 @@
 - **Problem**: In physical field-recording conditions, scrolling down to execute the "Gửi Zalo & Chốt số" action was tedious and slowed down progress on standard phone screens.
 - **Solution**: Shifted the primary Zalo action button higher up (positioned immediately below the calculation values of "Còn lại phải thu" and above the "Khách trả tiền" input). Standardized component border-radius to `rounded-2xl` and compacted container padding to `p-4` to fit the critical input-and-send flow entirely inside the initial screen viewport.
 
+### 16. Strict 3-Step Agent Workflow & Authority Limits (Quy trình 3 bước chuẩn, Trách nhiệm và Quyền hạn của Agent)
+- **Problem**: In correct field operations, the Agent must NOT blindly or automatically mark bills as paid ("Thu đủ") when a customer claims payment without sending a transaction screenshot, as it leads to incorrect reporting and auditing.
+- **Solution**: Enforce a strict definition of the Agent's responsibilities, boundaries, and 3-step workflow in all reasoning steps:
+  - **TRÁCH NHIỆM (Responsibilities)**:
+    - **Phân tích giao dịch**: Agent chịu trách nhiệm phân tích các tin nhắn biến động số dư / tin nhắn báo chuyển khoản thô, tự động đối khớp mã căn hộ/Mã KH và đề xuất giao dịch phù hợp lên `AgentView`.
+    - **Báo cáo đối soát**: Ghi nhận và tổ chức các hộ "Chờ kiểm tra" vào `VerifyView` để người dùng đối chiếu.
+    - **Đồng bộ hóa tức thì**: Sau khi được người dùng duyệt lệnh, Agent có trách nhiệm tự động cập nhật hệ thống dữ liệu và sao lưu lên Google Sheets qua Cloud Backup trong vòng 5 giây.
+  - **QUYỀN HẠN (Authority Limits - GIỚI HẠN TUYỆT ĐỐI)**:
+    - **Không tự ý phê duyệt**: Agent **TUYỆT ĐỐI KHÔNG CÓ QUYỀN** tự động thay đổi trạng thái "Thu đủ" (paid) hoặc đổi màu thẻ sang màu xanh lá của hộ dân khi chỉ có thông tin báo ck bằng lời nhắn mà chưa có bằng chứng chi tiết (ảnh chụp màn hình giao dịch thành công) hoặc ngân hàng chưa báo nhận tiền thực tế.
+    - **Kiểm soát tối cao**: Quyền bấm duyệt quyết định "Thu đủ" và hoàn tất chu trình nợ thuộc về **CON NGƯỜI (người quản lý)** sau khi trực tiếp đối chiếu khớp chứng từ.
+  - **QUY TRÌNH 3 BƯỚC CHUẨN CỦA AGENT**:
+    1. **Bước 1 (Copy Bill)**: Gửi thông báo nước và nợ cũ chi tiết qua Zalo cho khách.
+    2. **Bước 2 (Lập Báo Cáo Chờ Xác Nhận - Verify)**: Khi khách hàng báo đã chuyển tiền nhưng chưa gửi ảnh giao dịch chi tiết, đăng ký trạng thái của Mã KH đó là *"Chuyển khoản thiếu chi tiết giao dịch - Chờ kiểm tra"* trong `VerifyView`, tuyệt đối không tự ý bấm "Thu đủ" trước khi đối soát thực tế.
+    3. **Bước 3 (Thu đủ & Cảm ơn)**: Chỉ khi có ảnh chụp xác nhận giao dịch thành công hoặc ngân hàng báo biến động số dư thực tế, người dùng mới tiến hành duyệt "Thu đủ" trên hệ thống (đổi màu xanh lá) và dán gửi icon cảm ơn `"🙏"` trên Zalo cho khách hàng.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel`, `exportLossPeriodReportToExcel` (safe Excel generation).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).

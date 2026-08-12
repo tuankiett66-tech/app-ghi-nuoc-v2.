@@ -48,6 +48,19 @@
    - Include "ĐÃ THANH TOÁN: -[số tiền]" in the message if `paid` > 0 to clearly show the deduction.
    - Use the dynamic period-based format for the header: `Tiền nước  KỲ [Kỳ]/[Năm]_Ngày ghi chỉ số:1/[Tháng]/[Năm].` (e.g., `Tiền nước  KỲ 6/2026_Ngày ghi chỉ số:1/7/2026.`).
 
+6. **Strict 3-Step Agent Workflow & Authority Limits (Quy trình 3 bước chuẩn, Trách nhiệm và Quyền hạn của Agent)**:
+   - **TRÁCH NHIỆM (Responsibilities)**:
+     - **Đối soát cú pháp & Khớp thông tin**: Agent xử lý nội dung giao dịch chuyển khoản thô (tin nhắn biến động số dư, tin nhắn báo ck từ KH), phân tích cú pháp để trích xuất số tiền, tự động tìm kiếm và đối khớp với Mã KH phù hợp để hiển thị gợi ý thông minh trong `AgentView`.
+     - **Tổ chức báo cáo đối soát**: Agent tự động tổng hợp danh sách các khách hàng chuyển khoản thiếu chi tiết giao dịch vào danh mục "Chờ kiểm tra" (Verify View) để người quản lý dễ dàng đối chiếu trực tiếp với ngân hàng cuối kỳ.
+     - **Đồng bộ hóa dữ liệu**: Sau khi có lệnh duyệt chính thức từ người quản lý, Agent có trách nhiệm ghi nhận đầy đủ, đồng bộ và tự động sao lưu trực tiếp dữ liệu (bao gồm cả trạng thái `isProcessed`) lên Google Sheets qua Cloud Backup trong vòng 5 giây.
+   - **QUYỀN HẠN (Authority Limits - GIỚI HẠN TUYỆT ĐỐI)**:
+     - **Không tự ý phê duyệt**: Agent **TUYỆT ĐỐI KHÔNG CÓ QUYỀN** tự động đổi trạng thái khách hàng sang "Thu đủ" (paid = nợ cũ + tiền kỳ mới) hoặc dán nhãn màu xanh lá khi khách hàng chỉ tuyên bố bằng lời nhắn/tin nhắn chữ mà chưa gửi kèm ảnh chụp giao dịch thành công hoặc khi ngân hàng chưa thông báo nhận được tiền thực tế.
+     - **Quyền quyết định thuộc về Con người**: Chỉ người quản lý (Con người) mới có quyền bấm phê duyệt lệnh "Thu đủ" trên hệ thống sau khi đã trực đối khớp chứng từ giao dịch hoặc tài khoản ngân hàng nhận tiền thành công.
+   - **QUY TRÌNH 3 BƯỚC CHUẨN CỦA AGENT**:
+     - **Bước 1: Gửi thông báo nước (Copy Bill)**: Gửi thông báo chi tiết số nước, số tiền tiêu thụ kèm nợ cũ sang Zalo cho khách hàng.
+     - **Bước 2: Lập báo cáo đối soát (Chờ Kiểm Tra)**: Khi khách hàng chỉ nhắn báo đã chuyển tiền nhưng chưa gửi ảnh giao dịch chi tiết (hoặc ngân hàng chưa báo nhận tiền thực tế), người dùng/Agent phải đăng ký trạng thái của Mã KH đó là **"Thông báo đã chuyển khoản nhưng chưa có chi tiết giao dịch - Chờ kiểm tra"** (Verify View), tuyệt đối **KHÔNG** bấm "Thu đủ".
+     - **Bước 3: Duyệt Thu Đủ & Gửi Cảm Ơn**: Chỉ khi có ảnh chụp xác nhận giao dịch thành công hoặc ngân hàng báo biến động số dư thực tế, người dùng mới tiến hành duyệt "Thu đủ" trên hệ thống (đổi màu xanh lá) và dán gửi icon cảm ơn `"🙏"` trên Zalo cho khách hàng.
+
 ## Synchronization
 - The app uses a Google Apps Script for cloud backup.
 - **Double-Backup Fallback**: To ensure backward compatibility, `isSubMeter` status must be saved both directly inside each customer row and consolidated inside the `extra_sync_data` JSON string (under `subMeters`). This guarantees that if a user uses an older script version, their sub-meter properties are still preserved during restore.
