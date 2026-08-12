@@ -329,6 +329,126 @@ Yêu cầu trích xuất:
     }
   });
 
+  // API route for scanning bank transfer screenshot bills using Gemini
+  app.post("/api/scan-bill", async (req, res) => {
+    try {
+      const { image, customers } = req.body;
+      if (!image) {
+        return res.status(400).json({ error: "No image data provided" });
+      }
+
+      if (!customers || !Array.isArray(customers)) {
+        return res.status(400).json({ error: "No customer list provided to match" });
+      }
+
+      // Check if API key exists
+      if (!GEMINI_KEY) {
+        return res.status(400).json({
+          error: "GEMINI_API_KEY_MISSING",
+          message: "Chưa cấu hình API Key cho Gemini. Vui lòng thêm GEMINI_API_KEY trong biểu tượng bánh răng bên dưới (Settings -> Secrets) để có thể dùng tính năng quét ảnh thông minh này."
+        });
+      }
+
+      const ai = getGenAI();
+
+      let mimeType = "image/jpeg";
+      let base64Data = image;
+      if (image.startsWith("data:")) {
+        const match = image.match(/^data:([^;]+);base64,(.*)$/);
+        if (match) {
+          mimeType = match[1];
+          base64Data = match[2];
+        }
+      }
+
+      const imagePart = {
+        inlineData: {
+          mimeType: mimeType,
+          data: base64Data,
+        },
+      };
+
+      const promptText = `
+Bạn là một trợ lý AI phân tích hình ảnh hóa đơn chuyển khoản ngân hàng (bill chuyển khoản).
+Hình ảnh đính kèm là ảnh chụp màn hình xác nhận giao dịch chuyển tiền thành công qua ngân hàng (Vietcombank, MBBank, Techcombank, Agribank, vv.) từ khách hàng đóng tiền nước.
+
+Hãy phân tích kỹ hình ảnh và trích xuất thông tin giao dịch sau:
+1. Số tiền chuyển khoản (Số tiền giao dịch thực tế chuyển đi, ví dụ: 162000, 324000). Trả về dưới dạng số nguyên.
+2. Nội dung chuyển khoản / Lời nhắn (ví dụ: "2002 Quoc dong tien nuoc", "Phòng 2750 chuyen tien").
+3. Ngày giờ giao dịch (ví dụ: "11/08/2026 20:15").
+
+Sử dụng "Danh sách Khách hàng hiện tại" dưới đây để tự động đối chiếu thông minh:
+- Hãy đối khớp Mã KH (maKH) hoặc tên khách hàng bằng cách dò tìm trong nội dung chuyển khoản hoặc người gửi. 
+Ví dụ: Lời nhắn có chứa số "2002" hoặc "2002_KT_Quoc" thì trùng khớp với khách hàng có Mã KH là "2002".
+
+Danh sách Khách hàng hiện tại:
+${JSON.stringify(customers, null, 2)}
+
+Hãy trả về kết quả dưới dạng JSON đúng Schema cấu trúc quy định.
+`;
+
+      const response = await generateContentWithRetryAndFallback(ai, {
+        contents: { parts: [imagePart, { text: promptText }] },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              amount: { 
+                type: Type.INTEGER,
+                description: "Số tiền chuyển khoản trích xuất được (ví dụ: 162000)."
+              },
+              content: { 
+                type: Type.STRING,
+                description: "Nội dung chuyển khoản / Lời nhắn trích xuất được."
+              },
+              dateTime: { 
+                type: Type.STRING,
+                description: "Thời gian giao dịch trên bill."
+              },
+              matchedCustomerId: { 
+                type: Type.STRING,
+                description: "Mã KH (id) khớp được từ danh sách khách hàng. Để trống nếu hoàn toàn không khớp được ai."
+              },
+              matchedCustomerName: { 
+                type: Type.STRING,
+                description: "Tên khách hàng khớp được để đối chiếu hiển thị."
+              },
+              matchedCustomerMaKH: { 
+                type: Type.STRING,
+                description: "Mã KH (maKH) khớp được (ví dụ: '2002')."
+              },
+              confidence: {
+                type: Type.INTEGER,
+                description: "Độ tin cậy của việc đối khớp từ 0 đến 100."
+              },
+              explanation: {
+                type: Type.STRING,
+                description: "Giải thích ngắn gọn bằng Tiếng Việt tại sao khớp được khách hàng này (ví dụ: 'Tìm thấy số 2002 trong nội dung lời nhắn, trùng khớp với Mã KH 2002')."
+              }
+            },
+            required: ["amount", "content", "matchedCustomerId"]
+          }
+        }
+      });
+
+      const textOutput = response.text;
+      if (!textOutput) {
+        throw new Error("Empty response from AI model");
+      }
+
+      const results = JSON.parse(textOutput);
+      res.json({ success: true, results });
+
+    } catch (error: any) {
+      console.error("Error in scan-bill API:", error);
+      res.status(500).json({ 
+        error: "SERVER_ERROR", 
+        message: formatGeminiError(error)
+      });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

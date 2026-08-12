@@ -87,4 +87,4 @@ export interface DailySupplyReading {
   updatedAt: number;
 }
 
-export type ViewState = 'list' | 'edit' | 'detail' | 'quick_record' | 'config' | 'stats' | 'edit_customer' | 'add_customer' | 'edit_message_template' | 'group_list' | 'group_detail' | 'verify' | 'loss_management' | 'loss_daily_record' | 'loss_daily_history';
+export type ViewState = 'list' | 'edit' | 'detail' | 'quick_record' | 'config' | 'stats' | 'edit_customer' | 'add_customer' | 'edit_message_template' | 'group_list' | 'group_detail' | 'verify' | 'loss_management' | 'loss_daily_record' | 'loss_daily_history' | 'agent_view';

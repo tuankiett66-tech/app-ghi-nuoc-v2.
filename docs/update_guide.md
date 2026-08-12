@@ -1,5 +1,5 @@
 
-# Quy Trình Kiểm Soát Chất Lượng (KCS) & Update V3.1
+# Quy Trình Kiểm Soát Chất Lượng (KCS) & Update V5.2
 
 ## 1. Checklist Kiểm Tra Toàn Diện
 - [ ] **Offline Check**: Tắt mạng Wifi/4G -> Load lại App -> App phải mở được và hiện dữ liệu.
@@ -7,21 +7,23 @@
 - [ ] **Overpayment Check**: Nhập bill 468k -> Nhập khách trả 500k -> Tin nhắn Zalo phải hiện **TIỀN DƯ: -32.000**.
 - [ ] **Zalo Bill Check**: Gửi bill -> Kiểm tra dòng "CÒN LẠI" = (Tiền nước + Nợ cũ) - Đã trả.
 - [ ] **QR Code Check**: Nếu số dư âm -> Mã QR sinh ra phải mặc định là **0đ** (ngân hàng không thu số âm).
-- [ ] **Auto-Sync Check (MỚI)**: Mở App -> App phải tự động hiện "Đang đồng bộ" và tải dữ liệu mới nhất từ Cloud.
-- [ ] **Auto-Backup Check (MỚI)**: Thay đổi số nước -> Đợi 5s -> Icon lưu trên Header phải tự động xoay (Syncing) và báo thành công.
-- [ ] **Unpaid Filter Check (MỚI)**: Bấm icon đồng tiền đỏ -> Danh sách phải ẩn các hộ đã thu, hộ 0m3 và hộ chưa ghi số.
-- [ ] **Collect Full Check (MỚI)**: Bấm nút "Thu đủ" trên card danh sách -> Số dư phải về 0 và hộ đó tự ẩn nếu đang bật lọc.
-- [ ] **Copy Bill Sync Check (MỚI)**: Bấm nút "Copy Bill" trên danh sách -> KH đó phải tự động chuyển sang màu Xanh (isZalo = true).
-- [ ] **Group Navigation Check (MỚI)**: Vào Chi tiết Nhóm -> Bấm nút Tiến/Lùi trên header -> Phải chuyển sang nhóm khác chính xác.
-- [ ] **Excel STT Check (MỚI)**: Nhập file Excel có STT định dạng Văn bản (Text) -> Hệ thống phải nhận diện đúng số thứ tự.
-- [ ] **Message Order Check (MỚI)**: Xem trước tin nhắn -> Lời nhắn (globalMessage) phải nằm TRÊN phần thông tin Ngân hàng.
-- [ ] **Meter Tracking Check (MỚI)**: Vào Chi tiết KH -> Phần "Thời hạn thay đồng hồ" phải nằm DƯỚI CÙNG (dưới cả các nút kết bạn).
-- [ ] **Detail Layout Check (QUAN TRỌNG)**: Thứ tự từ trên xuống: Khu vực làm việc chính (Số mới/Tiền trả) -> Nút "Gửi Zalo & Chốt số" -> Các nút "Kết bạn Zalo".
-- [ ] **Excel Mapping Check (MỚI)**: Nhập file Excel -> Cột "CHỈ SỐ CŨ" và "NỢ CŨ" phải được nhận diện đúng (không bị đè lên nhau).
-- [ ] **Phone Deletion Check (MỚI)**: Vào Sửa KH -> Xóa trắng SĐT -> Bấm Lưu -> Xem lại KH, SĐT phải trống (không tự khôi phục).
-- [ ] **QR Mobile Check (MỚI)**: Mở App trên điện thoại -> Nút QR phải hiện rõ trên Header -> Bấm QR, mã phải hiện inline trong trang chi tiết.
-- [ ] **Loss Management Check (MỚI)**: Bấm tab "HAO HỤT" -> Phải thấy danh sách lịch sử -> Thêm bản ghi mới -> Biểu đồ phải cập nhật xu hướng.
-- [ ] **Dual Bank Check (MỚI)**: Vào Cài đặt -> Nhập 2 tài khoản khác nhau -> Gửi Bill lẻ (phải hiện TK 1) -> Gửi Bill Nhóm (phải hiện TK 2).
+- [ ] **Auto-Sync Check**: Mở App -> App phải tự động hiện "Đang đồng bộ" và tải dữ liệu mới nhất từ Cloud.
+- [ ] **Auto-Backup Check**: Thay đổi số nước -> Đợi 5s -> Icon lưu trên Header phải tự động xoay (Syncing) và báo thành công.
+- [ ] **Unpaid Filter Check**: Bấm icon đồng tiền đỏ -> Danh sách phải ẩn các hộ đã thu, hộ 0m3 và hộ chưa ghi số.
+- [ ] **Collect Full Check**: Bấm nút "Thu đủ" trên card danh sách -> Số dư phải về 0 và hộ đó tự ẩn nếu đang bật lọc.
+- [ ] **Copy Bill Sync Check**: Bấm nút "Copy Bill" trên danh sách -> KH đó phải tự động chuyển sang màu Xanh (isZalo = true).
+- [ ] **Group Navigation Check**: Vào Chi tiết Nhóm -> Bấm nút Tiến/Lùi trên header -> Phải chuyển sang nhóm khác chính xác.
+- [ ] **Excel STT Check**: Nhập file Excel có STT định dạng Văn bản (Text) -> Hệ thống phải nhận diện đúng số thứ tự.
+- [ ] **Message Order Check**: Xem trước tin nhắn -> Lời nhắn (globalMessage) phải nằm TRÊN phần thông tin Ngân hàng.
+- [ ] **Meter Tracking Check**: Vào Chi tiết KH -> Phần "Thời hạn thay đồng hồ" phải nằm DƯỚI CÙNG (dưới cả các nút kết bạn).
+- [ ] **Detail Layout Check (ZALO POSITION)**: Nút "Gửi Zalo & Chốt số" nằm ngay dưới block nợ còn lại và TRÊN ô nhập khách trả, tối ưu tầm với trên mobile.
+- [ ] **Excel Mapping Check**: Nhập file Excel -> Cột "CHỈ SỐ CŨ" và "NỢ CŨ" phải được nhận diện đúng (không bị đè lên nhau).
+- [ ] **Phone Deletion Check**: Vào Sửa KH -> Xóa trắng SĐT -> Bấm Lưu -> Xem lại KH, SĐT phải trống (không tự khôi phục).
+- [ ] **Header Search Pin Check (MỚI - V5.2)**: Kính lúp (Tìm kiếm) ghim cố định ở đầu thanh Top, có vạch ngăn cách mờ đứng. Các nút bấm khác cuộn ngang mượt mà.
+- [ ] **QR Mobile Check**: Mở App trên điện thoại -> Nút QR phải hiện rõ trên Header -> Bấm QR, mã phải hiện inline trong trang chi tiết.
+- [ ] **Loss Management Check**: Bấm tab "HAO HỤT" -> Phải thấy danh sách lịch sử -> Thêm bản ghi mới -> Biểu đồ phải cập nhật xu hướng.
+- [ ] **Dual Bank Check**: Vào Cài đặt -> Nhập 2 tài khoản khác nhau -> Gửi Bill lẻ (phải hiện TK 1) -> Gửi Bill Nhóm (phải hiện TK 2).
+
 
 ## 2. Hướng Dẫn Kỹ Thuật
 - **Logic Bill**: Tại `App.tsx`, hàm `generateMsg` chịu trách nhiệm render văn bản. Biến `remaining` không bị chặn bởi `Math.max(0)` để giữ nguyên giá trị âm.
@@ -44,3 +46,6 @@
 | **V4.8** | 2026-06-27 | **Cập nhật Tiêu Đề Zalo**: Thay đổi tiêu đề tin nhắn Zalo từ "KỲ NƯỚC THÁNG MM/YYYY" sang định dạng chính xác thực tế "Tiền nước Kỳ [Kỳ]_Ghi ngày 1/[Tháng]/[Năm]" để tránh nhầm lẫn thời gian. | **Zalo Billing Header** |
 | **V4.9** | 2026-06-27 | **Bảo Vệ Lịch Sử Thay Đổi**: Tách biệt cập nhật thông tin bổ trợ (gửi tin nhắn, Zalo, địa chỉ, SĐT...) khỏi việc đổi thời gian (`updatedAt`). Lịch sử làm việc chỉ lưu thời điểm thay đổi số nước hoặc thu tiền thực tế. | **History Integrity** |
 | **V5.0** | 2026-07-21 | **Đồng Bộ Đồng Hồ Phụ & Tối Ưu Giao Diện Nhóm**: Nâng cấp Apps Script V4.4 tự động tạo cột R (Đồng hồ phụ) với định dạng Checkbox trên Google Sheets, tích hợp cột M trên Excel. Thiết kế lại giao diện thẻ nhóm cực kỳ gọn gàng cho điện thoại (tên nhóm wrap, số tiền dòng 2, nút xoá ở cuối, bỏ mũi tên). | **Major Update (V5.0)** |
+| **V5.1** | 2026-08-11 | **Tối Ưu Vị Trí Nút Bấm Zalo**: Chuyển vị trí nút "Gửi Zalo & Chốt số" lên cao ngay bên dưới khối hiển thị số tiền nợ "Còn lại phải thu", giúp tránh thao tác cuộn phiền hà trên màn hình điện thoại khi tác nghiệp thực địa. | **UX Optimization** |
+| **V5.2** | 2026-08-11 | **Ghim Kính Lúp & Gỡ Bỏ Quét Ảnh AI / Gửi Nhanh**: Ghim cố định biểu tượng tìm kiếm kính lúp trên thanh Top Header với vạch đứng phân cách mờ. Loại bỏ hoàn toàn tính năng Quét ghi tay AI cũ và danh mục Fast Live Sender dự phòng để làm nhẹ hệ thống, tránh xung đột bất đồng bộ dữ liệu. | **Performance & Layout** |
+

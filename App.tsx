@@ -13,7 +13,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { AIScanView } from './components/AIScanView';
+import { AgentView } from './components/AgentView';
 import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
@@ -227,17 +227,6 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
     }
   };
 
-  const handleImportAIScanResults = (results: { id: string; newIndex: number }[]) => {
-    setCustomers(prev => prev.map(c => {
-      const match = results.find(r => r.id === c.id);
-      if (match) {
-        const merged = { ...c, newIndex: match.newIndex, updatedAt: Date.now() };
-        return calculateRow(merged, config.waterRate);
-      }
-      return c;
-    }));
-  };
-
   const [groupQrData, setGroupQrData] = useState<{bankId: string, accountNo: string, amount: number, name: string} | null>(null);
 
   const navigateTo = (newView: string, resetSearch: boolean = true) => {
@@ -289,7 +278,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             lastSyncAction={config.lastSyncAction}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
-            onShowScan={() => navigateTo('ai_scan')}
+            onShowAgent={() => navigateTo('agent_view')}
           />
           <ListView 
             customers={filtered} 
@@ -362,12 +351,12 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
         />
       )}
 
-      {view === 'ai_scan' && (
-        <AIScanView 
+      {view === 'agent_view' && (
+        <AgentView 
           customers={customers}
-          activeTab={activeTab}
           onBack={() => navigateTo('list')}
-          onImport={handleImportAIScanResults}
+          updateCustomer={updateCustomer}
+          showToast={showToast}
         />
       )}
 
