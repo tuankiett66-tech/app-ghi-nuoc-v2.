@@ -72,6 +72,9 @@
      - Để giải quyết vấn đề quá tải dữ liệu, Agent **CHỈ QUAN TÂM VÀ CHỈ HIỂN THỊ** các hộ dân thỏa mãn đồng thời hai điều kiện: **Chưa thanh toán** (balance > 0) và **Đã kết bạn Zalo** (`isZaloFriend === true`).
      - Tự động bỏ qua các hộ đã ghi nhận "Thu Đủ" hoặc chưa kết bạn Zalo khỏi danh mục tác nghiệp của Agent và Payload gửi sang Gemini OCR nhằm tối ưu hóa chi phí, tốc độ xử lý và hạn chế tối đa sai lệch định danh.
 
+    - **CHU KỲ NHẮC NHỞ & BÁO CÁO (2 PHÚT/LẦN)**:
+      - Agent **BẮT BUỘC** phải duy trì cơ chế gửi thông báo/đối soát định kỳ **2 phút một lần** để đảm bảo không bỏ sót bất kỳ dòng tiền hay yêu cầu hỗ trợ nào từ phía khách hàng trên Zalo Web. Quy trình chạy ngầm này được duy trì liên tục để hỗ trợ người quản lý kịp thời tác nghiệp.
+
 ## Synchronization
 - The app uses a Google Apps Script for cloud backup.
 - **Double-Backup Fallback**: To ensure backward compatibility, `isSubMeter` status must be saved both directly inside each customer row and consolidated inside the `extra_sync_data` JSON string (under `subMeters`). This guarantees that if a user uses an older script version, their sub-meter properties are still preserved during restore.

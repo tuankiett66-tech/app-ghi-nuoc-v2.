@@ -118,6 +118,9 @@
   - Switched the OCR matching payload (`customersPayload`) in `handleFileUpload` to only send this targeted subset, drastically improving speed, decreasing API cost, and ensuring 100% accurate matches without noise.
   - Constrained the Simulation dropdown menu to only display these unpaid Zalo friends, keeping the field UI compact, elegant, and fully aligned with field-collection practices.
 
+### 18. Strict 2-Minute Notification Compliance
+- **Rule**: Agent **MUST** adhere to a strict 2-minute cycle (`*/2 * * * *`) for checking, notifying, and reconciling pending items. This ensures no client interaction, balance updates, or payments on Zalo Web are delayed or missed.
+
 ## Code References
 - `utils.ts`: `parseExcelFile` (mapping logic), `calculateRow` (data normalization), `exportToExcel`, `exportLossPeriodReportToExcel` (safe Excel generation).
 - `hooks/useWaterData.ts`: `updateCustomer` (persistence logic).
