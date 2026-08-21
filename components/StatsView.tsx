@@ -12,10 +12,11 @@ interface StatsViewProps {
   onClosePeriod: () => void;
   onBackupHistory?: () => void;
   onExport: (listType?: string) => void;
+  onExportReserveFund?: (listType?: string) => void;
   onSelectCustomer?: (id: string) => void;
 }
 
-export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBack, onClosePeriod, onBackupHistory, onExport, onSelectCustomer }) => {
+export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBack, onClosePeriod, onBackupHistory, onExport, onExportReserveFund, onSelectCustomer }) => {
   const [masterMeter, setMasterMeter] = useState<string>('');
   const [compareMode, setCompareMode] = useState<'current' | 'all'>('all');
 
@@ -208,6 +209,33 @@ export const StatsView: React.FC<StatsViewProps> = ({ customers, activeTab, onBa
             <span className="text-[10px] font-black text-slate-600 uppercase">Sắp đến hạn (≤ 6 th):</span>
           </div>
           <span className="font-black text-amber-600 text-base">{stats.warningMeters}</span>
+        </div>
+      </div>
+
+      {/* Quỹ dự phòng rủi ro */}
+      <div className="bg-emerald-50 border-2 border-emerald-200 p-4 rounded-[2rem] shadow-xs mb-3">
+        <div className="flex items-center gap-2 mb-2 pb-1 border-b border-emerald-200">
+          <Droplets size={16} className="text-emerald-600" />
+          <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest">
+            Quỹ dự phòng rủi ro (Giảm 1m³)
+          </p>
+        </div>
+        <p className="text-[11px] text-slate-600 font-bold leading-relaxed mb-3">
+          Giảm trừ 1m³/hộ để lập quỹ dự phòng rủi ro hao hụt (3 - 5% doanh thu). Số liệu trên App không đổi.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => onExportReserveFund?.('list1')}
+            className="bg-emerald-600 text-white py-2.5 px-2 rounded-xl font-black uppercase flex justify-center items-center gap-1 shadow-md active:scale-95 border-b-4 border-emerald-800 text-[9px] tracking-wider"
+          >
+            <Download size={14}/> Trích Quỹ Bộ 01
+          </button>
+          <button
+            onClick={() => onExportReserveFund?.('list2')}
+            className="bg-emerald-700 text-white py-2.5 px-2 rounded-xl font-black uppercase flex justify-center items-center gap-1 shadow-md active:scale-95 border-b-4 border-emerald-900 text-[9px] tracking-wider"
+          >
+            <Download size={14}/> Trích Quỹ Bộ 02
+          </button>
         </div>
       </div>
 

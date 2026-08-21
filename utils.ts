@@ -465,6 +465,119 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
+export const exportReserveFundToExcel = async (customers: Customer[], rate: number, fileName: string = 'Quy_Du_Phong') => {
+  const XLSX = await getXLSX();
+  const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3 (GIẢM 1)", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI", "LẮP ĐẶT", "ĐỒNG HỒ PHỤ"];
+  
+  const sorted = [...customers].sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
+  
+  const data = sorted.map(c => {
+    const phones = [c.phone, c.phoneTenant, c.phoneLandlord]
+      .filter(p => p && String(p).trim() !== "")
+      .filter((v, i, a) => a.indexOf(v) === i);
+    const dp = phones.join(" / ");
+
+    const safeMaKH = c.maKH ? `\u200B${c.maKH}` : "";
+    const safeAddress = c.address ? `\u200B${c.address}` : "";
+    const safePhone = dp ? `\u200B${dp}` : "";
+
+    // Giảm trừ 1 m3 cho mỗi khách hàng (chỉ giảm khi sản lượng > 0)
+    const originalVol = c.volume || 0;
+    const deductedVol = originalVol > 0 ? originalVol - 1 : 0;
+    const deductedAmt = deductedVol * rate;
+    // Nợ lại = (Thành tiền đã giảm + Nợ cũ) - Đã trả
+    const deductedBal = (deductedAmt + c.oldDebt) - c.paid;
+
+    return [
+      { v: safeMaKH, t: 's' },
+      c.name, 
+      { v: safeAddress, t: 's' }, 
+      { v: safePhone, t: 's' }, 
+      c.newIndex || "", 
+      c.oldIndex || 0, 
+      deductedVol, 
+      Math.round(deductedAmt) || 0, 
+      Math.round(c.oldDebt) || 0, 
+      Math.round(c.paid) || "", 
+      Math.round(deductedBal) || "",
+      c.installDate || "",
+      c.isSubMeter ? "X" : ""
+    ];
+  });
+
+  // Tính tổng hàng cộng dưới cùng
+  // Sản lượng cộng dồn không cộng đồng hồ phụ (isSubMeter) theo nghiệp vụ của app
+  const totalVolume = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => {
+    const originalVol = c.volume || 0;
+    const deductedVol = originalVol > 0 ? originalVol - 1 : 0;
+    return sum + deductedVol;
+  }, 0);
+
+  const totalAmount = sorted.reduce((sum, c) => {
+    const originalVol = c.volume || 0;
+    const deductedVol = originalVol > 0 ? originalVol - 1 : 0;
+    return sum + (deductedVol * rate);
+  }, 0);
+
+  const totalOldDebt = sorted.reduce((sum, c) => sum + (c.oldDebt || 0), 0);
+  const totalPaid = sorted.reduce((sum, c) => sum + (c.paid || 0), 0);
+  const totalBalance = sorted.reduce((sum, c) => {
+    const originalVol = c.volume || 0;
+    const deductedVol = originalVol > 0 ? originalVol - 1 : 0;
+    const deductedAmt = deductedVol * rate;
+    const deductedBal = (deductedAmt + (c.oldDebt || 0)) - (c.paid || 0);
+    return sum + deductedBal;
+  }, 0);
+
+  data.push([
+    "TỔNG CỘNG", "", "", "", "", "", totalVolume, Math.round(totalAmount), Math.round(totalOldDebt), Math.round(totalPaid), Math.round(totalBalance)
+  ]);
+  
+  const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+  
+  try {
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+      const isSummaryRow = R === range.e.r;
+
+      if (isSummaryRow) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+          if (ws[cellRef]) {
+            ws[cellRef].s = { font: { bold: true }, fill: { fgColor: { rgb: "F1F5F9" } } };
+          }
+        }
+        continue;
+      }
+
+      const customer = sorted[R - 1];
+      if (!customer) continue;
+      const isZalo = !!(customer.isZalo || customer.isZaloFriend);
+      
+      const nameCellRef = XLSX.utils.encode_cell({r: R, c: 1});
+      if (ws[nameCellRef] && isZalo) {
+        ws[nameCellRef].s = {
+          font: { bold: true }
+        };
+      }
+
+      [0, 2, 3].forEach(C => {
+        const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+        if (ws[cellRef]) {
+          ws[cellRef].t = 's';
+          ws[cellRef].z = '@';
+        }
+      });
+    }
+  } catch (styleErr) {
+    console.warn("Lỗi khi thêm định dạng/style cho Excel:", styleErr);
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Data");
+  XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
+
 export const exportDailyToExcel = async (readings: DailySupplyReading[], fileName: string = 'Theo_Doi_Hang_Ngay') => {
   const XLSX = await getXLSX();
   const header = ["NGÀY", "GIỜ", "CHỈ SỐ ĐH1", "TIÊU THỤ ĐH1 (m3)", "CHỈ SỐ ĐH2", "TIÊU THỤ ĐH2 (m3)", "TỔNG TIÊU THỤ (m3)", "GHI CHÚ"];

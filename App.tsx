@@ -13,7 +13,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, exportReserveFundToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
 
@@ -488,6 +488,28 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             } catch (err: any) {
               console.error("Lỗi khi xuất file Excel:", err);
               alert("⚠️ Có lỗi xảy ra khi xuất file Excel báo cáo: " + (err?.message || err));
+            }
+          }}
+          onExportReserveFund={async (targetListType?: string) => {
+            try {
+              const target = targetListType || activeTab;
+              const targetName = target === 'list1' ? 'Bộ 01' : 'Bộ 02';
+              const targetCustomers = customers.filter(c => c.listType === target);
+              
+              const unrecorded = targetCustomers.filter(c => c.newIndex === 0);
+              const isAllNewPeriod = targetCustomers.length > 0 && targetCustomers.every(c => c.newIndex === 0);
+
+              if (unrecorded.length > 0 && !isAllNewPeriod) {
+                if (!confirm(`⚠️ [${targetName}] Có ${unrecorded.length} hộ chưa ghi nước. Bạn có chắc chắn muốn xuất báo cáo Trích Lập Quỹ Dự Phòng?`)) return;
+              }
+              
+              showToast("Đang tạo báo cáo Trích Lập Quỹ Dự Phòng...");
+              const fileNamePrefix = 'Quy_Du_Phong_Rui_Ro';
+              await exportReserveFundToExcel(targetCustomers, config.waterRate, `${fileNamePrefix}_Bo_${target === 'list1' ? '01' : '02'}`);
+              showToast("🎉 Xuất Excel Trích Quỹ thành công!");
+            } catch (err: any) {
+              console.error("Lỗi khi xuất file Excel trích quỹ:", err);
+              alert("⚠️ Có lỗi xảy ra khi xuất báo cáo trích quỹ: " + (err?.message || err));
             }
           }}
           onSelectCustomer={(id) => {
