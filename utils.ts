@@ -481,12 +481,16 @@ export const exportReserveFundToExcel = async (customers: Customer[], rate: numb
     const safeAddress = c.address ? `\u200B${c.address}` : "";
     const safePhone = dp ? `\u200B${dp}` : "";
 
-    // Giảm trừ 1 m3 cho mỗi khách hàng (chỉ giảm khi sản lượng > 0)
+    // Giảm trừ 1 m3 cho mỗi khách hàng (chỉ giảm khi sản lượng thực tế > 0)
     const originalVol = c.volume || 0;
     const deductedVol = originalVol > 0 ? originalVol - 1 : 0;
     const deductedAmt = deductedVol * rate;
-    // Nợ lại = (Thành tiền đã giảm + Nợ cũ) - Đã trả
-    const deductedBal = (deductedAmt + c.oldDebt) - c.paid;
+    
+    // Bỏ 1 m3 (tương đương với tiền 18,000đ) ra ngoài luôn khỏi số tiền thanh toán nếu có tiêu thụ nước thực tế
+    const deductedPaid = (originalVol > 0 && c.paid > 0) ? Math.max(0, c.paid - rate) : c.paid;
+    
+    // Nợ lại báo cáo = (Thành tiền đã giảm + Nợ cũ) - Đã thanh toán báo cáo
+    const deductedBal = (deductedAmt + c.oldDebt) - deductedPaid;
 
     return [
       { v: safeMaKH, t: 's' },
@@ -498,7 +502,7 @@ export const exportReserveFundToExcel = async (customers: Customer[], rate: numb
       deductedVol, 
       Math.round(deductedAmt) || 0, 
       Math.round(c.oldDebt) || 0, 
-      Math.round(c.paid) || "", 
+      Math.round(deductedPaid) || "", 
       Math.round(deductedBal) || "",
       c.installDate || "",
       c.isSubMeter ? "X" : ""
@@ -520,12 +524,19 @@ export const exportReserveFundToExcel = async (customers: Customer[], rate: numb
   }, 0);
 
   const totalOldDebt = sorted.reduce((sum, c) => sum + (c.oldDebt || 0), 0);
-  const totalPaid = sorted.reduce((sum, c) => sum + (c.paid || 0), 0);
+  
+  const totalPaid = sorted.reduce((sum, c) => {
+    const originalVol = c.volume || 0;
+    const deductedPaid = (originalVol > 0 && c.paid > 0) ? Math.max(0, c.paid - rate) : c.paid;
+    return sum + deductedPaid;
+  }, 0);
+
   const totalBalance = sorted.reduce((sum, c) => {
     const originalVol = c.volume || 0;
     const deductedVol = originalVol > 0 ? originalVol - 1 : 0;
     const deductedAmt = deductedVol * rate;
-    const deductedBal = (deductedAmt + (c.oldDebt || 0)) - (c.paid || 0);
+    const deductedPaid = (originalVol > 0 && c.paid > 0) ? Math.max(0, c.paid - rate) : c.paid;
+    const deductedBal = (deductedAmt + (c.oldDebt || 0)) - deductedPaid;
     return sum + deductedBal;
   }, 0);
 
