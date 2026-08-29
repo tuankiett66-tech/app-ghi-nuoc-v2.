@@ -17,7 +17,8 @@ interface ModalsProps {
 
 export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, updateCustomer, onDelete, config, setConfig, selectedCustomer, suggestedMaKH }) => {
   const [formData, setFormData] = useState({ 
-    name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: '', oldIndex: 0, oldDebt: 0, installDate: '', isSubMeter: false
+    name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: '', oldIndex: 0, oldDebt: 0, installDate: '', isSubMeter: false,
+    vatTaxCode: '', vatEmail: '', vatCompanyName: '', isVatRegistered: false
   });
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
@@ -32,10 +33,28 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
         oldIndex: selectedCustomer.oldIndex,
         oldDebt: selectedCustomer.oldDebt,
         installDate: selectedCustomer.installDate || '',
-        isSubMeter: selectedCustomer.isSubMeter || false
+        isSubMeter: selectedCustomer.isSubMeter || false,
+        vatTaxCode: selectedCustomer.vatTaxCode || '',
+        vatEmail: selectedCustomer.vatEmail || '',
+        vatCompanyName: selectedCustomer.vatCompanyName || '',
+        isVatRegistered: selectedCustomer.isVatRegistered || false
       });
     } else if (view === 'add_customer') {
-      setFormData({ name: '', address: '', phoneLandlord: '', phoneTenant: '', maKH: suggestedMaKH, oldIndex: 0, oldDebt: 0, installDate: '', isSubMeter: false });
+      setFormData({ 
+        name: '', 
+        address: '', 
+        phoneLandlord: '', 
+        phoneTenant: '', 
+        maKH: suggestedMaKH, 
+        oldIndex: 0, 
+        oldDebt: 0, 
+        installDate: '', 
+        isSubMeter: false,
+        vatTaxCode: '',
+        vatEmail: '',
+        vatCompanyName: '',
+        isVatRegistered: false
+      });
     }
   }, [view, selectedCustomer, suggestedMaKH]);
 
@@ -223,6 +242,79 @@ export const Modals: React.FC<ModalsProps> = ({ view, setView, addCustomer, upda
                 autoCorrect="off"
                 spellCheck="false"
               />
+            </div>
+
+            {/* THÔNG TIN HÓA ĐƠN ĐIỆN TỬ (VAT) */}
+            <div className="bg-emerald-50/50 p-4 rounded-3xl border-2 border-emerald-100/80 space-y-3 mt-4">
+              <div className="flex items-center gap-3">
+                <input 
+                  id="isVatRegistered"
+                  type="checkbox" 
+                  className="w-5 h-5 accent-emerald-600 cursor-pointer rounded-lg" 
+                  checked={formData.isVatRegistered} 
+                  onChange={e => setFormData({...formData, isVatRegistered: e.target.checked})} 
+                />
+                <label htmlFor="isVatRegistered" className="text-xs font-black uppercase text-emerald-800 cursor-pointer select-none">
+                  Đăng ký nhận hóa đơn VAT
+                </label>
+              </div>
+
+              {formData.isVatRegistered && (
+                <div className="space-y-3 pt-2 border-t border-emerald-200/50 animate-in slide-in-from-top duration-150">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-emerald-800 ml-1">Mã số thuế (VAT)</label>
+                    <input 
+                      className="w-full bg-white p-3.5 rounded-2xl border-2 border-emerald-200 font-bold text-slate-800 text-sm" 
+                      placeholder="Nhập mã số thuế..." 
+                      value={formData.vatTaxCode} 
+                      onChange={e => setFormData({...formData, vatTaxCode: e.target.value})}
+                      autoComplete="one-time-code"
+                      autoCorrect="off"
+                      spellCheck="false"
+                      readOnly={focusedField !== 'vatTaxCode'}
+                      onFocus={() => setFocusedField('vatTaxCode')}
+                      onTouchStart={() => setFocusedField('vatTaxCode')}
+                      onMouseDown={() => setFocusedField('vatTaxCode')}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-emerald-800 ml-1">Tên công ty / Hộ kinh doanh</label>
+                    <input 
+                      className="w-full bg-white p-3.5 rounded-2xl border-2 border-emerald-200 font-bold text-slate-800 text-sm" 
+                      placeholder="Tên công ty nhận hóa đơn..." 
+                      value={formData.vatCompanyName} 
+                      onChange={e => setFormData({...formData, vatCompanyName: e.target.value})}
+                      autoComplete="one-time-code"
+                      autoCorrect="off"
+                      spellCheck="false"
+                      readOnly={focusedField !== 'vatCompanyName'}
+                      onFocus={() => setFocusedField('vatCompanyName')}
+                      onTouchStart={() => setFocusedField('vatCompanyName')}
+                      onMouseDown={() => setFocusedField('vatCompanyName')}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-emerald-800 ml-1">Email nhận hóa đơn</label>
+                    <input 
+                      type="email"
+                      className="w-full bg-white p-3.5 rounded-2xl border-2 border-emerald-200 font-bold text-slate-800 text-sm" 
+                      placeholder="email@example.com..." 
+                      value={formData.vatEmail} 
+                      onChange={e => setFormData({...formData, vatEmail: e.target.value})}
+                      autoComplete="one-time-code"
+                      autoCorrect="off"
+                      spellCheck="false"
+                      readOnly={focusedField !== 'vatEmail'}
+                      onFocus={() => setFocusedField('vatEmail')}
+                      onTouchStart={() => setFocusedField('vatEmail')}
+                      onMouseDown={() => setFocusedField('vatEmail')}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {isEdit && selectedCustomer && (

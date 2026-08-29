@@ -369,7 +369,7 @@ export const generateVietQrUrl = (bankId: string, accountNo: string, amount: num
 
 export const exportToExcel = async (customers: Customer[], fileName: string = 'Bao_Cao') => {
   const XLSX = await getXLSX();
-  const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI", "LẮP ĐẶT", "ĐỒNG HỒ PHỤ"];
+  const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "CHỈ SỐ MỚI", "CHỈ SỐ CŨ", "M3", "THÀNH TIỀN", "NỢ CŨ", "THANH TOÁN", "NỢ LẠI", "LẮP ĐẶT", "ĐỒNG HỒ PHỤ", "MST VAT", "EMAIL VAT", "TÊN CÔNG TY VAT", "ĐK VAT"];
   
   const sorted = [...customers].sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
   
@@ -386,6 +386,10 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
     const safeMaKH = c.maKH ? `\u200B${c.maKH}` : "";
     const safeAddress = c.address ? `\u200B${c.address}` : "";
     const safePhone = dp ? `\u200B${dp}` : "";
+    
+    const safeVatTaxCode = c.vatTaxCode ? `\u200B${c.vatTaxCode}` : "";
+    const safeVatEmail = c.vatEmail ? `\u200B${c.vatEmail}` : "";
+    const safeVatCompanyName = c.vatCompanyName ? `\u200B${c.vatCompanyName}` : "";
 
     return [
       { v: safeMaKH, t: 's' },
@@ -400,7 +404,11 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
       Math.round(c.paid) || "", 
       isKyMoi ? "" : (Math.round(c.balance) || ""),
       c.installDate || "",
-      c.isSubMeter ? "X" : ""
+      c.isSubMeter ? "X" : "",
+      { v: safeVatTaxCode, t: 's' },
+      { v: safeVatEmail, t: 's' },
+      { v: safeVatCompanyName, t: 's' },
+      c.isVatRegistered ? "X" : ""
     ];
   });
 
@@ -412,7 +420,7 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
   const totalBalance = sorted.reduce((sum, c) => sum + (c.balance || 0), 0);
 
   data.push([
-    "TỔNG CỘNG", "", "", "", "", "", totalVolume, Math.round(totalAmount), Math.round(totalOldDebt), Math.round(totalPaid), isKyMoi ? "" : Math.round(totalBalance)
+    "TỔNG CỘNG", "", "", "", "", "", totalVolume, Math.round(totalAmount), Math.round(totalOldDebt), Math.round(totalPaid), isKyMoi ? "" : Math.round(totalBalance), "", "", "", "", "", ""
   ]);
   
   const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
@@ -447,8 +455,8 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
         };
       }
 
-      // Mã KH (Col 0), Địa chỉ (Col 2), Điện thoại (Col 3)
-      [0, 2, 3].forEach(C => {
+      // Mã KH (Col 0), Địa chỉ (Col 2), Điện thoại (Col 3), MST VAT (Col 13), Email VAT (Col 14), Tên CT VAT (Col 15)
+      [0, 2, 3, 13, 14, 15].forEach(C => {
         const cellRef = XLSX.utils.encode_cell({r: R, c: C});
         if (ws[cellRef]) {
           ws[cellRef].t = 's'; // Force string type
@@ -618,6 +626,68 @@ export const exportDailyToExcel = async (readings: DailySupplyReading[], fileNam
   XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
+export const exportVatToExcel = async (customers: Customer[], fileName: string = 'Bao_Cao_DK_VAT') => {
+  const XLSX = await getXLSX();
+  const header = ["Mã KH", "KHÁCH HÀNG", "ĐỊA CHỈ", "ĐIỆN THOẠI", "MÃ SỐ THUẾ (VAT)", "EMAIL NHẬN HÓA ĐƠN", "TÊN CÔNG TY / HỘ KINH DOANH", "BỘ DANH BỘ"];
+  
+  // Lọc chỉ những khách hàng đã đăng ký nhận VAT
+  const vatCustomers = customers.filter(c => c.isVatRegistered || c.vatTaxCode || c.vatEmail);
+  const sorted = [...vatCustomers].sort((a, b) => {
+    // Sắp xếp theo listType trước, sau đó theo maKH
+    if (a.listType !== b.listType) {
+      return a.listType.localeCompare(b.listType);
+    }
+    return String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' });
+  });
+  
+  const data = sorted.map(c => {
+    const phones = [c.phone, c.phoneTenant, c.phoneLandlord]
+      .filter(p => p && String(p).trim() !== "")
+      .filter((v, i, a) => a.indexOf(v) === i);
+    const dp = phones.join(" / ");
+
+    const safeMaKH = c.maKH ? `\u200B${c.maKH}` : "";
+    const safeAddress = c.address ? `\u200B${c.address}` : "";
+    const safePhone = dp ? `\u200B${dp}` : "";
+    const safeVatTaxCode = c.vatTaxCode ? `\u200B${c.vatTaxCode}` : "";
+    const safeVatEmail = c.vatEmail ? `\u200B${c.vatEmail}` : "";
+    const safeVatCompanyName = c.vatCompanyName ? `\u200B${c.vatCompanyName}` : "";
+
+    return [
+      { v: safeMaKH, t: 's' },
+      c.name, 
+      { v: safeAddress, t: 's' }, 
+      { v: safePhone, t: 's' }, 
+      { v: safeVatTaxCode, t: 's' },
+      { v: safeVatEmail, t: 's' },
+      { v: safeVatCompanyName, t: 's' },
+      c.listType === 'list1' ? "BỘ 01" : "BỘ 02"
+    ];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+  
+  try {
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+      // Mã KH (Col 0), Địa chỉ (Col 2), Điện thoại (Col 3), MST VAT (Col 4), Email VAT (Col 5), Tên CT VAT (Col 6)
+      [0, 2, 3, 4, 5, 6].forEach(C => {
+        const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+        if (ws[cellRef]) {
+          ws[cellRef].t = 's';
+          ws[cellRef].z = '@';
+        }
+      });
+    }
+  } catch (styleErr) {
+    console.warn("Lỗi định dạng cột Excel VAT:", styleErr);
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Đăng ký VAT");
+  XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
+
 export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', rate: number): Promise<Customer[]> => {
   const XLSX = await getXLSX();
   return new Promise((resolve, reject) => {
@@ -632,7 +702,8 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
         
         let headerRowIndex = -1;
         let colMap: Record<string, number> = {
-          maKH: 0, name: 1, address: 2, phone: 3, newIndex: 4, oldIndex: 5, oldDebt: 8, paid: 9, zalo: 11, installDate: -1, isSubMeter: -1
+          maKH: 0, name: 1, address: 2, phone: 3, newIndex: 4, oldIndex: 5, oldDebt: 8, paid: 9, zalo: 11, installDate: -1, isSubMeter: -1,
+          vatTaxCode: -1, vatEmail: -1, vatCompanyName: -1, isVatRegistered: -1
         };
 
         // Tim hang tieu de va tu dong mapping cot theo ten
@@ -656,6 +727,10 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
               else if (text.includes("ZALO")) colMap.zalo = idx;
               else if (text.includes("LẮP ĐẶT") || text.includes("INSTALL")) colMap.installDate = idx;
               else if (text.includes("PHỤ") || text.includes("SUB")) colMap.isSubMeter = idx;
+              else if (text.includes("MST") || text.includes("TAX")) colMap.vatTaxCode = idx;
+              else if (text.includes("EMAIL") && text.includes("VAT")) colMap.vatEmail = idx;
+              else if (text.includes("CÔNG TY") || text.includes("COMPANY")) colMap.vatCompanyName = idx;
+              else if (text.includes("ĐK VAT") || text.includes("ĐĂNG KÝ VAT")) colMap.isVatRegistered = idx;
             });
             break;
           }
@@ -705,7 +780,11 @@ export const parseExcelFile = async (file: File, listType: 'list1' | 'list2', ra
             listType,
             isZalo: String(row[colMap.zalo] || "").toUpperCase() === "X",
             installDate: colMap.installDate !== -1 ? String(row[colMap.installDate] || "").trim() : "",
-            isSubMeter: colMap.isSubMeter !== -1 ? parseSafeBool(row[colMap.isSubMeter]) : false
+            isSubMeter: colMap.isSubMeter !== -1 ? parseSafeBool(row[colMap.isSubMeter]) : false,
+            vatTaxCode: colMap.vatTaxCode !== -1 ? String(row[colMap.vatTaxCode] || "").trim().replace(/[\u200B]/g, "") : "",
+            vatEmail: colMap.vatEmail !== -1 ? String(row[colMap.vatEmail] || "").trim().replace(/[\u200B]/g, "") : "",
+            vatCompanyName: colMap.vatCompanyName !== -1 ? String(row[colMap.vatCompanyName] || "").trim().replace(/[\u200B]/g, "") : "",
+            isVatRegistered: colMap.isVatRegistered !== -1 ? parseSafeBool(row[colMap.isVatRegistered]) : false
           }, rate));
         }
         resolve(res);

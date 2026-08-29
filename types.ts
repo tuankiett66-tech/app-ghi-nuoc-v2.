@@ -23,6 +23,10 @@ export interface Customer {
   installDate?: string; // Ngay lap dat (YYYY-MM)
   recordDate?: string;  // Ngay ghi nuoc thu cong (YYYY-MM-DD)
   isSubMeter?: boolean;  // Tích là đồng hồ phụ, không cộng dồn tiêu thụ
+  vatTaxCode?: string;     // Mã số thuế VAT
+  vatEmail?: string;       // Email nhận hóa đơn VAT
+  vatCompanyName?: string; // Tên công ty/Hộ kinh doanh VAT
+  isVatRegistered?: boolean; // Đã đăng ký nhận hóa đơn VAT
   updatedAt?: number; // Thoi diem cap nhat gan nhat (timestamp)
 }
 

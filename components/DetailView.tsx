@@ -33,6 +33,9 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [tempInstallDate, setTempInstallDate] = useState(customer.installDate || "");
   const [tempRecordDate, setTempRecordDate] = useState(customer.recordDate || config.globalRecordDate || new Date().toISOString().slice(0, 10));
   const [copiedName, setCopiedName] = useState(false);
+  const [copiedTax, setCopiedTax] = useState(false);
+  const [copiedCompany, setCopiedCompany] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // QUAN TRONG: Reset o nhap lieu moi khi chuyen sang khach hang khac (customer.id thay doi)
@@ -46,6 +49,9 @@ export const DetailView: React.FC<DetailViewProps> = ({
     setTempInstallDate(customer.installDate || "");
     setTempRecordDate(customer.recordDate || config.globalRecordDate || new Date().toISOString().slice(0, 10));
     setCopiedName(false);
+    setCopiedTax(false);
+    setCopiedCompany(false);
+    setCopiedEmail(false);
   }, [customer.id, config.globalRecordDate]);
 
   // Cap nhat du lieu len store khi nguoi dung nhap lieu
@@ -311,6 +317,76 @@ export const DetailView: React.FC<DetailViewProps> = ({
             <Plus size={16}/> Kết bạn Zalo
           </button>
         </div>
+
+        {/* THÔNG TIN HÓA ĐƠN VAT */}
+        {(customer.isVatRegistered || customer.vatTaxCode || customer.vatEmail) && (
+          <div className="bg-emerald-50/40 border-2 border-emerald-100 rounded-[2rem] p-5 shadow-sm space-y-3.5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-emerald-500 text-white font-black uppercase text-[8px] px-3 py-1 rounded-bl-xl tracking-widest shadow-sm">
+              Đăng ký VAT
+            </div>
+            
+            <p className="text-[11px] font-black uppercase text-emerald-800 tracking-wider">Thông tin hóa đơn điện tử</p>
+            
+            <div className="space-y-3 pt-1">
+              {customer.vatTaxCode && (
+                <div className="flex items-center justify-between gap-2 bg-white/70 p-2.5 px-3.5 rounded-2xl border border-emerald-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">Mã số thuế</p>
+                    <p className="text-[15px] font-black text-emerald-800 font-mono tracking-tight select-all">{customer.vatTaxCode}</p>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      await copyToClipboard(customer.vatTaxCode || "");
+                      setCopiedTax(true);
+                      setTimeout(() => setCopiedTax(false), 2000);
+                    }}
+                    className={`p-2 rounded-xl active:scale-90 transition-all ${copiedTax ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-700'}`}
+                  >
+                    {copiedTax ? <CheckCheck size={16}/> : <Copy size={16}/>}
+                  </button>
+                </div>
+              )}
+
+              {customer.vatCompanyName && (
+                <div className="flex items-center justify-between gap-2 bg-white/70 p-2.5 px-3.5 rounded-2xl border border-emerald-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">Tên công ty / Hộ kinh doanh</p>
+                    <p className="text-[13px] font-black text-slate-800 leading-tight select-all break-words">{customer.vatCompanyName}</p>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      await copyToClipboard(customer.vatCompanyName || "");
+                      setCopiedCompany(true);
+                      setTimeout(() => setCopiedCompany(false), 2000);
+                    }}
+                    className={`p-2 rounded-xl active:scale-90 transition-all ${copiedCompany ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-700'}`}
+                  >
+                    {copiedCompany ? <CheckCheck size={16}/> : <Copy size={16}/>}
+                  </button>
+                </div>
+              )}
+
+              {customer.vatEmail && (
+                <div className="flex items-center justify-between gap-2 bg-white/70 p-2.5 px-3.5 rounded-2xl border border-emerald-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">Email nhận hóa đơn</p>
+                    <p className="text-[13px] font-bold text-slate-700 truncate select-all">{customer.vatEmail}</p>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      await copyToClipboard(customer.vatEmail || "");
+                      setCopiedEmail(true);
+                      setTimeout(() => setCopiedEmail(false), 2000);
+                    }}
+                    className={`p-2 rounded-xl active:scale-90 transition-all ${copiedEmail ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-700'}`}
+                  >
+                    {copiedEmail ? <CheckCheck size={16}/> : <Copy size={16}/>}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Meter Replacement Tracking */}
         {!isEditingInstallDate ? (

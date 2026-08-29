@@ -210,6 +210,10 @@ export const useWaterSync = ({
             } catch (e) { /* ignore */ }
           }
 
+          const vatInfo = Array.isArray(extraData.vatRegistrations)
+            ? extraData.vatRegistrations.find((x: any) => x.key === `list1:${maKH}`)
+            : null;
+
           return calculateRow({
             id: `cust-${maKH}-${idx}-list1`,
             maKH: maKH, 
@@ -228,6 +232,10 @@ export const useWaterSync = ({
             recordDate: item.recordDate || (Array.isArray(extraData.recordDates) ? (extraData.recordDates.find((x: any) => x.key === `list1:${maKH}`)?.date || "") : ""),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
+            vatTaxCode: item.vatTaxCode !== undefined ? String(item.vatTaxCode || "").replace(/^'/, "") : (vatInfo?.taxCode || ""),
+            vatEmail: item.vatEmail !== undefined ? String(item.vatEmail || "").replace(/^'/, "") : (vatInfo?.email || ""),
+            vatCompanyName: item.vatCompanyName !== undefined ? String(item.vatCompanyName || "").replace(/^'/, "") : (vatInfo?.company || ""),
+            isVatRegistered: item.isVatRegistered !== undefined ? parseSafeBool(item.isVatRegistered) : (vatInfo ? !!vatInfo.registered : false),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
           }, result.config?.waterRate || config.waterRate);
         });
@@ -255,6 +263,10 @@ export const useWaterSync = ({
             } catch (e) { /* ignore */ }
           }
 
+          const vatInfo = Array.isArray(extraData.vatRegistrations)
+            ? extraData.vatRegistrations.find((x: any) => x.key === `list2:${maKH}`)
+            : null;
+
           return calculateRow({
             id: `cust-${maKH}-${idx}-list2`,
             maKH: maKH, 
@@ -273,6 +285,10 @@ export const useWaterSync = ({
             recordDate: item.recordDate || (Array.isArray(extraData.recordDates) ? (extraData.recordDates.find((x: any) => x.key === `list2:${maKH}`)?.date || "") : ""),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
+            vatTaxCode: item.vatTaxCode !== undefined ? String(item.vatTaxCode || "").replace(/^'/, "") : (vatInfo?.taxCode || ""),
+            vatEmail: item.vatEmail !== undefined ? String(item.vatEmail || "").replace(/^'/, "") : (vatInfo?.email || ""),
+            vatCompanyName: item.vatCompanyName !== undefined ? String(item.vatCompanyName || "").replace(/^'/, "") : (vatInfo?.company || ""),
+            isVatRegistered: item.isVatRegistered !== undefined ? parseSafeBool(item.isVatRegistered) : (vatInfo ? !!vatInfo.registered : false),
             updatedAt: parseFloat(item.updatedAt) || extraData.updatedAtMap?.[maKH] || 0
           }, result.config?.waterRate || config.waterRate);
         });
@@ -328,6 +344,10 @@ export const useWaterSync = ({
       recordDate: c.recordDate || "",
       installDate: c.installDate || "",
       note: "'" + (c.note || ""),
+      vatTaxCode: "'" + (c.vatTaxCode || ""),
+      vatEmail: "'" + (c.vatEmail || ""),
+      vatCompanyName: "'" + (c.vatCompanyName || ""),
+      isVatRegistered: !!c.isVatRegistered,
       updatedAt: c.updatedAt || 0
     }));
 
@@ -350,6 +370,10 @@ export const useWaterSync = ({
       recordDate: c.recordDate || "",
       installDate: c.installDate || "",
       note: "'" + (c.note || ""),
+      vatTaxCode: "'" + (c.vatTaxCode || ""),
+      vatEmail: "'" + (c.vatEmail || ""),
+      vatCompanyName: "'" + (c.vatCompanyName || ""),
+      isVatRegistered: !!c.isVatRegistered,
       updatedAt: c.updatedAt || 0
     }));
 
@@ -372,7 +396,14 @@ export const useWaterSync = ({
               .sort((a, b) => b.date.localeCompare(a.date))
               .slice(0, 90),
             subMeters: customers.filter(c => c.isSubMeter).map(c => `${c.listType}:${c.maKH}`),
-            recordDates: customers.filter(c => c.recordDate).map(c => ({ key: `${c.listType}:${c.maKH}`, date: c.recordDate }))
+            recordDates: customers.filter(c => c.recordDate).map(c => ({ key: `${c.listType}:${c.maKH}`, date: c.recordDate })),
+            vatRegistrations: customers.filter(c => c.isVatRegistered || c.vatTaxCode || c.vatEmail).map(c => ({
+              key: `${c.listType}:${c.maKH}`,
+              taxCode: c.vatTaxCode || "",
+              email: c.vatEmail || "",
+              company: c.vatCompanyName || "",
+              registered: !!c.isVatRegistered
+            }))
           });
 
           const configToBackup: Record<string, any> = {

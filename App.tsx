@@ -13,7 +13,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, exportReserveFundToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
+import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, exportReserveFundToExcel, exportVatToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
 
@@ -515,6 +515,16 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onSelectCustomer={(id) => {
             setSelectedId(id);
             navigateTo('detail');
+          }}
+          onExportVat={async () => {
+            try {
+              showToast("Đang tạo báo cáo Đăng ký hóa đơn VAT...");
+              await exportVatToExcel(customers, 'Bao_Cao_DK_VAT_Ca_2_Bo');
+              showToast("🎉 Xuất Excel VAT thành công!");
+            } catch (err: any) {
+              console.error("Lỗi khi xuất file Excel VAT:", err);
+              alert("⚠️ Có lỗi xảy ra khi xuất báo cáo đăng ký VAT: " + (err?.message || err));
+            }
           }}
         />
       )}
