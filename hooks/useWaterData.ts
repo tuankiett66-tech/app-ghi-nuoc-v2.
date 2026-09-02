@@ -170,6 +170,32 @@ export const useWaterData = () => {
     recalculateDailyConsumption(dailySupplyReadings);
   }, [config.master1Initial, config.master2Initial, config.masterInitialDate]);
 
+  // Tự động dọn dẹp ngày ghi chỉ số toàn cục (globalRecordDate) nếu ngày đó đã quá 7 ngày so với hôm nay hoặc khác tháng/năm
+  useEffect(() => {
+    if (config.globalRecordDate) {
+      try {
+        const parts = config.globalRecordDate.split('-');
+        if (parts.length === 3) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const recordDateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          recordDateObj.setHours(0, 0, 0, 0);
+          
+          const diffTime = Math.abs(today.getTime() - recordDateObj.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          const isDifferentMonth = today.getFullYear() !== recordDateObj.getFullYear() || today.getMonth() !== recordDateObj.getMonth();
+          
+          if (diffDays > 7 || isDifferentMonth) {
+            setConfig(prev => ({ ...prev, globalRecordDate: "" }));
+          }
+        }
+      } catch (e) {
+        console.error("Lỗi khi tự động dọn dẹp ngày ghi chỉ số hết hạn:", e);
+      }
+    }
+  }, [config.globalRecordDate]);
+
   // Đã loại bỏ hoàn toàn các chức năng tự động nhận diện / tạo kỳ mới của Thất thoát
   // Người dùng điều khiển ghi nhận thủ công hoàn toàn qua biểu mẫu của ứng dụng
 

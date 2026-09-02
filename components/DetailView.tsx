@@ -141,6 +141,23 @@ export const DetailView: React.FC<DetailViewProps> = ({
             </button>
           </div>
           <p className="text-sm text-slate-600 font-bold mt-1">ĐC: {customer.address || '---'}</p>
+          <div className="flex items-center gap-1.5 mt-2 text-xs font-bold text-slate-500 flex-wrap">
+            <Clock size={13} className={customer.recordDate || config.globalRecordDate ? "text-amber-500" : "text-emerald-500"} />
+            <span>Ngày ghi nước:</span>
+            {customer.recordDate || config.globalRecordDate ? (
+              <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md text-[11px] font-black flex items-center gap-1 shadow-sm">
+                {(() => {
+                  const dStr = customer.recordDate || config.globalRecordDate || "";
+                  const parts = dStr.split('-');
+                  return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dStr;
+                })()} (Cố định)
+              </span>
+            ) : (
+              <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md text-[11px] font-black flex items-center gap-1 shadow-sm">
+                Hôm nay (Tự động)
+              </span>
+            )}
+          </div>
         </div>
 
         {showQrInline && (
