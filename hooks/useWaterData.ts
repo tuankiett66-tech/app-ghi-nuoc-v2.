@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Customer, SystemConfig, WaterGroup, GroupMember, LossRecord, DailySupplyReading } from '../types';
-import { calculateRow, normalizeMonthYear, parseStringOrDateToNumber, safeJsonStringify, ensureUniqueIds } from '../utils';
+import { calculateRow, normalizeMonthYear, parseStringOrDateToNumber, safeJsonStringify, ensureUniqueIds, isDateStale } from '../utils';
 
 export const useWaterData = () => {
   const [customers, setCustomersState] = useState<Customer[]>(() => {
@@ -11,7 +11,9 @@ export const useWaterData = () => {
       const loaded = (Array.isArray(data) ? data : []).map((c: any) => {
         const maKH = c.maKH || c.stt || "";
         const name = String(c.name || "").toUpperCase().trim();
-        return { ...c, maKH: String(maKH), name };
+        // Clear recordDate if it is stale (older than 7 days or from different month)
+        const cleanRecordDate = c.recordDate && !isDateStale(c.recordDate) ? c.recordDate : "";
+        return { ...c, maKH: String(maKH), name, recordDate: cleanRecordDate };
       });
       // Filter out any "TỔNG CỘNG" row that accidentally got imported as a customer
       const filtered = loaded.filter((c: any) => {
@@ -170,6 +172,19 @@ export const useWaterData = () => {
     recalculateDailyConsumption(dailySupplyReadings);
   }, [config.master1Initial, config.master2Initial, config.masterInitialDate]);
 
+  // Khi globalRecordDate được chuyển về rỗng (chế độ tự động), lập tức xoá sạch hoàn toàn recordDate cố định của tất cả khách hàng
+  useEffect(() => {
+    if (!config.globalRecordDate) {
+      setCustomersState(prev => {
+        const hasFixedDates = prev.some(c => c.recordDate);
+        if (hasFixedDates) {
+          return prev.map(c => ({ ...c, recordDate: "" }));
+        }
+        return prev;
+      });
+    }
+  }, [config.globalRecordDate]);
+
   // Tự động dọn dẹp ngày ghi chỉ số toàn cục (globalRecordDate) nếu ngày đó đã quá 7 ngày so với hôm nay hoặc khác tháng/năm
   useEffect(() => {
     if (config.globalRecordDate) {
@@ -212,9 +227,12 @@ export const useWaterData = () => {
 
         // Tự động gán recordDate từ config.globalRecordDate nếu có thiết lập toàn cục
         // và updates không ghi đè recordDate khác
-        const recordDateToUse = updates.recordDate !== undefined 
+        let recordDateToUse = updates.recordDate !== undefined 
           ? updates.recordDate 
           : (c.recordDate || config.globalRecordDate || "");
+        if (recordDateToUse && isDateStale(recordDateToUse)) {
+          recordDateToUse = "";
+        }
 
         const merged = { 
           ...c, 

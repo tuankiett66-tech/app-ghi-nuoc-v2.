@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Customer, SystemConfig, WaterGroup, LossRecord, DailySupplyReading } from '../types';
-import { parseStringOrDateToNumber, normalizeDate, normalizeMonthYear, parseSafeBool, safeJsonStringify, calculateRow } from '../utils';
+import { parseStringOrDateToNumber, normalizeDate, normalizeMonthYear, parseSafeBool, safeJsonStringify, calculateRow, isDateStale } from '../utils';
 
 interface UseWaterSyncProps {
   config: SystemConfig;
@@ -229,7 +229,10 @@ export const useWaterSync = ({
             isZaloFriend: parseSafeBool(item.isZaloFriend),
             isProcessed: parseSafeBool(item.isProcessed),
             isSubMeter: item.isSubMeter !== undefined ? parseSafeBool(item.isSubMeter) : (Array.isArray(extraData.subMeters) && extraData.subMeters.includes(`list1:${maKH}`)),
-            recordDate: item.recordDate || (Array.isArray(extraData.recordDates) ? (extraData.recordDates.find((x: any) => x.key === `list1:${maKH}`)?.date || "") : ""),
+            recordDate: (() => {
+              const rDate = item.recordDate || (Array.isArray(extraData.recordDates) ? (extraData.recordDates.find((x: any) => x.key === `list1:${maKH}`)?.date || "") : "");
+              return rDate && !isDateStale(rDate) ? rDate : "";
+            })(),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             vatTaxCode: item.vatTaxCode !== undefined ? String(item.vatTaxCode || "").replace(/^'/, "") : (vatInfo?.taxCode || ""),
@@ -282,7 +285,10 @@ export const useWaterSync = ({
             isZaloFriend: parseSafeBool(item.isZaloFriend),
             isProcessed: parseSafeBool(item.isProcessed),
             isSubMeter: item.isSubMeter !== undefined ? parseSafeBool(item.isSubMeter) : (Array.isArray(extraData.subMeters) && extraData.subMeters.includes(`list2:${maKH}`)),
-            recordDate: item.recordDate || (Array.isArray(extraData.recordDates) ? (extraData.recordDates.find((x: any) => x.key === `list2:${maKH}`)?.date || "") : ""),
+            recordDate: (() => {
+              const rDate = item.recordDate || (Array.isArray(extraData.recordDates) ? (extraData.recordDates.find((x: any) => x.key === `list2:${maKH}`)?.date || "") : "");
+              return rDate && !isDateStale(rDate) ? rDate : "";
+            })(),
             installDate: item.installDate || "",
             note: String(item.note || "").replace(/^'/, ""),
             vatTaxCode: item.vatTaxCode !== undefined ? String(item.vatTaxCode || "").replace(/^'/, "") : (vatInfo?.taxCode || ""),

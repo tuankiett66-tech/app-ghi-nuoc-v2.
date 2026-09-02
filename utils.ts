@@ -162,6 +162,29 @@ export const normalizeDate = (dateStr: any): string => {
   return str;
 };
 
+export const isDateStale = (dateStr: string | undefined | null): boolean => {
+  if (!dateStr) return false;
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      dateObj.setHours(0, 0, 0, 0);
+      
+      const diffTime = Math.abs(today.getTime() - dateObj.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      const isDifferentMonth = today.getFullYear() !== dateObj.getFullYear() || today.getMonth() !== dateObj.getMonth();
+      
+      return diffDays > 7 || isDifferentMonth;
+    }
+  } catch (e) {
+    console.error("Lỗi khi kiểm tra ngày hết hạn:", e);
+  }
+  return true;
+};
+
 export const normalizeTime = (timeStr: any): string => {
   if (!timeStr) return '--:--';
   const str = String(timeStr);
