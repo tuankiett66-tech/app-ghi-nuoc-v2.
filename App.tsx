@@ -331,6 +331,12 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           }}
           onUpdate={(upd) => updateCustomer(selectedId!, upd)}
           onUpdateConfig={(upd) => setConfig(prev => ({ ...prev, ...upd }))}
+          onClearAllRecordDates={() => {
+            // Xoá sạch hoàn toàn cố định ngày của TẤT CẢ KHÁCH HÀNG và globalRecordDate trong cấu hình
+            setCustomers(prev => prev.map(c => ({ ...c, recordDate: "" })));
+            setConfig(prev => ({ ...prev, globalRecordDate: "" }));
+            showToast("Đã chuyển sang ngày Tự động & Xóa sạch toàn bộ ngày cố định!");
+          }}
           onShowQr={() => setShowQr(true)}
           onEditInfo={() => navigateTo('edit_customer', false)}
           onDelete={() => {

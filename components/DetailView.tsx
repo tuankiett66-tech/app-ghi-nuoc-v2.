@@ -12,6 +12,7 @@ interface DetailViewProps {
   onNavigate: (dir: 'next' | 'prev' | 'next10' | 'prev10') => void;
   onUpdate: (updates: Partial<Customer>) => void;
   onUpdateConfig?: (updates: Partial<SystemConfig>) => void;
+  onClearAllRecordDates?: () => void;
   onShowQr: () => void;
   onEditInfo: () => void;
   onDelete: () => void;
@@ -21,7 +22,7 @@ interface DetailViewProps {
 }
 
 export const DetailView: React.FC<DetailViewProps> = ({ 
-  customer, config, onBack, onNavigate, onUpdate, onUpdateConfig, onShowQr, onEditInfo, onDelete, onAddAfter, onSendZalo, generateMsg 
+  customer, config, onBack, onNavigate, onUpdate, onUpdateConfig, onClearAllRecordDates, onShowQr, onEditInfo, onDelete, onAddAfter, onSendZalo, generateMsg 
 }) => {
   // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -205,9 +206,13 @@ export const DetailView: React.FC<DetailViewProps> = ({
                 {(customer.recordDate || config.globalRecordDate) && (
                   <button 
                     onClick={() => {
-                      onUpdate({ recordDate: "" });
-                      if (onUpdateConfig) {
-                        onUpdateConfig({ globalRecordDate: "" });
+                      if (onClearAllRecordDates) {
+                        onClearAllRecordDates();
+                      } else {
+                        onUpdate({ recordDate: "" });
+                        if (onUpdateConfig) {
+                          onUpdateConfig({ globalRecordDate: "" });
+                        }
                       }
                       setTempRecordDate(new Date().toISOString().slice(0, 10));
                       setShowDatePickerInline(false);
