@@ -165,7 +165,8 @@ export const normalizeDate = (dateStr: any): string => {
 export const isDateStale = (dateStr: string | undefined | null): boolean => {
   if (!dateStr) return false;
   try {
-    const parts = dateStr.split('-');
+    const normalized = normalizeDate(dateStr);
+    const parts = normalized.split('-');
     if (parts.length === 3) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
