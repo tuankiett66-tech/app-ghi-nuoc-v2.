@@ -8,7 +8,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: false
+    sourcemap: false,
+    minify: false
   },
   server: {
     port: 3000,
