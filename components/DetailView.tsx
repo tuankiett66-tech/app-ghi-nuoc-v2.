@@ -146,13 +146,31 @@ export const DetailView: React.FC<DetailViewProps> = ({
             <Clock size={13} className={customer.recordDate || config.globalRecordDate ? "text-amber-500" : "text-emerald-500"} />
             <span>Ngày ghi nước:</span>
             {customer.recordDate || config.globalRecordDate ? (
-              <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md text-[11px] font-black flex items-center gap-1 shadow-sm">
-                {(() => {
-                  const dStr = customer.recordDate || config.globalRecordDate || "";
-                  const parts = dStr.split('-');
-                  return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dStr;
-                })()} (Cố định)
-              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md text-[11px] font-black flex items-center gap-1 shadow-sm">
+                  {(() => {
+                    const dStr = customer.recordDate || config.globalRecordDate || "";
+                    const parts = dStr.split('-');
+                    return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dStr;
+                  })()} (Cố định)
+                </span>
+                <button 
+                  onClick={() => {
+                    if (onClearAllRecordDates) {
+                      onClearAllRecordDates();
+                    } else {
+                      onUpdate({ recordDate: "" });
+                      if (onUpdateConfig) {
+                        onUpdateConfig({ globalRecordDate: "" });
+                      }
+                    }
+                  }}
+                  className="bg-rose-100 hover:bg-rose-200 text-rose-800 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-sm border border-rose-200"
+                  title="Xoá tất cả ngày cố định, chuyển sang tự động"
+                >
+                  Xoá ghim ngày (Auto)
+                </button>
+              </div>
             ) : (
               <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md text-[11px] font-black flex items-center gap-1 shadow-sm">
                 Hôm nay (Tự động)
