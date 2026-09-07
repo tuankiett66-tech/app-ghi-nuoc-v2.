@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2 } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
 import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo, generateVietQrUrl } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -379,13 +379,23 @@ export const DetailView: React.FC<DetailViewProps> = ({
         {/* NÚT GỬI ZALO & CHỐT SỐ (ĐƯỢC ĐẶT DƯỚI THẺ KHÁCH TRẢ TIỀN) */}
         <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 border-b-4 border-blue-900 text-sm"><MessageCircle size={18}/> Gửi Zalo & Chốt số</button>
 
-        {(showPreview || parseSafe(ni) > 0 || showDatePickerInline) && (
-          <div className="animate-in slide-in-from-top-2 duration-300">
-            <div className="bg-slate-800 text-emerald-400 p-4 rounded-xl font-mono text-[12px] leading-relaxed shadow-2xl border-2 border-slate-700">
-               <pre className="whitespace-pre-wrap">{generateMsg(customer, ni, pi)}</pre>
+        {/* THANH XEM TRƯỚC TIN NHẮN (COLLAPSIBLE) - NẰM YÊN TRONG HỘP CHO ĐẾN KHI BẤM XEM */}
+        <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <button 
+            type="button"
+            onClick={() => setShowPreview(!showPreview)} 
+            className="w-full bg-slate-50 hover:bg-slate-100 px-4 py-3 flex justify-between items-center text-xs font-black uppercase text-slate-700 transition-colors focus:outline-none"
+          >
+            <span className="flex items-center gap-1.5">💬 Xem trước tin nhắn ({showPreview ? 'Đang hiện' : 'Đang ẩn'})</span>
+            <ChevronDown size={16} className={`transition-transform duration-200 ${showPreview ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {showPreview && (
+            <div className="bg-slate-800 text-emerald-400 p-4 font-mono text-[12px] leading-relaxed border-t border-slate-700 max-h-[220px] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+              <pre className="whitespace-pre-wrap">{generateMsg(customer, ni, pi)}</pre>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <button 
