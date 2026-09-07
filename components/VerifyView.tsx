@@ -255,7 +255,7 @@ export const VerifyView: React.FC<VerifyViewProps> = ({ customers, activeTab, on
                         {/* Middle info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="bg-slate-800 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md min-w-[28px] text-center">
+                            <span className="bg-slate-800 text-white text-[11px] font-black px-1.5 py-0.5 rounded-md min-w-[32px] text-center">
                               {c.maKH}
                             </span>
                             <h4 className="font-black text-slate-800 uppercase text-xs truncate">{c.name}</h4>
