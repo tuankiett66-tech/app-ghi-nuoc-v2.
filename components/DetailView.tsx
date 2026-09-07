@@ -39,6 +39,58 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
+  // Kéo ngang để chuyển đổi khách hàng trên điện thoại (Swipe gesture)
+  const [touchStartX, setTouchStartX] = useState<number>(0);
+  const [touchStartY, setTouchStartY] = useState<number>(0);
+  const [touchEndX, setTouchEndX] = useState<number>(0);
+  const [touchEndY, setTouchEndY] = useState<number>(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'INPUT' || 
+      target.tagName === 'TEXTAREA' || 
+      target.closest('button') || 
+      target.closest('a')
+    ) {
+      return;
+    }
+    setTouchStartX(e.targetTouches[0].clientX);
+    setTouchStartY(e.targetTouches[0].clientY);
+    setTouchEndX(e.targetTouches[0].clientX);
+    setTouchEndY(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'INPUT' || 
+      target.tagName === 'TEXTAREA' || 
+      target.closest('button') || 
+      target.closest('a')
+    ) {
+      return;
+    }
+    setTouchEndX(e.targetTouches[0].clientX);
+    setTouchEndY(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    const diffX = touchStartX - touchEndX;
+    const diffY = touchStartY - touchEndY;
+    
+    // Vuốt ngang tối thiểu 70px và góc vuốt ngang nổi trội so với dọc (1.8x) để không kích hoạt nhầm khi cuộn dọc
+    if (Math.abs(diffX) > 70 && Math.abs(diffX) > Math.abs(diffY) * 1.8) {
+      if (diffX > 0) {
+        // Vuốt từ phải qua trái -> Sang khách hàng kế tiếp
+        onNavigate('next');
+      } else {
+        // Vuốt từ trái qua phải -> Quay lại khách hàng trước
+        onNavigate('prev');
+      }
+    }
+  };
+
   // QUAN TRONG: Reset o nhap lieu moi khi chuyen sang khach hang khac (customer.id thay doi)
   useEffect(() => {
     setNi(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -88,7 +140,12 @@ export const DetailView: React.FC<DetailViewProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-white z-[150] flex flex-col p-4 pt-[calc(1rem+var(--sat))] animate-in slide-in-from-right duration-200">
+    <div 
+      className="fixed inset-0 bg-white z-[150] flex flex-col p-4 pt-[calc(1rem+var(--sat))] animate-in slide-in-from-right duration-200"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <header className="flex justify-between items-center mb-5 shrink-0 gap-1">
         <div className="flex items-center gap-1 shrink-0">
           <button onClick={onBack} className="p-1.5 text-slate-800 active:scale-90"><ChevronLeft size={28}/></button>
