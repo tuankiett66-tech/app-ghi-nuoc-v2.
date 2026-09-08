@@ -438,10 +438,10 @@ export const exportToExcel = async (customers: Customer[], fileName: string = 'B
 
   // Add summary row
   const totalVolume = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.volume || 0), 0);
-  const totalAmount = sorted.reduce((sum, c) => sum + (c.amount || 0), 0);
-  const totalOldDebt = sorted.reduce((sum, c) => sum + (c.oldDebt || 0), 0);
-  const totalPaid = sorted.reduce((sum, c) => sum + (c.paid || 0), 0);
-  const totalBalance = sorted.reduce((sum, c) => sum + (c.balance || 0), 0);
+  const totalAmount = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.amount || 0), 0);
+  const totalOldDebt = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.oldDebt || 0), 0);
+  const totalPaid = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.paid || 0), 0);
+  const totalBalance = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.balance || 0), 0);
 
   data.push([
     "TỔNG CỘNG", "", "", "", "", "", totalVolume, Math.round(totalAmount), Math.round(totalOldDebt), Math.round(totalPaid), isKyMoi ? "" : Math.round(totalBalance), "", "", "", "", "", ""
@@ -549,21 +549,21 @@ export const exportReserveFundToExcel = async (customers: Customer[], rate: numb
     return sum + deductedVol;
   }, 0);
 
-  const totalAmount = sorted.reduce((sum, c) => {
+  const totalAmount = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => {
     const originalVol = c.volume || 0;
     const deductedVol = originalVol > 0 ? originalVol - 1 : 0;
     return sum + (deductedVol * rate);
   }, 0);
 
-  const totalOldDebt = sorted.reduce((sum, c) => sum + (c.oldDebt || 0), 0);
+  const totalOldDebt = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => sum + (c.oldDebt || 0), 0);
   
-  const totalPaid = sorted.reduce((sum, c) => {
+  const totalPaid = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => {
     const originalVol = c.volume || 0;
     const deductedPaid = (originalVol > 0 && c.paid > 0) ? Math.max(0, c.paid - rate) : c.paid;
     return sum + deductedPaid;
   }, 0);
 
-  const totalBalance = sorted.reduce((sum, c) => {
+  const totalBalance = sorted.filter(c => !c.isSubMeter).reduce((sum, c) => {
     const originalVol = c.volume || 0;
     const deductedVol = originalVol > 0 ? originalVol - 1 : 0;
     const deductedAmt = deductedVol * rate;
