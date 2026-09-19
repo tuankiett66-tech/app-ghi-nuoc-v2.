@@ -330,7 +330,10 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
     const isOnlyNumber = /^\d+$/.test(query);
     const matchesSTTSub = isOnlyNumber && stt.includes(query);
 
-    return matchesName || matchesSTTExact || matchesSTTText || matchesSTTSub;
+    // Tìm kiếm bằng Mã KH của các thành viên trong nhóm
+    const matchesMaKH = (g.members || []).some(m => m.maKH.toLowerCase().includes(query));
+
+    return matchesName || matchesSTTExact || matchesSTTText || matchesSTTSub || matchesMaKH;
   });
 
   const sensors = useSensors(
@@ -408,7 +411,7 @@ export const GroupListView: React.FC<GroupListViewProps> = ({
           <div className="relative flex-1">
             <input 
               type="text" 
-              placeholder="Tìm tên nhóm..." 
+              placeholder="Tìm tên nhóm, STT, Mã KH..." 
               className="w-full bg-slate-50 p-3.5 pl-10 pr-10 rounded-2xl border-2 border-slate-100 font-black text-sm text-slate-800 outline-none focus:border-indigo-500"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
