@@ -40,10 +40,35 @@ export const useWaterSync = ({
       if (!silent) showToast("Chưa có Link Script!");
       return;
     }
+
+    if (!url.toLowerCase().includes('/exec')) {
+      if (!silent) {
+        alert("⚠️ Link Script không đúng định dạng Web App!\n\nBạn đang dán Link Google Sheets thông thường hoặc Link sửa mã nguồn.\n\nVui lòng dán Link Web App đã triển khai (kết thúc bằng '/exec').");
+      }
+      return;
+    }
+
     if (!silent) setIsSyncing(true);
     try {
-      const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}action=get_all&t=${Date.now()}`);
-      const result = await res.json();
+      const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}action=get_all&t=${Date.now()}`, {
+        credentials: 'omit'
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP_${res.status}`);
+      }
+
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("text/html")) {
+        throw new Error("REDIRECT_TO_GOOGLE_AUTH");
+      }
+
+      let result;
+      try {
+        result = await res.json();
+      } catch (jsonErr) {
+        throw new Error("NOT_VALID_JSON");
+      }
       
       let extraData: any = {};
       if (result.config) {
@@ -305,9 +330,25 @@ export const useWaterSync = ({
 
       setCustomers(allCustomers);
       if (!silent) showToast("Đã tải dữ liệu từ Cloud về máy!");
-    } catch (e) { 
+    } catch (e: any) { 
       console.log("Cloud Sync Error:", e);
-      if (!silent) alert("Lỗi tải dữ liệu: " + e);
+      if (!silent) {
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        if (errorMsg.includes("REDIRECT_TO_GOOGLE_AUTH") || errorMsg.includes("Unexpected token '<'") || errorMsg.includes("is not valid JSON")) {
+          alert(
+            "⚠️ Lỗi kết nối Cloud: Chưa cấu hình quyền truy cập công khai cho Google Apps Script!\n\n" +
+            "Hướng dẫn khắc phục nhanh:\n" +
+            "1. Truy cập trang quản lý Google Apps Script của bạn.\n" +
+            "2. Nhấn nút 'Triển khai' (Deploy) ở góc phải > chọn 'Quản lý bản triển khai' (Manage deployments).\n" +
+            "3. Bấm vào biểu tượng bút chì (Edit).\n" +
+            "4. Tại mục 'Who has access' (Ai có quyền truy cập), đổi từ 'Only myself' thành 'Anyone' (Bất kỳ ai).\n" +
+            "5. Nhấn nút 'Triển khai' (Deploy) màu xanh để lưu lại.\n" +
+            "6. Sao chép lại đường dẫn Web App mới (kết thúc bằng /exec) rồi dán vào mục Cấu hình của ứng dụng."
+          );
+        } else {
+          alert("Lỗi tải dữ liệu: " + errorMsg);
+        }
+      }
     } finally { 
       if (!silent) setIsSyncing(false); 
     }
@@ -391,6 +432,7 @@ export const useWaterSync = ({
         method: 'POST',
         mode: 'cors',
         redirect: 'follow',
+        credentials: 'omit',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: (() => {
           const extraSyncDataStr = safeJsonStringify({
@@ -455,10 +497,21 @@ export const useWaterSync = ({
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP_${response.status}`);
       }
 
-      const result = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("text/html")) {
+        throw new Error("REDIRECT_TO_GOOGLE_AUTH");
+      }
+
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonErr) {
+        throw new Error("NOT_VALID_JSON");
+      }
+
       if (result.status === 'success') {
         setSyncStatus('synced');
         setConfig(prev => ({ ...prev, lastSyncTime: Date.now(), lastSyncAction: 'upload' }));
@@ -471,10 +524,26 @@ export const useWaterSync = ({
       } else {
         throw new Error(result.message || "Lỗi không xác định từ server");
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Backup error:", e);
       setSyncStatus('error');
-      if (!silent) alert("Lỗi sao lưu: " + (e instanceof Error ? e.message : String(e)));
+      if (!silent) {
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        if (errorMsg.includes("REDIRECT_TO_GOOGLE_AUTH") || errorMsg.includes("Unexpected token '<'") || errorMsg.includes("is not valid JSON")) {
+          alert(
+            "⚠️ Lỗi lưu trữ Cloud: Chưa cấu hình quyền truy cập công khai cho Google Apps Script!\n\n" +
+            "Hướng dẫn khắc phục nhanh:\n" +
+            "1. Truy cập trang quản lý Google Apps Script của bạn.\n" +
+            "2. Nhấn nút 'Triển khai' (Deploy) ở góc phải > chọn 'Quản lý bản triển khai' (Manage deployments).\n" +
+            "3. Bấm vào biểu tượng bút chì (Edit).\n" +
+            "4. Tại mục 'Who has access' (Ai có quyền truy cập), đổi từ 'Only myself' thành 'Anyone' (Bất kỳ ai).\n" +
+            "5. Nhấn nút 'Triển khai' (Deploy) màu xanh để lưu lại.\n" +
+            "6. Sao chép lại đường dẫn Web App mới (kết thúc bằng /exec) rồi dán vào mục Cấu hình của ứng dụng."
+          );
+        } else {
+          alert("Lỗi sao lưu: " + errorMsg);
+        }
+      }
       return false;
     } finally {
       if (!silent) setIsSyncing(false);
