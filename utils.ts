@@ -322,9 +322,10 @@ export const ensureUniqueIds = (list: Customer[]): Customer[] => {
 
 export const getBillingMonthYear = () => {
   const d = new Date();
+  const day = d.getDate();
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();
-  let ky = actualMonth - 1;
+  let ky = day >= 20 ? actualMonth : (actualMonth - 1);
   let kyYear = actualYear;
   if (ky === 0) {
     ky = 12;
@@ -340,7 +341,7 @@ export const getZaloBillingHeader = (customTimestamp?: number) => {
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();
 
-  let ky = actualMonth - 1;
+  let ky = day >= 20 ? actualMonth : (actualMonth - 1);
   let kyYear = actualYear;
   if (ky === 0) {
     ky = 12;
@@ -352,10 +353,11 @@ export const getZaloBillingHeader = (customTimestamp?: number) => {
 
 export const getCurrentPeriodSuffix = () => {
   const d = new Date();
+  const day = d.getDate();
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();
 
-  let ky = actualMonth - 1;
+  let ky = day >= 20 ? actualMonth : (actualMonth - 1);
   let kyYear = actualYear;
   if (ky === 0) {
     ky = 12;
