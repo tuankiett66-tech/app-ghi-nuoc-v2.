@@ -75,7 +75,16 @@ export const DetailView: React.FC<DetailViewProps> = ({
     setTouchEndY(e.targetTouches[0].clientY);
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'INPUT' || 
+      target.tagName === 'TEXTAREA' || 
+      target.closest('button') || 
+      target.closest('a')
+    ) {
+      return;
+    }
     const diffX = touchStartX - touchEndX;
     const diffY = touchStartY - touchEndY;
     
@@ -89,6 +98,12 @@ export const DetailView: React.FC<DetailViewProps> = ({
         onNavigate('prev');
       }
     }
+
+    // Luôn reset tọa độ sau khi kết thúc thao tác chạm vuốt để tránh giữ tọa độ cũ
+    setTouchStartX(0);
+    setTouchEndX(0);
+    setTouchStartY(0);
+    setTouchEndY(0);
   };
 
   // QUAN TRONG: Reset o nhap lieu moi khi chuyen sang khach hang khac (customer.id thay doi)
