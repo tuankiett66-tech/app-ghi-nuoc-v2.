@@ -180,9 +180,11 @@ SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-
       msg += `ĐÃ THANH TOÁN: -${pi.toLocaleString('vi-VN')}\n`;
     }
 
-    msg += `CÒN LẠI: ${remaining.toLocaleString('vi-VN')}
+    if (c.oldDebt > 0 || pi > 0) {
+      msg += `CÒN LẠI: ${remaining.toLocaleString('vi-VN')}\n`;
+    }
 
-${config.globalMessage}
+    msg += `\n${config.globalMessage}
 👉 THÔNG TIN CHUYỂN KHOẢN:
 NH: ${bankId.toUpperCase()}
 STK: ${accountNo} (Bấm giữ để sao chép)

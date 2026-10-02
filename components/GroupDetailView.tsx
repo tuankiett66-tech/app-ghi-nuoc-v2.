@@ -207,9 +207,10 @@ SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocal
         msg += `ĐÃ THANH TOÁN: -${Math.round(c.paid).toLocaleString('vi-VN')}\n`;
       }
 
-      msg += `CÒN LẠI: ${Math.round(c.balance).toLocaleString('vi-VN')}
----------------------------
-`;
+      if (c.oldDebt > 0 || c.paid > 0) {
+        msg += `CÒN LẠI: ${Math.round(c.balance).toLocaleString('vi-VN')}\n`;
+      }
+      msg += `---------------------------\n`;
     });
     
     const finalTotal = Math.round(totals.total);
