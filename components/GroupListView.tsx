@@ -106,16 +106,20 @@ SỐ: ${group.newIndex} - ${group.oldIndex} = ${gCons} m3
     groupData.forEach((c) => {
       msg += `MÃ KH: ${c.maKH}
 KH: ${c.name}
-SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}
-NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}`;
+SỐ: ${c.newIndex} - ${c.oldIndex} = ${c.volume}m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${Math.round(c.amount).toLocaleString('vi-VN')}\n`;
 
-      if (c.paid > 0) {
-        msg += `\nĐÃ THANH TOÁN: -${Math.round(c.paid).toLocaleString('vi-VN')}`;
+      if (c.oldDebt > 0) {
+        msg += `NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}\n`;
       }
 
-      msg += `\nCÒN LẠI: ${Math.round(c.balance).toLocaleString('vi-VN')}
----------------------------
-`;
+      if (c.paid > 0) {
+        msg += `ĐÃ THANH TOÁN: -${Math.round(c.paid).toLocaleString('vi-VN')}\n`;
+      }
+
+      if (c.oldDebt > 0 || c.paid > 0) {
+        msg += `CÒN LẠI: ${Math.round(c.balance).toLocaleString('vi-VN')}\n`;
+      }
+      msg += `---------------------------\n`;
     });
     
     const finalTotal = Math.round(totals.total);
