@@ -222,10 +222,10 @@ Nội dung: TT NUOC ${cleanGroupName}`;
           {/* MÃ KH của các thành viên trong nhóm */}
           {groupData.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1 items-center">
-              <span className="text-[9px] font-extrabold text-indigo-400 uppercase tracking-wider">Mã KH:</span>
-              <div className="flex flex-wrap gap-1">
+              <span className="text-[10px] font-extrabold text-indigo-400 uppercase tracking-wider">Mã KH:</span>
+              <div className="flex flex-wrap gap-1.5">
                 {groupData.map((c) => (
-                  <span key={`${c.maKH}-${c.source}`} className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded-md text-[10px] font-black border border-indigo-100/50 leading-none">
+                  <span key={`${c.maKH}-${c.source}`} className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md text-[12px] font-black border border-indigo-100/50 leading-none">
                     {c.maKH}
                   </span>
                 ))}
