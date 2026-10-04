@@ -172,7 +172,7 @@ MÃ KH: ${c.maKH}
 KH: ${c.name}
 SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-VN')} = ${amt.toLocaleString('vi-VN')}\n`;
 
-    if (c.oldDebt > 0) {
+    if (Math.round(c.oldDebt) !== 0) {
       msg += `NỢ CŨ: ${Math.round(c.oldDebt).toLocaleString('vi-VN')}\n`;
     }
 
@@ -180,7 +180,7 @@ SỐ: ${ni} - ${c.oldIndex} = ${vol} m3 x ${config.waterRate.toLocaleString('vi-
       msg += `ĐÃ THANH TOÁN: -${pi.toLocaleString('vi-VN')}\n`;
     }
 
-    if (c.oldDebt > 0 || pi > 0) {
+    if (Math.round(c.oldDebt) !== 0 || pi > 0) {
       msg += `CÒN LẠI: ${remaining.toLocaleString('vi-VN')}\n`;
     }
 
