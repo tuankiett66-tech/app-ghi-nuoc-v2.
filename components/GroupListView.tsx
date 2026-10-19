@@ -255,15 +255,9 @@ Nội dung: TT NUOC ${cleanGroupName}`;
 
         {/* CỘT SỐ TIỀN & SỐ HỘ Ở BÊN PHẢI */}
         <div className="text-right shrink-0 flex flex-col items-end justify-center">
-          <div className={`text-[9px] font-extrabold uppercase leading-none tracking-wider mb-1 ${
-            totals.total === 0 && totals.paid > 0 ? 'text-emerald-600' : 'text-slate-400'
-          }`}>
-            {totals.total === 0 && totals.paid > 0 ? 'Đã thu đủ' : 'Tiền nhóm'}
-          </div>
-          <div className={`font-black text-[18px] sm:text-[20px] tracking-tighter leading-none mb-1 ${
-            totals.total === 0 && totals.paid > 0 ? 'text-emerald-600' : 'text-rose-600'
-          }`}>
-            {totals.total === 0 && totals.paid > 0 ? formatCurrency(totals.paid) : formatCurrency(totals.total)}
+          <div className="text-[9px] font-extrabold text-slate-400 uppercase leading-none tracking-wider mb-1">Tiền nhóm</div>
+          <div className="font-black text-[18px] sm:text-[20px] text-rose-600 tracking-tighter leading-none mb-1">
+            {formatCurrency(totals.total)}
           </div>
           <div className="text-[10px] sm:text-[11px] text-slate-500 font-bold">
             <span className="text-slate-400">Số hộ:</span> <strong className="text-indigo-600">{(group.members || []).length}</strong>

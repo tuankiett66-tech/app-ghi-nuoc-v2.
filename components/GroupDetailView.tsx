@@ -391,26 +391,8 @@ Nội dung: TT NUOC ${cleanGroupName}`;
 
       <div className="fixed bottom-24 left-2 right-2 bg-white/95 backdrop-blur-md p-3 rounded-[1.5rem] shadow-2xl border-2 border-indigo-100 flex flex-col gap-2">
         <div className="flex justify-between items-center px-2">
-            <div>
-              <p className="text-[9px] font-black text-indigo-800 uppercase italic tracking-wider">
-                {totals.total === 0 && totals.paid > 0 ? 'Tổng đã thu nhóm' : 'Tổng bill nhóm'}
-              </p>
-              {totals.paid > 0 && totals.total > 0 && (
-                <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded inline-block mt-0.5">
-                  Đã thu: {formatCurrency(totals.paid)}
-                </span>
-              )}
-            </div>
-            <div className="text-right">
-              <p className={`text-2xl font-black tracking-tighter leading-none ${
-                totals.total === 0 && totals.paid > 0 ? 'text-emerald-600' : 'text-indigo-700'
-              }`}>
-                {totals.total === 0 && totals.paid > 0 ? formatCurrency(totals.paid) : formatCurrency(totals.total)}
-              </p>
-              {totals.total === 0 && totals.paid > 0 && (
-                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest block mt-0.5">✓ ĐÃ THU ĐỦ</span>
-              )}
-            </div>
+            <p className="text-[8px] font-black text-indigo-800 uppercase italic tracking-wider">Tong bill nhom</p>
+            <p className="text-2xl font-black text-indigo-700 tracking-tighter leading-none">{formatCurrency(totals.total)}</p>
         </div>
         <div className="grid grid-cols-12 gap-2">
             <button onClick={() => onMarkGroupPaid(group.id)} disabled={groupData.length === 0} className="col-span-2 bg-teal-600 text-white hover:bg-teal-700 py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-1 shadow-lg active:scale-95 border-b-2 border-teal-800 disabled:opacity-50 text-[10px]"><UserCheck size={18}/></button>
