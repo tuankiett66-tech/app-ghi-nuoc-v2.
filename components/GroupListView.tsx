@@ -237,20 +237,33 @@ Nội dung: TT NUOC ${cleanGroupName}`;
             </div>
           )}
           
-          {group.isProcessed && (
-            <div className="mt-1.5">
+          <div className="mt-2 flex flex-wrap gap-1.5 items-center">
+            {group.isProcessed && (
               <span className="text-emerald-700 font-black bg-emerald-100/60 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider">
                 ĐÃ COPY
               </span>
-            </div>
-          )}
+            )}
+            {totals.paid > 0 && (
+              <div className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-300 text-emerald-800 px-2 py-0.5 rounded-lg text-[11px] font-black shadow-xs">
+                <Check size={12} className="text-emerald-600 shrink-0" strokeWidth={3} />
+                <span className="text-[9px] font-extrabold text-emerald-600 uppercase">ĐÃ THU:</span>
+                <span className="text-emerald-700 font-black">{formatCurrency(totals.paid)}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* CỘT SỐ TIỀN & SỐ HỘ Ở BÊN PHẢI */}
         <div className="text-right shrink-0 flex flex-col items-end justify-center">
-          <div className="text-[9px] font-extrabold text-slate-400 uppercase leading-none tracking-wider mb-1">Tiền nhóm</div>
-          <div className="font-black text-[18px] sm:text-[20px] text-rose-600 tracking-tighter leading-none mb-1">
-            {formatCurrency(totals.total)}
+          <div className={`text-[9px] font-extrabold uppercase leading-none tracking-wider mb-1 ${
+            totals.total === 0 && totals.paid > 0 ? 'text-emerald-600' : 'text-slate-400'
+          }`}>
+            {totals.total === 0 && totals.paid > 0 ? 'Đã thu đủ' : 'Tiền nhóm'}
+          </div>
+          <div className={`font-black text-[18px] sm:text-[20px] tracking-tighter leading-none mb-1 ${
+            totals.total === 0 && totals.paid > 0 ? 'text-emerald-600' : 'text-rose-600'
+          }`}>
+            {totals.total === 0 && totals.paid > 0 ? formatCurrency(totals.paid) : formatCurrency(totals.total)}
           </div>
           <div className="text-[10px] sm:text-[11px] text-slate-500 font-bold">
             <span className="text-slate-400">Số hộ:</span> <strong className="text-indigo-600">{(group.members || []).length}</strong>
