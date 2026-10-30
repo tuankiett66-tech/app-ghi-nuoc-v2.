@@ -428,8 +428,15 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           customers={customers} activeTab={activeTab}
           onBack={() => navigateTo('list')}
           onBackupHistory={async () => {
-            const periodSuffix = getCurrentPeriodSuffix();
-            showToast("Đang tạo 2 Tab Lịch sử (Bộ 01 & Bộ 02) lên Google Sheets...");
+            const detectedSuffix = getCurrentPeriodSuffix(customers, config);
+            const periodSuffixInput = prompt(
+              "Xác nhận tên Kỳ lưu trữ Lịch sử lên Google Sheets:\n(Mặc định đúng kỳ đã tính toán)",
+              detectedSuffix
+            );
+            if (!periodSuffixInput || !periodSuffixInput.trim()) return;
+
+            const periodSuffix = periodSuffixInput.trim();
+            showToast(`Đang tạo 2 Tab Lịch sử (${periodSuffix}) lên Google Sheets...`);
             const ok = await handleBackupCloud(false, periodSuffix);
             if (ok) {
               alert(`🎉 Đã tạo thành công 2 Tab Lịch sử lên Google Sheets:\n- LichSu_Bộ01_${periodSuffix}\n- LichSu_Bộ02_${periodSuffix}\n\nBạn có thể vào Google Sheets kiểm tra. Khi kiểm tra OK, bạn quay lại bấm '2. CHỐT KỲ & MỞ KỲ MỚI'!`);

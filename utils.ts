@@ -1,5 +1,5 @@
 
-import { Customer, GroupMember, DailySupplyReading, LossRecord } from './types';
+import { Customer, GroupMember, DailySupplyReading, LossRecord, SystemConfig } from './types';
 
 // Helper to load XLSX dynamically
 const getXLSX = async () => {
@@ -322,10 +322,9 @@ export const ensureUniqueIds = (list: Customer[]): Customer[] => {
 
 export const getBillingMonthYear = () => {
   const d = new Date();
-  const day = d.getDate();
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();
-  let ky = day >= 20 ? actualMonth : (actualMonth - 1);
+  let ky = actualMonth - 1;
   let kyYear = actualYear;
   if (ky === 0) {
     ky = 12;
@@ -341,7 +340,7 @@ export const getZaloBillingHeader = (customTimestamp?: number) => {
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();
 
-  let ky = day >= 20 ? actualMonth : (actualMonth - 1);
+  let ky = actualMonth - 1;
   let kyYear = actualYear;
   if (ky === 0) {
     ky = 12;
@@ -351,13 +350,65 @@ export const getZaloBillingHeader = (customTimestamp?: number) => {
   return `Tiền nước  KỲ ${ky}/${kyYear}_Ngày ghi chỉ số:${day}/${actualMonth}/${actualYear}.`;
 };
 
-export const getCurrentPeriodSuffix = () => {
+export const getCurrentPeriodSuffix = (customers?: Customer[], config?: SystemConfig) => {
+  // 1. Kiểm tra ngày ghi chỉ số toàn cục (globalRecordDate, ví dụ "2026-10-01")
+  if (config?.globalRecordDate) {
+    const parts = config.globalRecordDate.split('-');
+    if (parts.length === 3) {
+      const recYear = parseInt(parts[0], 10);
+      const recMonth = parseInt(parts[1], 10);
+      let ky = recMonth - 1;
+      let kyYear = recYear;
+      if (ky === 0) {
+        ky = 12;
+        kyYear = recYear - 1;
+      }
+      return `Ky_${ky}_${kyYear}`;
+    }
+  }
+
+  // 2. Kiểm tra nếu có khách hàng ghi số có recordDate cụ thể
+  if (customers && customers.length > 0) {
+    const withDate = customers.find(c => c.recordDate && c.newIndex > 0);
+    if (withDate && withDate.recordDate) {
+      const parts = withDate.recordDate.split('-');
+      if (parts.length === 3) {
+        const recYear = parseInt(parts[0], 10);
+        const recMonth = parseInt(parts[1], 10);
+        let ky = recMonth - 1;
+        let kyYear = recYear;
+        if (ky === 0) {
+          ky = 12;
+          kyYear = recYear - 1;
+        }
+        return `Ky_${ky}_${kyYear}`;
+      }
+    }
+
+    // Kiểm tra timestamp updatedAt của các khách hàng có ghi số mới
+    const recordedWithTime = customers.filter(c => c.newIndex > 0 && typeof c.updatedAt === 'number' && c.updatedAt > 0);
+    if (recordedWithTime.length > 0) {
+      const times = recordedWithTime.map(c => c.updatedAt as number);
+      const latestTime = Math.max(...times);
+      const d = new Date(latestTime);
+      const recYear = d.getFullYear();
+      const recMonth = d.getMonth() + 1;
+      let ky = recMonth - 1;
+      let kyYear = recYear;
+      if (ky === 0) {
+        ky = 12;
+        kyYear = recYear - 1;
+      }
+      return `Ky_${ky}_${kyYear}`;
+    }
+  }
+
+  // 3. Mặc định theo tháng hiện tại: Kỳ nước = Tháng ghi số - 1
   const d = new Date();
-  const day = d.getDate();
   const actualMonth = d.getMonth() + 1;
   const actualYear = d.getFullYear();
 
-  let ky = day >= 20 ? actualMonth : (actualMonth - 1);
+  let ky = actualMonth - 1;
   let kyYear = actualYear;
   if (ky === 0) {
     ky = 12;
