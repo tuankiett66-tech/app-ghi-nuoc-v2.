@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Save, Check, DollarSign, PenSquare, Bot } from 'lucide-react';
+import { Search, X, MessageCircle, CloudDownload, Settings, MessageSquareQuote, Loader2, ClipboardCheck, Mic, History, Save, Check, DollarSign, PenSquare, Bot, FileWarning } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -25,10 +25,11 @@ interface HeaderProps {
   lastSyncAction?: 'upload' | 'download';
   onShowVerify: () => void;
   onShowGroups: () => void;
+  onShowCutoffNotice?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, searchQuery, setSearchQuery, isSearchExpanded, setIsSearchExpanded, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, onToggleUnrecordedFilter, onlyUnrecorded, lastSyncTime, lastSyncAction, onShowVerify, onShowGroups
+  title, searchQuery, setSearchQuery, isSearchExpanded, setIsSearchExpanded, isSyncing, onSync, onSave, syncStatus, onShowAdd, onShowConfig, onShowMsgTemplate, onlyNonZalo, onToggleZaloFilter, onlyUnpaid, onToggleUnpaidFilter, onToggleUnrecordedFilter, onlyUnrecorded, lastSyncTime, lastSyncAction, onShowVerify, onShowGroups, onShowCutoffNotice
 }) => {
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -174,6 +175,9 @@ export const Header: React.FC<HeaderProps> = ({
             <button onClick={onToggleUnpaidFilter} title="Lọc chưa thu" className={`p-2 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnpaid ? 'text-rose-600 bg-rose-100' : 'text-slate-600'}`}><DollarSign size={20}/></button>
             {onToggleUnrecordedFilter && (
               <button onClick={onToggleUnrecordedFilter} title="Lọc chưa ghi số" className={`p-2 rounded-lg transition-colors touch-manipulation shrink-0 ${onlyUnrecorded ? 'text-amber-600 bg-amber-100' : 'text-slate-600'}`}><PenSquare size={20}/></button>
+            )}
+            {onShowCutoffNotice && (
+              <button onClick={onShowCutoffNotice} title="Giấy thông báo ngừng cấp nước" className="p-2 text-rose-600 active:scale-90 touch-manipulation shrink-0"><FileWarning size={20}/></button>
             )}
             <button 
               onClick={onSync} 

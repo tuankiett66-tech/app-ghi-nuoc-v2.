@@ -13,6 +13,7 @@ import { Modals } from './components/Modals';
 import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
+import { WaterCutoffNoticeView } from './components/WaterCutoffNoticeView';
 import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, exportReserveFundToExcel, exportVatToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
@@ -282,6 +283,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             lastSyncAction={config.lastSyncAction}
             onShowVerify={() => navigateTo('verify')}
             onShowGroups={() => navigateTo('group_list')}
+            onShowCutoffNotice={() => navigateTo('water_cutoff_notice')}
           />
           <ListView 
             customers={filtered} 
@@ -356,6 +358,10 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             showToast(`Đang chèn hộ mới sau mã ${selectedCustomer.maKH}`);
           }}
           onSendZalo={handleSendZalo}
+          onShowCutoffNotice={(id) => {
+            setSelectedId(id);
+            navigateTo('water_cutoff_notice');
+          }}
           generateMsg={generateMsg}
         />
       )}
@@ -572,6 +578,17 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onUpdate={updateDailyReading}
           onClosePeriod={closeDailyPeriod}
           onImport={importDailyReadings}
+        />
+      )}
+
+      {view === 'water_cutoff_notice' && (
+        <WaterCutoffNoticeView 
+          customers={customers}
+          config={config}
+          initialCustomerId={selectedId}
+          activeTab={activeTab}
+          onBack={() => navigateTo(selectedId ? 'detail' : 'list', false)}
+          onSelectCustomer={(id) => setSelectedId(id)}
         />
       )}
 

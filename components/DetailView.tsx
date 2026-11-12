@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronDown, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2, FileText } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
 import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo, generateVietQrUrl } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
@@ -18,11 +18,12 @@ interface DetailViewProps {
   onDelete: () => void;
   onAddAfter: () => void;
   onSendZalo: () => void;
+  onShowCutoffNotice?: (customerId: string) => void;
   generateMsg: (c: Customer, ni: string, pi: string) => string;
 }
 
 export const DetailView: React.FC<DetailViewProps> = ({ 
-  customer, config, onBack, onNavigate, onUpdate, onUpdateConfig, onClearAllRecordDates, onShowQr, onEditInfo, onDelete, onAddAfter, onSendZalo, generateMsg 
+  customer, config, onBack, onNavigate, onUpdate, onUpdateConfig, onClearAllRecordDates, onShowQr, onEditInfo, onDelete, onAddAfter, onSendZalo, onShowCutoffNotice, generateMsg 
 }) => {
   // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -393,6 +394,16 @@ export const DetailView: React.FC<DetailViewProps> = ({
 
         {/* NÚT GỬI ZALO & CHỐT SỐ (ĐƯỢC ĐẶT DƯỚI THẺ KHÁCH TRẢ TIỀN) */}
         <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 border-b-4 border-blue-900 text-sm"><MessageCircle size={18}/> Gửi Zalo & Chốt số</button>
+
+        {onShowCutoffNotice && (customer.balance > 0 || customer.oldDebt > 0) && (
+          <button 
+            type="button"
+            onClick={() => onShowCutoffNotice(customer.id)} 
+            className="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 py-3 rounded-xl font-black uppercase flex items-center justify-center gap-2 border-2 border-rose-200 active:scale-95 text-xs shadow-xs transition-all"
+          >
+            <FileText size={16}/> Giấy Báo Tạm Ngừng Cấp Nước
+          </button>
+        )}
 
         {/* THANH XEM TRƯỚC TIN NHẮN (COLLAPSIBLE) - NẰM YÊN TRONG HỘP CHO ĐẾN KHI BẤM XEM */}
         <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
