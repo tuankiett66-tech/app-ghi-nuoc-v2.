@@ -1,5 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronLeft, Search, Printer, Copy, CheckCheck, MessageCircle, Mic, X, ChevronRight, AlertTriangle, FileText, Calendar, Phone, MapPin, Building, Users } from 'lucide-react';
+import { 
+  ChevronLeft, Search, Printer, Copy, CheckCheck, MessageCircle, Mic, X, 
+  ChevronRight, AlertTriangle, FileText, Calendar, Phone, MapPin, Building, 
+  Users, Scissors, ChevronDown, Check
+} from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
 import { formatCurrency, copyToClipboard, normalizePhoneForZalo, getBillingMonthYear, normalizeString } from '../utils';
 
@@ -22,8 +26,10 @@ export const WaterCutoffNoticeView: React.FC<WaterCutoffNoticeViewProps> = ({
 }) => {
   const [selectedTab, setSelectedTab] = useState<'list1' | 'list2'>(defaultTab);
   const [selectedMaKH, setSelectedMaKH] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedZalo, setCopiedZalo] = useState(false);
+  const [printMode, setPrintMode] = useState<'double' | 'single'>('double'); // Mặc định: in 2 bản trên 1 tờ A4 (cắt đôi)
+  const [zaloTemplateStyle, setZaloTemplateStyle] = useState<'detailed' | 'compact'>('detailed');
+  const [showZaloPreview, setShowZaloPreview] = useState(true);
 
   // Custom editable fields for the notice
   const now = new Date();
@@ -60,43 +66,32 @@ export const WaterCutoffNoticeView: React.FC<WaterCutoffNoticeViewProps> = ({
         setSelectedMaKH(firstDebtor.maKH);
       }
     }
-  }, [initialCustomerId]);
+  }, [initialCustomerId, customers, selectedTab]);
 
-  // Danh sách các hộ đang có nợ trong tab hiện tại
+  // Danh sách các hộ còn nợ trong tab hiện tại
   const debtorsList = useMemo(() => {
-    return customers
-      .filter(c => c.listType === selectedTab && c.balance > 0)
-      .sort((a, b) => String(a.maKH).localeCompare(String(b.maKH), undefined, { numeric: true, sensitivity: 'base' }));
+    return customers.filter(c => c.listType === selectedTab && c.balance > 0);
   }, [customers, selectedTab]);
 
-  // Tìm kiếm khách hàng theo input Mã KH hoặc Tên
-  const searchResults = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return [];
-    return customers.filter(c => {
-      const matchesTab = c.listType === selectedTab;
-      const maKHMatch = c.maKH.toLowerCase().includes(q);
-      const nameMatch = c.name.toLowerCase().includes(q);
-      const phoneMatch = (c.phoneTenant || c.phone || '').includes(q);
-      return matchesTab && (maKHMatch || nameMatch || phoneMatch);
-    }).slice(0, 8);
-  }, [customers, selectedTab, searchQuery]);
-
-  // Xử lý khi người dùng chọn hoặc nhập Mã KH
-  const handleSelectCustomer = (c: Customer) => {
-    setSelectedCustomer(c);
-    setSelectedMaKH(c.maKH);
-    setSelectedTab(c.listType);
-    setSearchQuery('');
+  // Chọn khách hàng
+  const handleSelectCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setSelectedMaKH(customer.maKH);
+    if (onSelectCustomer) {
+      onSelectCustomer(customer.id);
+    }
   };
 
+  // Tìm kiếm theo Mã KH
   const handleMaKHInput = (val: string) => {
     setSelectedMaKH(val);
     const cleanVal = val.trim();
     if (!cleanVal) return;
 
-    // Tìm chính xác Mã KH trong tab hiện tại trước
-    let found = customers.find(c => c.listType === selectedTab && c.maKH.toLowerCase() === cleanVal.toLowerCase());
+    // Tìm trong tab hiện tại trước
+    let found = customers.find(
+      c => c.listType === selectedTab && c.maKH.toLowerCase() === cleanVal.toLowerCase()
+    );
     // Nếu không thấy, tìm trên cả 2 bộ
     if (!found) {
       found = customers.find(c => c.maKH.toLowerCase() === cleanVal.toLowerCase());
@@ -106,6 +101,7 @@ export const WaterCutoffNoticeView: React.FC<WaterCutoffNoticeViewProps> = ({
     }
     if (found) {
       setSelectedCustomer(found);
+      if (onSelectCustomer) onSelectCustomer(found.id);
     }
   };
 
@@ -146,38 +142,71 @@ export const WaterCutoffNoticeView: React.FC<WaterCutoffNoticeViewProps> = ({
   const paidAmount = selectedCustomer ? Math.round(selectedCustomer.paid) : 0;
   const balanceAmount = selectedCustomer ? Math.round(selectedCustomer.balance) : 0;
 
-  // In giấy A4 / A5
+  // In giấy
   const handlePrint = () => {
     window.print();
   };
 
-  // Tạo nội dung thông báo gửi Zalo
+  // Tạo nội dung thông báo gửi Zalo chuẩn đẹp & tối ưu bố cục
   const generateZaloCutoffNotice = () => {
     if (!selectedCustomer) return '';
-    return `CÔNG TY CPCN NHÀ BÈ
-ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU
+    const cleanName = normalizeString(selectedCustomer.name).toUpperCase();
+    const bankId = config.bankId ? config.bankId.toUpperCase() : 'VCB';
+    const accountNo = config.accountNo || '1066386342';
+    const accountName = config.accountName || 'HKD TRAN NGOC TONG';
 
-GIẤY THÔNG BÁO TẠM NGỪNG CUNG CẤP NƯỚC
+    if (zaloTemplateStyle === 'compact') {
+      return `⚠️ THÔNG BÁO TẠM NGỪNG CUNG CẤP NƯỚC
+🏢 ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU
 
-Kính gửi: Ông/Bà ${selectedCustomer.name}
-Mã KH: ${selectedCustomer.maKH}
-Địa chỉ: ${selectedCustomer.address || 'Khu vực Ấp 4, Long Hậu'}
+👤 Kính gửi: ${selectedCustomer.name} (Mã KH: ${selectedCustomer.maKH})
+📍 Địa chỉ: ${selectedCustomer.address || 'Khu vực Ấp 4, Long Hậu'}
 
-Tính đến nay Quý khách còn nợ số tiền: ${balanceAmount.toLocaleString('vi-VN')} đ
+💰 TỔNG NỢ CẦN THANH TOÁN: ${balanceAmount.toLocaleString('vi-VN')} đ
+(Nước kỳ ${billingPeriodStr}: ${curPeriodAmount.toLocaleString('vi-VN')} đ | Nợ cũ: ${oldDebtAmount.toLocaleString('vi-VN')} đ${paidAmount > 0 ? ` | Đã trả: -${paidAmount.toLocaleString('vi-VN')} đ` : ''})
 
-Cụ thể như sau:
-- Nước kỳ ${billingPeriodStr}: ${curPeriodAmount.toLocaleString('vi-VN')} đ
-- Nợ kỳ trước: ${oldDebtAmount.toLocaleString('vi-VN')} đ
-${paidAmount > 0 ? `- Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')} đ\n` : ''}- CÒN NỢ: ${balanceAmount.toLocaleString('vi-VN')} đ
+⏰ HẠN THANH TOÁN: ${deadlineText.toUpperCase()}
+(Quá thời hạn trên, Đại lý buộc phải tạm ngừng cấp nước theo quy định).
 
-Căn cứ thỏa thuận cung cấp nước của hai bên, kính đề nghị Quý khách hàng kịp thời thanh toán số tiền còn nợ trên ${deadlineText}.
+💳 THÔNG TIN CHUYỂN KHOẢN:
+• NH: ${bankId}
+• STK: ${accountNo} (Bấm giữ để sao chép)
+• TÊN: ${accountName}
+• Nội dung: TT NUOC ${selectedCustomer.maKH}_${cleanName} (Bấm giữ để sao chép)
 
-Quý khách không thanh toán đúng hạn, Đại lý cấp nước buộc phải tạm ngừng cung cấp nước, mọi chi phí phát sinh (nếu có) Quý khách hoàn toàn chịu trách nhiệm.
+📞 Hotline hỗ trợ: ${agencyPhone} (Giờ hành chính)
+Trân trọng cảm ơn Quý khách!`;
+    }
 
-Quý khách hàng liên hệ tại địa chỉ ${agencyAddress} hoặc số điện thoại: ${agencyPhone} trong giờ hành chính để được giải đáp và hướng dẫn.
+    // Mẫu chuẩn chi tiết đầy đủ (Bố cục đẹp, chuyên nghiệp, rành mạch từng khối)
+    return `🚨 THÔNG BÁO TẠM NGỪNG CUNG CẤP NƯỚC
+🏢 ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU
 
-Trân trọng,
-ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU`;
+👤 Kính gửi: Ông/Bà ${selectedCustomer.name}
+🔑 Mã KH: ${selectedCustomer.maKH}
+📍 Địa chỉ: ${selectedCustomer.address || 'Khu vực Ấp 4, Long Hậu'}
+
+⚠️ TỔNG TIỀN CÒN NỢ: ${balanceAmount.toLocaleString('vi-VN')} đ
+────────────────────────
+📋 CHI TIẾT CÁC KHOẢN NỢ:
+• Tiền nước kỳ ${billingPeriodStr}: ${curPeriodAmount.toLocaleString('vi-VN')} đ
+• Nợ kỳ trước: ${oldDebtAmount.toLocaleString('vi-VN')} đ
+${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')} đ\n` : ''}👉 CÒN LẠI PHẢI THU: ${balanceAmount.toLocaleString('vi-VN')} đ
+────────────────────────
+⏰ HẠN THANH TOÁN: ${deadlineText.toUpperCase()}
+
+⚠️ Kính đề nghị Quý khách thanh toán đúng hạn. Quá thời hạn trên, Đại lý buộc phải tạm ngừng cung cấp nước sinh hoạt, mọi chi phí phát sinh Quý khách hoàn toàn chịu trách nhiệm.
+
+💳 THÔNG TIN CHUYỂN KHOẢN:
+• Ngân hàng: ${bankId}
+• Số tài khoản: ${accountNo} (Bấm giữ để sao chép)
+• Chủ tài khoản: ${accountName}
+• Nội dung CK: TT NUOC ${selectedCustomer.maKH}_${cleanName} (Bấm giữ để sao chép)
+
+📞 Hotline hỗ trợ: ${agencyPhone} (Trong giờ hành chính)
+🏠 Địa chỉ liên hệ: ${agencyAddress}
+
+🙏 Trân trọng cảm ơn Quý khách!`;
   };
 
   const handleCopyZalo = async () => {
@@ -199,9 +228,183 @@ Trân trọng,
     window.location.href = `https://zalo.me/${cleanPhone}`;
   };
 
+  // Component render nội dung 1 bản thông báo khổ 1/2 A4
+  const renderSingleNotice = (isCopyNotice: boolean = false) => {
+    if (!selectedCustomer) return null;
+
+    return (
+      <div 
+        className="w-full bg-white text-slate-900 font-serif leading-snug p-4 sm:p-6 print:p-3 flex flex-col justify-between"
+        style={{ fontFamily: "'Times New Roman', Times, serif" }}
+      >
+        {/* PHẦN ĐẦU TRANG */}
+        <div className="grid grid-cols-2 gap-2 text-center items-start mb-2 print:mb-1.5">
+          <div className="space-y-0.5">
+            <p className="font-bold text-[11px] sm:text-[13px] print:text-[12px] uppercase tracking-tight">
+              CÔNG TY CPCN NHÀ BÈ
+            </p>
+            <p className="font-bold text-[11px] sm:text-[13px] print:text-[12px] uppercase underline tracking-tight">
+              ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU
+            </p>
+          </div>
+
+          <div className="space-y-0.5">
+            <p className="font-bold text-[11px] sm:text-[13px] print:text-[12px] uppercase tracking-tight">
+              CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+            </p>
+            <p className="font-bold text-[10px] sm:text-[12px] print:text-[11px] uppercase underline tracking-tight">
+              ĐỘC LẬP-TỰ DO-HẠNH PHÚC
+            </p>
+          </div>
+        </div>
+
+        {/* TIÊU ĐỀ CHÍNH */}
+        <div className="text-center my-2 print:my-1.5">
+          <h2 className="font-bold text-[15px] sm:text-[17px] print:text-[16px] uppercase tracking-tight">
+            GIẤY THÔNG BÁO TẠM NGỪNG CUNG CẤP NƯỚC
+          </h2>
+          {isCopyNotice && (
+            <p className="text-[10px] italic text-slate-500 font-sans print:hidden">
+              (Liên 2: Bản sao lưu đối chiếu)
+            </p>
+          )}
+        </div>
+
+        {/* THÔNG TIN KHÁCH HÀNG */}
+        <div className="space-y-1 text-[12px] sm:text-[13.5px] print:text-[12.5px] mb-2 print:mb-1.5">
+          <p>
+            <span className="italic underline">Kính gửi khách hàng</span>( Ông/Bà) :{' '}
+            <strong className="uppercase text-[13px] sm:text-[14.5px] print:text-[13.5px] font-bold">
+              {selectedCustomer.name}
+            </strong>
+            <span className="ml-2 font-sans font-black text-[11px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 print:hidden">
+              Mã KH: {selectedCustomer.maKH}
+            </span>
+          </p>
+          <p>
+            <span>Địa chỉ: </span>
+            <span>{selectedCustomer.address || '151/68, ấp 4, xã Long Hậu, Huyện Cần Giuộc, Long An.'}</span>
+          </p>
+          <p>
+            <span>Tính đến nay quý khách còn nợ số tiền : </span>
+            <strong className="text-[14px] sm:text-[15px] print:text-[14.5px] font-bold font-sans">
+              {balanceAmount.toLocaleString('vi-VN')}
+            </strong>
+          </p>
+        </div>
+
+        {/* BẢNG CỤ THỂ CHI TIẾT NỢ */}
+        <div className="my-2 print:my-1.5">
+          <p className="font-semibold text-[12px] sm:text-[13px] print:text-[12px] mb-1">Cụ thể Như sau:</p>
+          <table className="w-full border-collapse border border-slate-900 text-center text-[11.5px] sm:text-[12.5px] print:text-[12px]">
+            <thead>
+              <tr className="bg-slate-50 print:bg-transparent">
+                <th className="border border-slate-900 px-2 py-1 font-bold">
+                  Nước kỳ {billingPeriodStr}
+                </th>
+                <th className="border border-slate-900 px-2 py-1 font-bold">
+                  Nợ kỳ trước
+                </th>
+                <th className="border border-slate-900 px-2 py-1 font-bold">
+                  Đã thanh toán
+                </th>
+                <th className="border border-slate-900 px-2 py-1 font-bold">
+                  Còn nợ
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans">
+                  {curPeriodAmount > 0 ? curPeriodAmount.toLocaleString('vi-VN') : '0'}
+                </td>
+                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans">
+                  {oldDebtAmount !== 0 ? oldDebtAmount.toLocaleString('vi-VN') : '0'}
+                </td>
+                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans text-slate-500">
+                  {paidAmount > 0 ? paidAmount.toLocaleString('vi-VN') : ''}
+                </td>
+                <td className="border border-slate-900 px-2 py-1.5 font-black font-sans text-[13.5px] print:text-[13px]">
+                  {balanceAmount.toLocaleString('vi-VN')}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* NỘI DUNG VĂN BẢN VÀ THỜI HẠN */}
+        <div className="space-y-1.5 text-[11.5px] sm:text-[12.5px] print:text-[12px] text-justify leading-snug mt-1.5 print:mt-1">
+          <p>
+            Căn cứ thỏa thuận cung cấp nước của hai bên, kính đề nghị quý khách hàng kịp thời thanh toán số tiền còn nợ trên{' '}
+            <span className="font-bold underline">{deadlineText}</span>.
+          </p>
+
+          <p>
+            Quý khách không thanh toán đúng hạn, Đại lý cấp nước buộc phải tạm ngừng cung cấp nước, mọi chi phí phát sinh(nếu có) quý khách hoàn toàn chịu trách nhiệm.
+          </p>
+
+          <p>
+            Quý khách hàng liên hệ tại địa chỉ {agencyAddress} hoặc số điện thoại:{' '}
+            <strong className="font-bold font-sans">{agencyPhone}</strong> trong giờ hành chính, để được giải đáp và hướng dẫn.
+          </p>
+        </div>
+
+        {/* CHỮ KÝ VÀ NGÀY THÁNG */}
+        <div className="grid grid-cols-2 gap-2 text-center mt-3 print:mt-2.5 pt-1 items-start">
+          <div className="pt-1">
+            <p className="font-bold italic text-[12px] sm:text-[13px] print:text-[12.5px]">Trân Trọng</p>
+          </div>
+
+          <div className="space-y-0.5">
+            <p className="font-bold italic text-[11px] sm:text-[12.5px] print:text-[12px]">
+              {noticeDateText}
+            </p>
+            <p className="font-bold uppercase text-[11px] sm:text-[12.5px] print:text-[12px] pt-0.5">
+              ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU ĐÃ KÝ
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-100 z-[160] flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
-      {/* HEADER BẢO TRÌ & IN ẤN (Ẩn khi bấm in print) */}
+      {/* CSS DÀNH RIÊNG CHO IN ẤN KHỔ 1/2 A4 */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 5mm 8mm;
+          }
+          body, html {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .print-hidden, header, nav, .toolbar-container, .zalo-preview-panel, .customize-panel {
+            display: none !important;
+          }
+          .print-area {
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+          }
+          .half-a4-notice {
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 4mm 2mm !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+        }
+      `}</style>
+
+      {/* HEADER BẢO TRÌ & IN ẤN */}
       <header className="print:hidden bg-white border-b px-4 py-3 flex items-center justify-between shadow-xs shrink-0 z-20">
         <div className="flex items-center gap-2">
           <button onClick={onBack} className="p-2 text-slate-700 hover:bg-slate-100 rounded-xl active:scale-90 transition-all">
@@ -213,16 +416,16 @@ Trân trọng,
             </div>
             <div>
               <h1 className="text-sm font-black uppercase text-slate-900 tracking-tight leading-tight">
-                Giấy Báo Ngừng Cung Cấp Nước
+                Giấy Báo Tạm Ngừng Cung Cấp Nước
               </h1>
               <p className="text-[10px] text-slate-500 font-bold">
-                Tự động điền theo Mã KH & Nợ đọng
+                Khổ chuẩn 1/2 Giấy A4 (A5)
               </p>
             </div>
           </div>
         </div>
 
-        {/* Nút In & Copy */}
+        {/* Nút In & Chế độ In */}
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleCopyZalo}
@@ -230,27 +433,27 @@ Trân trọng,
             className={`px-3 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-1.5 transition-all active:scale-95 shadow-sm border ${
               copiedZalo
                 ? 'bg-emerald-600 text-white border-emerald-700'
-                : 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
             }`}
           >
             {copiedZalo ? <CheckCheck size={16} /> : <Copy size={16} />}
-            <span className="hidden sm:inline">{copiedZalo ? 'Đã copy' : 'Copy Zalo'}</span>
+            <span>{copiedZalo ? 'Đã copy Zalo' : 'Copy tin Zalo'}</span>
           </button>
 
           <button
             onClick={handlePrint}
             disabled={!selectedCustomer}
-            className="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-black uppercase flex items-center gap-1.5 transition-all active:scale-95 shadow-md border-b-2 border-blue-900 disabled:opacity-50"
+            className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-black uppercase flex items-center gap-1.5 transition-all active:scale-95 shadow-md border-b-2 border-blue-900 disabled:opacity-50"
           >
             <Printer size={16} />
-            <span>In Giấy / PDF</span>
+            <span>In Giấy (1/2 A4)</span>
           </button>
         </div>
       </header>
 
-      {/* THANH CÔNG CỤ NHẬP MÃ KH & TÌM KIẾM (Ẩn khi In) */}
-      <div className="print:hidden bg-white border-b px-3 py-2.5 shadow-xs shrink-0 space-y-2 z-10">
-        <div className="flex items-center gap-2">
+      {/* THANH CÔNG CỤ NHẬP MÃ KH & TÙY CHỌN KHỔ IN (Ẩn khi In) */}
+      <div className="print:hidden bg-white border-b px-3 py-2.5 shadow-xs shrink-0 space-y-2 z-10 toolbar-container">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Chọn Bộ 01 / Bộ 02 */}
           <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shrink-0">
             <button
@@ -280,7 +483,7 @@ Trân trọng,
           </div>
 
           {/* Ô Nhập Mã KH nhanh */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-[160px]">
             <input
               type="text"
               value={selectedMaKH}
@@ -328,6 +531,30 @@ Trân trọng,
               <ChevronRight size={16} />
             </button>
           </div>
+
+          {/* Chọn chế độ in: 2 bản trên 1 tờ A4 (Cắt đôi) hoặc 1 bản (1/2 A4) */}
+          <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shrink-0">
+            <button
+              onClick={() => setPrintMode('double')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-black uppercase transition-all flex items-center gap-1 ${
+                printMode === 'double' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="In 2 bản trên 1 tờ A4 (ở giữa có vạch kéo cắt)"
+            >
+              <Scissors size={13} />
+              <span>2 Bản / Tờ A4 (Cắt đôi)</span>
+            </button>
+            <button
+              onClick={() => setPrintMode('single')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-black uppercase transition-all flex items-center gap-1 ${
+                printMode === 'single' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="Chỉ in 1 bản nửa trang A4 hoặc A5"
+            >
+              <FileText size={13} />
+              <span>1 Bản (1/2 A4)</span>
+            </button>
+          </div>
         </div>
 
         {/* Thông tin nhanh về số lượng hộ nợ */}
@@ -337,6 +564,10 @@ Trân trọng,
               {debtorsList.length} hộ đang nợ tiền
             </span>
             <span>trong Bộ {selectedTab === 'list1' ? '01' : '02'}</span>
+            <span className="text-slate-400">|</span>
+            <span className="text-indigo-600">
+              {printMode === 'double' ? '2 bản/tờ A4 (nhân đôi để cắt)' : '1 bản (nửa tờ A4)'}
+            </span>
           </div>
 
           {selectedCustomer && (
@@ -351,146 +582,131 @@ Trân trọng,
       </div>
 
       {/* VÙNG CHỨA NỘI DUNG VĂN BẢN (PREVIEW & IN ẤN) */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-slate-200/60 print:bg-white print:p-0 print:overflow-visible">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 flex flex-col items-center bg-slate-200/60 print:bg-white print:p-0 print:overflow-visible print-area">
         {selectedCustomer ? (
-          <div
-            id="water-cutoff-notice-paper"
-            className="w-full max-w-[760px] bg-white rounded-2xl shadow-xl p-8 sm:p-12 text-slate-900 font-serif leading-relaxed border border-slate-200 print:shadow-none print:border-0 print:p-0 print:w-full print:max-w-none"
-            style={{ fontFamily: "'Times New Roman', Times, serif" }}
-          >
-            {/* PHẦN ĐẦU TRANG */}
-            <div className="grid grid-cols-2 gap-4 text-center items-start mb-6">
-              <div className="space-y-1">
-                <p className="font-bold text-[13px] sm:text-[14px] uppercase tracking-tight">
-                  CÔNG TY CPCN NHÀ BÈ
-                </p>
-                <p className="font-bold text-[13px] sm:text-[14px] uppercase underline tracking-tight">
-                  ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="font-bold text-[13px] sm:text-[14px] uppercase tracking-tight">
-                  CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
-                </p>
-                <p className="font-bold text-[12px] sm:text-[13px] uppercase underline tracking-tight">
-                  ĐỘC LẬP - TỰ DO - HẠNH PHÚC
-                </p>
-              </div>
+          <div className="w-full max-w-[760px] flex flex-col gap-4 print:gap-0 print:w-full print:max-w-none">
+            {/* BẢN IN THỨ 1 (NỬA TRANG TRÊN HOẶC BẢN DUY NHẤT) */}
+            <div className="half-a4-notice bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden print:border-0 print:shadow-none">
+              {renderSingleNotice(false)}
             </div>
 
-            {/* TIÊU ĐỀ CHÍNH */}
-            <div className="text-center my-6 space-y-1">
-              <h2 className="font-bold text-[18px] sm:text-[21px] uppercase tracking-tight">
-                GIẤY THÔNG BÁO TẠM NGỪNG CUNG CẤP NƯỚC
-              </h2>
-            </div>
+            {/* ĐƯỜNG CẮT VÀ BẢN THỨ 2 (NẾU CHỌN CHẾ ĐỘ 2 BẢN / 1 TỜ A4) */}
+            {printMode === 'double' && (
+              <>
+                {/* Đường vạch đứt nét để cắt giấy ở giữa tờ A4 */}
+                <div className="py-2 flex items-center justify-center gap-2 text-slate-400 print:text-slate-700 my-1 select-none">
+                  <div className="flex-1 border-b-2 border-dashed border-slate-300 print:border-slate-800"></div>
+                  <div className="flex items-center gap-1.5 text-[11px] font-sans font-bold uppercase tracking-widest px-2 py-0.5 bg-slate-100 print:bg-white rounded border border-slate-200 print:border-slate-400">
+                    <Scissors size={14} />
+                    <span>ĐƯỜNG CẮT ĐÔI GIẤY A4</span>
+                    <Scissors size={14} className="rotate-180" />
+                  </div>
+                  <div className="flex-1 border-b-2 border-dashed border-slate-300 print:border-slate-800"></div>
+                </div>
 
-            {/* THÔNG TIN KHÁCH HÀNG */}
-            <div className="space-y-2 text-[14px] sm:text-[15px] mb-4">
-              <p>
-                <span className="italic underline">Kính gửi khách hàng</span> (Ông/Bà):{' '}
-                <strong className="uppercase text-[15px] sm:text-[16px] font-bold">
-                  {selectedCustomer.name}
-                </strong>
-                <span className="ml-2 font-sans font-black text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 print:hidden">
-                  (Mã KH: {selectedCustomer.maKH})
-                </span>
-              </p>
-              <p>
-                <span>Địa chỉ: </span>
-                <span>{selectedCustomer.address || 'Ấp 4, xã Long Hậu, Huyện Cần Giuộc, Long An.'}</span>
-              </p>
-              <p>
-                <span>Tính đến nay quý khách còn nợ số tiền: </span>
-                <strong className="text-[16px] font-bold font-sans">
-                  {balanceAmount.toLocaleString('vi-VN')} đ
-                </strong>
-              </p>
-            </div>
+                {/* BẢN IN THỨ 2 (NỬA TRANG DƯỚI) */}
+                <div className="half-a4-notice bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden print:border-0 print:shadow-none">
+                  {renderSingleNotice(true)}
+                </div>
+              </>
+            )}
 
-            {/* BẢNG CỤ THỂ CHI TIẾT NỢ */}
-            <div className="my-5">
-              <p className="font-semibold text-[14px] mb-2">Cụ thể Như sau:</p>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-slate-900 text-center text-[13px] sm:text-[14px]">
-                  <thead>
-                    <tr className="bg-slate-50 print:bg-transparent">
-                      <th className="border border-slate-900 p-2 font-bold">
-                        Nước kỳ {billingPeriodStr}
-                      </th>
-                      <th className="border border-slate-900 p-2 font-bold">
-                        Nợ kỳ trước
-                      </th>
-                      <th className="border border-slate-900 p-2 font-bold">
-                        Đã thanh toán
-                      </th>
-                      <th className="border border-slate-900 p-2 font-bold">
-                        Còn nợ
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border border-slate-900 p-2.5 font-bold font-sans text-sm">
-                        {curPeriodAmount > 0 ? curPeriodAmount.toLocaleString('vi-VN') : '0'}
-                      </td>
-                      <td className="border border-slate-900 p-2.5 font-bold font-sans text-sm">
-                        {oldDebtAmount !== 0 ? oldDebtAmount.toLocaleString('vi-VN') : '0'}
-                      </td>
-                      <td className="border border-slate-900 p-2.5 font-bold font-sans text-sm text-slate-500">
-                        {paidAmount > 0 ? paidAmount.toLocaleString('vi-VN') : ''}
-                      </td>
-                      <td className="border border-slate-900 p-2.5 font-black font-sans text-[15px]">
-                        {balanceAmount.toLocaleString('vi-VN')}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {/* KHỐI XEM TRƯỚC VÀ COPY TIN NHẮN ZALO (CHUẨN ĐẸP, BỐ CỤC RÕ RÀNG) */}
+            <div className="print:hidden mt-2 border border-blue-200 bg-white rounded-2xl shadow-sm overflow-hidden zalo-preview-panel">
+              {/* Header của Khối Zalo */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 p-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-blue-600 text-white rounded-lg shadow-xs">
+                    <MessageCircle size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black uppercase text-slate-800 tracking-tight flex items-center gap-1.5">
+                      Tin nhắn Zalo gửi khách hàng
+                    </h3>
+                    <p className="text-[10px] text-slate-500 font-bold">
+                      Đã tối ưu bố cục chuyên nghiệp & kèm STK bấm giữ sao chép
+                    </p>
+                  </div>
+                </div>
 
-            {/* NỘI DUNG VĂN BẢN VÀ THỜI HẠN */}
-            <div className="space-y-3.5 text-[14px] sm:text-[15px] text-justify leading-relaxed mt-4">
-              <p>
-                Căn cứ thỏa thuận cung cấp nước của hai bên, kính đề nghị quý khách hàng kịp thời thanh toán số tiền còn nợ trên{' '}
-                <span className="font-bold underline print:inline">{deadlineText}</span>.
-              </p>
+                {/* Chuyển đổi mẫu Zalo: Chuẩn Đầy Đủ vs Ngắn Gọn */}
+                <div className="flex items-center gap-1">
+                  <div className="bg-white p-0.5 rounded-xl border border-blue-200 flex">
+                    <button
+                      onClick={() => setZaloTemplateStyle('detailed')}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all ${
+                        zaloTemplateStyle === 'detailed'
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Mẫu đầy đủ
+                    </button>
+                    <button
+                      onClick={() => setZaloTemplateStyle('compact')}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all ${
+                        zaloTemplateStyle === 'compact'
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Mẫu ngắn gọn
+                    </button>
+                  </div>
 
-              <p>
-                Quý khách không thanh toán đúng hạn, Đại lý cấp nước buộc phải tạm ngừng cung cấp nước, mọi chi phí phát sinh (nếu có) quý khách hoàn toàn chịu trách nhiệm.
-              </p>
-
-              <p>
-                Quý khách hàng liên hệ tại địa chỉ {agencyAddress} hoặc số điện thoại:{' '}
-                <strong className="font-bold font-sans">{agencyPhone}</strong> trong giờ hành chính, để được giải đáp và hướng dẫn.
-              </p>
-            </div>
-
-            {/* CHỮ KÝ VÀ NGÀY THÁNG */}
-            <div className="grid grid-cols-2 gap-4 text-center mt-8 pt-2 items-start">
-              <div className="pt-2">
-                <p className="font-bold italic text-[14px] sm:text-[15px]">Trân Trọng</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="italic text-[13px] sm:text-[14px]">
-                  {noticeDateText}
-                </p>
-                <p className="font-bold uppercase text-[13px] sm:text-[14px] pt-1">
-                  ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU ĐÃ KÝ
-                </p>
-                <div className="h-16 flex items-center justify-center text-slate-300 italic text-xs print:hidden">
-                  (Dấu / Chữ ký đại lý)
+                  <button
+                    onClick={() => setShowZaloPreview(!showZaloPreview)}
+                    className="p-1 text-slate-500 hover:text-slate-800 rounded-lg"
+                    title={showZaloPreview ? 'Thu gọn' : 'Mở rộng'}
+                  >
+                    <ChevronDown size={18} className={`transition-transform duration-200 ${showZaloPreview ? 'rotate-180' : ''}`} />
+                  </button>
                 </div>
               </div>
+
+              {/* Nội dung tin nhắn Zalo xem trước */}
+              {showZaloPreview && (
+                <div className="p-3.5 space-y-3">
+                  <div className="relative group">
+                    <pre className="bg-slate-900 text-emerald-400 p-4 rounded-xl font-mono text-[11.5px] sm:text-[12px] leading-relaxed whitespace-pre-wrap max-h-[300px] overflow-y-auto shadow-inner border border-slate-700 select-all">
+                      {generateZaloCutoffNotice()}
+                    </pre>
+                  </div>
+
+                  {/* 2 Nút thao tác nhanh Zalo: Copy & Mở App */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      onClick={handleCopyZalo}
+                      className={`py-3 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md ${
+                        copiedZalo
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                      }`}
+                    >
+                      {copiedZalo ? <CheckCheck size={18} /> : <Copy size={18} />}
+                      <span>{copiedZalo ? 'ĐÃ COPY TIN NHẮN!' : 'COPY TIN NHẮN ZALO'}</span>
+                    </button>
+
+                    <button
+                      onClick={handleOpenZalo}
+                      className="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+                    >
+                      <MessageCircle size={18} />
+                      <span>MỞ ZALO GỬI CHO KHÁCH ({selectedCustomer.phoneTenant || selectedCustomer.phone || 'Chưa SĐT'})</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* TUỲ CHỈNH NHANH THÔNG TIN (Ẩn khi In) */}
-            <div className="print:hidden mt-8 pt-5 border-t border-dashed border-slate-300 bg-slate-50 p-4 rounded-xl space-y-3 font-sans">
-              <p className="text-[11px] font-black uppercase text-slate-500 tracking-wider">
-                ⚙️ Tùy chỉnh nhanh trước khi In / Gửi
-              </p>
+            {/* TUỲ CHỈNH NHANH THÔNG TIN VĂN BẢN (Ẩn khi In) */}
+            <div className="print:hidden border border-slate-200 bg-white p-4 rounded-2xl shadow-sm space-y-3 font-sans customize-panel">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-black uppercase text-slate-600 tracking-wider">
+                  ⚙️ Tùy chỉnh ngày tháng & địa chỉ trên Giấy Báo
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Hạn thanh toán</label>
@@ -498,7 +714,7 @@ Trân trọng,
                     type="text"
                     value={deadlineText}
                     onChange={e => setDeadlineText(e.target.value)}
-                    className="w-full bg-white p-2 rounded-lg border border-slate-200 font-bold text-slate-800"
+                    className="w-full bg-slate-50 p-2 rounded-xl border border-slate-200 font-bold text-slate-800 focus:border-blue-500 outline-none"
                   />
                 </div>
                 <div>
@@ -507,20 +723,27 @@ Trân trọng,
                     type="text"
                     value={noticeDateText}
                     onChange={e => setNoticeDateText(e.target.value)}
-                    className="w-full bg-white p-2 rounded-lg border border-slate-200 font-bold text-slate-800"
+                    className="w-full bg-slate-50 p-2 rounded-xl border border-slate-200 font-bold text-slate-800 focus:border-blue-500 outline-none"
                   />
                 </div>
-              </div>
-
-              {/* Nút hành động nhanh Zalo */}
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={handleOpenZalo}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
-                >
-                  <MessageCircle size={16} />
-                  <span>Mở Zalo khách hàng ({selectedCustomer.phoneTenant || selectedCustomer.phone || 'Chưa có SĐT'})</span>
-                </button>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Địa chỉ liên hệ đại lý</label>
+                  <input
+                    type="text"
+                    value={agencyAddress}
+                    onChange={e => setAgencyAddress(e.target.value)}
+                    className="w-full bg-slate-50 p-2 rounded-xl border border-slate-200 font-bold text-slate-800 focus:border-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">SĐT Đại lý cấp nước</label>
+                  <input
+                    type="text"
+                    value={agencyPhone}
+                    onChange={e => setAgencyPhone(e.target.value)}
+                    className="w-full bg-slate-50 p-2 rounded-xl border border-slate-200 font-bold text-slate-800 focus:border-blue-500 outline-none"
+                  />
+                </div>
               </div>
             </div>
           </div>
