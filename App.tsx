@@ -249,8 +249,8 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
   };
 
   return (
-    <div className="h-[100dvh] bg-[#f8fafc] max-w-md mx-auto flex flex-col relative overflow-hidden shadow-2xl">
-      {toast && <div className="fixed top-28 left-1/2 -translate-x-1/2 z-[250] px-8 py-4 rounded-3xl shadow-[0_20px_50px_rgba(37,99,235,0.4)] bg-blue-600 text-white font-black text-base animate-in zoom-in duration-300 text-center min-w-[280px] border-4 border-white/30 backdrop-blur-sm">{toast}</div>}
+    <div className="h-[100dvh] bg-[#f8fafc] max-w-md mx-auto flex flex-col relative overflow-hidden shadow-2xl print:max-w-none print:w-full print:h-auto print:mx-0 print:overflow-visible print:shadow-none print:bg-white print:block">
+      {toast && <div className="print:hidden fixed top-28 left-1/2 -translate-x-1/2 z-[250] px-8 py-4 rounded-3xl shadow-[0_20px_50px_rgba(37,99,235,0.4)] bg-blue-600 text-white font-black text-base animate-in zoom-in duration-300 text-center min-w-[280px] border-4 border-white/30 backdrop-blur-sm">{toast}</div>}
 
       {(view === 'list' || view === 'edit_customer' || view === 'add_customer' || view === 'edit_msg') && (
         <>

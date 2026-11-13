@@ -234,33 +234,33 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
 
     return (
       <div 
-        className="w-full bg-white text-slate-900 font-serif leading-[1.35] p-4 sm:p-6 print:px-2 print:py-1.5 flex flex-col justify-between text-[15px] sm:text-[16px] print:text-[12pt]"
+        className="w-full bg-white text-slate-900 font-serif leading-[1.35] p-4 sm:p-6 print:p-0 flex flex-col justify-start text-[15px] sm:text-[16px] print:text-[12pt]"
         style={{ fontFamily: "'Times New Roman', Times, serif" }}
       >
         {/* PHẦN ĐẦU TRANG */}
-        <div className="grid grid-cols-2 gap-2 text-center items-start mb-2 print:mb-1.5">
+        <div className="grid grid-cols-2 gap-3 text-center items-start mb-2.5 print:mb-2">
           <div className="space-y-0.5">
-            <p className="font-bold text-[13px] sm:text-[15px] print:text-[11.5pt] uppercase tracking-tight">
+            <p className="font-bold text-[12px] sm:text-[15px] print:text-[11.5pt] uppercase tracking-tight print:whitespace-nowrap">
               CÔNG TY CPCN NHÀ BÈ
             </p>
-            <p className="font-bold text-[13px] sm:text-[15px] print:text-[11.5pt] uppercase underline tracking-tight">
+            <p className="font-bold text-[12px] sm:text-[15px] print:text-[11.5pt] uppercase underline tracking-tight print:whitespace-nowrap">
               ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU
             </p>
           </div>
 
           <div className="space-y-0.5">
-            <p className="font-bold text-[13px] sm:text-[15px] print:text-[11.5pt] uppercase tracking-tight">
+            <p className="font-bold text-[12px] sm:text-[15px] print:text-[11.5pt] uppercase tracking-tight print:whitespace-nowrap">
               CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
             </p>
-            <p className="font-bold text-[12px] sm:text-[14px] print:text-[11pt] uppercase underline tracking-tight">
-              ĐỘC LẬP-TỰ DO-HẠNH PHÚC
+            <p className="font-bold text-[11px] sm:text-[14px] print:text-[11pt] uppercase underline tracking-tight print:whitespace-nowrap">
+              ĐỘC LẬP - TỰ DO - HẠNH PHÚC
             </p>
           </div>
         </div>
 
         {/* TIÊU ĐỀ CHÍNH */}
-        <div className="text-center my-2 print:my-1.5">
-          <h2 className="font-bold text-[17px] sm:text-[19px] print:text-[14pt] uppercase tracking-tight">
+        <div className="text-center my-2 print:my-2">
+          <h2 className="font-bold text-[16px] sm:text-[19px] print:text-[14pt] uppercase tracking-tight">
             GIẤY THÔNG BÁO TẠM NGỪNG CUNG CẤP NƯỚC
           </h2>
           {isCopyNotice && (
@@ -350,16 +350,16 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
         </div>
 
         {/* CHỮ KÝ VÀ NGÀY THÁNG */}
-        <div className="grid grid-cols-2 gap-2 text-center mt-2.5 print:mt-2 pt-1 items-start text-[15px] sm:text-[16px] print:text-[12pt]">
+        <div className="grid grid-cols-2 gap-3 text-center mt-3 print:mt-3 pt-1 items-start text-[15px] sm:text-[16px] print:text-[12pt]">
           <div className="pt-1">
             <p className="font-bold italic">Trân Trọng</p>
           </div>
 
           <div className="space-y-0.5">
-            <p className="font-bold italic">
+            <p className="font-bold italic print:whitespace-nowrap">
               {noticeDateText}
             </p>
-            <p className="font-bold uppercase pt-0.5 print:text-[11.5pt]">
+            <p className="font-bold uppercase pt-0.5 print:text-[11.5pt] print:whitespace-nowrap">
               ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU ĐÃ KÝ
             </p>
           </div>
@@ -369,15 +369,17 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-100 z-[160] flex flex-col overflow-hidden animate-in slide-in-from-right duration-200 print:static print:inset-auto print:block print:overflow-visible print:bg-white">
+    <div className="fixed inset-0 bg-slate-100 z-[160] flex flex-col overflow-hidden animate-in slide-in-from-right duration-200 print:static print:inset-auto print:block print:overflow-visible print:bg-white print:w-full print:h-auto">
       {/* CSS DÀNH RIÊNG CHO IN ẤN KHỔ 1/2 A4 */}
       <style>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 5mm 8mm;
+            margin: 6mm 10mm;
           }
           body, html {
+            width: 100% !important;
+            height: auto !important;
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -389,6 +391,7 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
           }
           .print-area {
             width: 100% !important;
+            max-width: none !important;
             padding: 0 !important;
             margin: 0 !important;
             background: white !important;
@@ -396,12 +399,23 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
             overflow: visible !important;
           }
           .half-a4-notice {
+            width: 100% !important;
             box-shadow: none !important;
             border: none !important;
             border-radius: 0 !important;
-            padding: 2mm 1mm !important;
+            padding: 2mm 0 !important;
+            margin: 0 !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+            overflow: hidden !important;
+          }
+          .half-a4-notice-double {
+            height: 136mm !important;
+          }
+          .a4-cut-line {
+            height: 8mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
         }
       `}</style>
@@ -586,9 +600,9 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
       {/* VÙNG CHỨA NỘI DUNG VĂN BẢN (PREVIEW & IN ẤN) */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-6 flex flex-col items-center bg-slate-200/60 print:bg-white print:p-0 print:overflow-visible print-area">
         {selectedCustomer ? (
-          <div className="w-full max-w-[760px] flex flex-col gap-4 print:gap-0 print:w-full print:max-w-none">
+          <div className="w-full max-w-[760px] flex flex-col gap-4 print:block print:w-full print:max-w-none">
             {/* BẢN IN THỨ 1 (NỬA TRANG TRÊN HOẶC BẢN DUY NHẤT) */}
-            <div className="half-a4-notice bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden print:border-0 print:shadow-none">
+            <div className={`half-a4-notice ${printMode === 'double' ? 'half-a4-notice-double' : ''} bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden print:border-0 print:shadow-none`}>
               {renderSingleNotice(false)}
             </div>
 
@@ -596,7 +610,7 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
             {printMode === 'double' && (
               <>
                 {/* Đường vạch đứt nét để cắt giấy ở giữa tờ A4 */}
-                <div className="py-2 flex items-center justify-center gap-2 text-slate-400 print:text-slate-700 my-1 select-none">
+                <div className="a4-cut-line py-2 flex items-center justify-center gap-2 text-slate-400 print:text-slate-700 my-1 select-none">
                   <div className="flex-1 border-b-2 border-dashed border-slate-300 print:border-slate-800"></div>
                   <div className="flex items-center gap-1.5 text-[11px] font-sans font-bold uppercase tracking-widest px-2 py-0.5 bg-slate-100 print:bg-white rounded border border-slate-200 print:border-slate-400">
                     <Scissors size={14} />
@@ -607,7 +621,7 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
                 </div>
 
                 {/* BẢN IN THỨ 2 (NỬA TRANG DƯỚI) */}
-                <div className="half-a4-notice bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden print:border-0 print:shadow-none">
+                <div className="half-a4-notice half-a4-notice-double bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden print:border-0 print:shadow-none">
                   {renderSingleNotice(true)}
                 </div>
               </>
