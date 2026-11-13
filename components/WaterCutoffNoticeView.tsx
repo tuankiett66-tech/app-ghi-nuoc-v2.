@@ -228,31 +228,31 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
     window.location.href = `https://zalo.me/${cleanPhone}`;
   };
 
-  // Component render nội dung 1 bản thông báo khổ 1/2 A4
+  // Component render nội dung 1 bản thông báo khổ 1/2 A4 (Cỡ chữ chuẩn 12pt)
   const renderSingleNotice = (isCopyNotice: boolean = false) => {
     if (!selectedCustomer) return null;
 
     return (
       <div 
-        className="w-full bg-white text-slate-900 font-serif leading-snug p-4 sm:p-6 print:p-3 flex flex-col justify-between"
+        className="w-full bg-white text-slate-900 font-serif leading-[1.35] p-4 sm:p-6 print:px-2 print:py-1.5 flex flex-col justify-between text-[15px] sm:text-[16px] print:text-[12pt]"
         style={{ fontFamily: "'Times New Roman', Times, serif" }}
       >
         {/* PHẦN ĐẦU TRANG */}
         <div className="grid grid-cols-2 gap-2 text-center items-start mb-2 print:mb-1.5">
           <div className="space-y-0.5">
-            <p className="font-bold text-[11px] sm:text-[13px] print:text-[12px] uppercase tracking-tight">
+            <p className="font-bold text-[13px] sm:text-[15px] print:text-[11.5pt] uppercase tracking-tight">
               CÔNG TY CPCN NHÀ BÈ
             </p>
-            <p className="font-bold text-[11px] sm:text-[13px] print:text-[12px] uppercase underline tracking-tight">
+            <p className="font-bold text-[13px] sm:text-[15px] print:text-[11.5pt] uppercase underline tracking-tight">
               ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU
             </p>
           </div>
 
           <div className="space-y-0.5">
-            <p className="font-bold text-[11px] sm:text-[13px] print:text-[12px] uppercase tracking-tight">
+            <p className="font-bold text-[13px] sm:text-[15px] print:text-[11.5pt] uppercase tracking-tight">
               CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
             </p>
-            <p className="font-bold text-[10px] sm:text-[12px] print:text-[11px] uppercase underline tracking-tight">
+            <p className="font-bold text-[12px] sm:text-[14px] print:text-[11pt] uppercase underline tracking-tight">
               ĐỘC LẬP-TỰ DO-HẠNH PHÚC
             </p>
           </div>
@@ -260,21 +260,21 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
 
         {/* TIÊU ĐỀ CHÍNH */}
         <div className="text-center my-2 print:my-1.5">
-          <h2 className="font-bold text-[15px] sm:text-[17px] print:text-[16px] uppercase tracking-tight">
+          <h2 className="font-bold text-[17px] sm:text-[19px] print:text-[14pt] uppercase tracking-tight">
             GIẤY THÔNG BÁO TẠM NGỪNG CUNG CẤP NƯỚC
           </h2>
           {isCopyNotice && (
-            <p className="text-[10px] italic text-slate-500 font-sans print:hidden">
+            <p className="text-[11px] italic text-slate-500 font-sans print:hidden">
               (Liên 2: Bản sao lưu đối chiếu)
             </p>
           )}
         </div>
 
         {/* THÔNG TIN KHÁCH HÀNG */}
-        <div className="space-y-1 text-[12px] sm:text-[13.5px] print:text-[12.5px] mb-2 print:mb-1.5">
+        <div className="space-y-1 text-[15px] sm:text-[16px] print:text-[12pt] mb-2 print:mb-1.5">
           <p>
             <span className="italic underline">Kính gửi khách hàng</span>( Ông/Bà) :{' '}
-            <strong className="uppercase text-[13px] sm:text-[14.5px] print:text-[13.5px] font-bold">
+            <strong className="uppercase text-[16px] sm:text-[17px] print:text-[12.5pt] font-bold">
               {selectedCustomer.name}
             </strong>
             <span className="ml-2 font-sans font-black text-[11px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 print:hidden">
@@ -287,16 +287,16 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
           </p>
           <p>
             <span>Tính đến nay quý khách còn nợ số tiền : </span>
-            <strong className="text-[14px] sm:text-[15px] print:text-[14.5px] font-bold font-sans">
-              {balanceAmount.toLocaleString('vi-VN')}
+            <strong className="text-[16px] sm:text-[17px] print:text-[12.5pt] font-bold font-sans">
+              {balanceAmount.toLocaleString('vi-VN')} đ
             </strong>
           </p>
         </div>
 
         {/* BẢNG CỤ THỂ CHI TIẾT NỢ */}
         <div className="my-2 print:my-1.5">
-          <p className="font-semibold text-[12px] sm:text-[13px] print:text-[12px] mb-1">Cụ thể Như sau:</p>
-          <table className="w-full border-collapse border border-slate-900 text-center text-[11.5px] sm:text-[12.5px] print:text-[12px]">
+          <p className="font-semibold text-[15px] sm:text-[16px] print:text-[12pt] mb-1">Cụ thể Như sau:</p>
+          <table className="w-full border-collapse border border-slate-900 text-center text-[14px] sm:text-[16px] print:text-[12pt]">
             <thead>
               <tr className="bg-slate-50 print:bg-transparent">
                 <th className="border border-slate-900 px-2 py-1 font-bold">
@@ -315,16 +315,16 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
             </thead>
             <tbody>
               <tr>
-                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans">
+                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans text-[15px] sm:text-[16px] print:text-[12pt]">
                   {curPeriodAmount > 0 ? curPeriodAmount.toLocaleString('vi-VN') : '0'}
                 </td>
-                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans">
+                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans text-[15px] sm:text-[16px] print:text-[12pt]">
                   {oldDebtAmount !== 0 ? oldDebtAmount.toLocaleString('vi-VN') : '0'}
                 </td>
-                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans text-slate-500">
+                <td className="border border-slate-900 px-2 py-1.5 font-bold font-sans text-slate-600 text-[15px] sm:text-[16px] print:text-[12pt]">
                   {paidAmount > 0 ? paidAmount.toLocaleString('vi-VN') : ''}
                 </td>
-                <td className="border border-slate-900 px-2 py-1.5 font-black font-sans text-[13.5px] print:text-[13px]">
+                <td className="border border-slate-900 px-2 py-1.5 font-black font-sans text-[16px] sm:text-[17px] print:text-[12.5pt]">
                   {balanceAmount.toLocaleString('vi-VN')}
                 </td>
               </tr>
@@ -333,7 +333,7 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
         </div>
 
         {/* NỘI DUNG VĂN BẢN VÀ THỜI HẠN */}
-        <div className="space-y-1.5 text-[11.5px] sm:text-[12.5px] print:text-[12px] text-justify leading-snug mt-1.5 print:mt-1">
+        <div className="space-y-1 text-[15px] sm:text-[16px] print:text-[12pt] text-justify leading-[1.35] mt-1.5 print:mt-1">
           <p>
             Căn cứ thỏa thuận cung cấp nước của hai bên, kính đề nghị quý khách hàng kịp thời thanh toán số tiền còn nợ trên{' '}
             <span className="font-bold underline">{deadlineText}</span>.
@@ -350,16 +350,16 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
         </div>
 
         {/* CHỮ KÝ VÀ NGÀY THÁNG */}
-        <div className="grid grid-cols-2 gap-2 text-center mt-3 print:mt-2.5 pt-1 items-start">
+        <div className="grid grid-cols-2 gap-2 text-center mt-2.5 print:mt-2 pt-1 items-start text-[15px] sm:text-[16px] print:text-[12pt]">
           <div className="pt-1">
-            <p className="font-bold italic text-[12px] sm:text-[13px] print:text-[12.5px]">Trân Trọng</p>
+            <p className="font-bold italic">Trân Trọng</p>
           </div>
 
           <div className="space-y-0.5">
-            <p className="font-bold italic text-[11px] sm:text-[12.5px] print:text-[12px]">
+            <p className="font-bold italic">
               {noticeDateText}
             </p>
-            <p className="font-bold uppercase text-[11px] sm:text-[12.5px] print:text-[12px] pt-0.5">
+            <p className="font-bold uppercase pt-0.5 print:text-[11.5pt]">
               ĐẠI LÝ CẤP NƯỚC ẤP 4_LONG HẬU ĐÃ KÝ
             </p>
           </div>
@@ -369,7 +369,7 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-100 z-[160] flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+    <div className="fixed inset-0 bg-slate-100 z-[160] flex flex-col overflow-hidden animate-in slide-in-from-right duration-200 print:static print:inset-auto print:block print:overflow-visible print:bg-white">
       {/* CSS DÀNH RIÊNG CHO IN ẤN KHỔ 1/2 A4 */}
       <style>{`
         @media print {
@@ -392,12 +392,14 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
             padding: 0 !important;
             margin: 0 !important;
             background: white !important;
+            display: block !important;
+            overflow: visible !important;
           }
           .half-a4-notice {
             box-shadow: none !important;
             border: none !important;
             border-radius: 0 !important;
-            padding: 4mm 2mm !important;
+            padding: 2mm 1mm !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
           }
