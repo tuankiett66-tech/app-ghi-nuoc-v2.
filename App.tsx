@@ -14,7 +14,7 @@ import { GroupListView } from './components/GroupListView';
 import { GroupDetailView } from './components/GroupDetailView';
 import { VerifyView } from './components/VerifyView';
 import { WaterCutoffNoticeView } from './components/WaterCutoffNoticeView';
-import { normalizePhoneForZalo, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, exportReserveFundToExcel, exportVatToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
+import { normalizePhoneForZalo, openZaloChat, copyToClipboard, generateVietQrUrl, formatCurrency, exportToExcel, exportReserveFundToExcel, exportVatToExcel, parseExcelFile, calculateRow, normalizeString, suggestNextMaKH, getBillingMonthYear, normalizeDate, normalizeMonthYear, parseStringOrDateToNumber, getZaloBillingHeader, getCurrentPeriodSuffix, parseSafeBool, safeJsonStringify } from './utils';
 import { Customer, LossRecord } from './types';
 import { AlertTriangle } from 'lucide-react';
 
@@ -195,16 +195,18 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
     return msg;
   };
 
-  const handleSendZalo = async () => {
+  const handleSendZalo = async (customMsg?: string) => {
     if (!selectedCustomer) return;
-    const msg = generateMsg(selectedCustomer, selectedCustomer.newIndex.toString(), selectedCustomer.paid.toString());
+    const msg = customMsg || generateMsg(selectedCustomer, selectedCustomer.newIndex.toString(), selectedCustomer.paid.toString());
     await copyToClipboard(msg);
     updateCustomer(selectedCustomer.id, { isProcessed: true });
-    showToast("Da copy & Mo Zalo...");
-    setTimeout(() => {
-      const sdt = normalizePhoneForZalo(selectedCustomer.phoneTenant || selectedCustomer.phone);
-      window.location.href = `https://zalo.me/${sdt}`;
-    }, 300);
+    const phone = selectedCustomer.phoneTenant || selectedCustomer.phone;
+    const opened = openZaloChat(phone);
+    if (opened) {
+      showToast("Đã copy Bill & Đang mở Zalo...");
+    } else {
+      showToast("Đã copy Bill! (KH chưa có SĐT)");
+    }
   };
 
   const handleMarkGroupPaid = (groupId: string) => {
@@ -293,7 +295,11 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
               lastScrollId.current = id;
               navigateTo('detail'); 
             }}
-            onCall={(phone) => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(phone)}`; }}
+            onCall={(phone) => { 
+              if (!openZaloChat(phone)) {
+                showToast("Khách hàng chưa có SĐT hợp lệ!");
+              }
+            }}
             onCopyMsg={async (c) => { 
               lastScrollId.current = c.id;
               await copyToClipboard(generateMsg(c, c.newIndex.toString(), c.paid.toString())); 
@@ -319,7 +325,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
 
       {view === 'detail' && selectedCustomer && (
         <DetailView 
-          customer={selectedCustomer} config={config}
+          customer={selectedCustomer} config={config} groups={groups}
           onBack={() => { lastScrollId.current = selectedId; navigateTo('list', false); }} 
           onNavigate={(dir) => {
             const idx = filtered.findIndex(c => c.id === selectedId);
@@ -357,10 +363,40 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             navigateTo('add_customer', false); 
             showToast(`Đang chèn hộ mới sau mã ${selectedCustomer.maKH}`);
           }}
+          onCopyBill={async (msg) => {
+            if (!selectedCustomer) return;
+            await copyToClipboard(msg);
+            updateCustomer(selectedCustomer.id, { isProcessed: true });
+            showToast("Đã copy Bill & Chốt số!");
+          }}
           onSendZalo={handleSendZalo}
           onShowCutoffNotice={(id) => {
             setSelectedId(id);
             navigateTo('water_cutoff_notice');
+          }}
+          onQuickCreateGroup={(cust, groupName) => {
+            const phone = cust.phoneTenant || cust.phone || '';
+            const newGroup = addGroup(groupName, [{ maKH: cust.maKH, source: cust.listType }], phone);
+            setSelectedGroupId(newGroup.id);
+            navigateTo('group_detail');
+            showToast(`Đã tạo nhóm "${groupName}" & thêm mã ${cust.maKH}!`);
+          }}
+          onQuickAddToGroup={(cust, groupId) => {
+            const targetGroup = groups.find(g => g.id === groupId);
+            if (!targetGroup) return;
+            const exists = (targetGroup.members || []).some(
+              m => m.maKH === cust.maKH && m.source === cust.listType
+            );
+            if (!exists) {
+              updateGroup(groupId, {
+                members: [...(targetGroup.members || []), { maKH: cust.maKH, source: cust.listType }]
+              });
+              showToast(`Đã thêm mã ${cust.maKH} vào nhóm "${targetGroup.name}"!`);
+            }
+          }}
+          onOpenGroup={(groupId) => {
+            setSelectedGroupId(groupId);
+            navigateTo('group_detail');
           }}
           generateMsg={generateMsg}
         />
@@ -396,8 +432,8 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
           onSendZalo={async (msg, sdt) => {
             await copyToClipboard(msg);
             updateGroup(activeGroup.id, { isProcessed: true });
-            showToast("Đã copy Bill Nhóm & Đánh dấu!");
-            if(sdt) setTimeout(() => { window.location.href = `https://zalo.me/${normalizePhoneForZalo(sdt)}`; }, 300);
+            const opened = sdt ? openZaloChat(sdt) : false;
+            showToast(opened ? "Đã copy Bill Nhóm & Đang mở Zalo!" : "Đã copy Bill Nhóm & Đánh dấu!");
           }}
           onShowQr={(bankId, accountNo, amount, name) => setGroupQrData({bankId, accountNo, amount, name})}
         />

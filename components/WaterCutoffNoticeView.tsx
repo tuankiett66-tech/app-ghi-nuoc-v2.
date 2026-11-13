@@ -5,7 +5,7 @@ import {
   Users, Scissors, ChevronDown, Check
 } from 'lucide-react';
 import { Customer, SystemConfig } from '../types';
-import { formatCurrency, copyToClipboard, normalizePhoneForZalo, getBillingMonthYear, normalizeString } from '../utils';
+import { formatCurrency, copyToClipboard, openZaloChat, getBillingMonthYear, normalizeString } from '../utils';
 
 interface WaterCutoffNoticeViewProps {
   customers: Customer[];
@@ -220,12 +220,9 @@ ${paidAmount > 0 ? `• Đã thanh toán: -${paidAmount.toLocaleString('vi-VN')}
   const handleOpenZalo = () => {
     if (!selectedCustomer) return;
     const phone = selectedCustomer.phoneTenant || selectedCustomer.phone;
-    if (!phone) {
-      alert("Khách hàng này chưa có số điện thoại!");
-      return;
+    if (!openZaloChat(phone)) {
+      alert("Khách hàng này chưa có số điện thoại hợp lệ!");
     }
-    const cleanPhone = normalizePhoneForZalo(phone);
-    window.location.href = `https://zalo.me/${cleanPhone}`;
   };
 
   // Component render nội dung 1 bản thông báo khổ 1/2 A4 (Cỡ chữ chuẩn 12pt)

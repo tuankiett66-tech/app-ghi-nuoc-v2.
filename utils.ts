@@ -255,6 +255,42 @@ export const normalizePhoneForZalo = (phone: any): string => {
   return p;
 };
 
+// Chuan hoa SDT ve dang 0xxx Viet Nam cho link zalo.me
+export const normalizePhoneForZaloLocal = (phone: any): string => {
+  let p = String(phone || "").replace(/[^0-9]/g, '');
+  if (!p) return '';
+  if (p.startsWith('84') && p.length >= 11) {
+    p = '0' + p.substring(2);
+  }
+  return p;
+};
+
+// Mo thang App Zalo (Android dung Intent com.zing.zalo, iOS/PC mo tab ngoai PWA de kich hoat app / giu tab App)
+export const openZaloChat = (phone: any): boolean => {
+  const localPhone = normalizePhoneForZaloLocal(phone);
+  if (!localPhone || localPhone.length < 9) {
+    return false;
+  }
+
+  const webUrl = `https://zalo.me/${localPhone}`;
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const isAndroid = /Android/i.test(ua);
+
+  if (isAndroid) {
+    window.location.href = `intent://zalo.me/${localPhone}#Intent;scheme=https;package=com.zing.zalo;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+    return true;
+  }
+
+  const link = document.createElement('a');
+  link.href = webUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  return true;
+};
+
 export const parseSafeBool = (val: any): boolean => {
   if (val === undefined || val === null) return false;
   if (typeof val === 'boolean') return val;

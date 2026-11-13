@@ -1,13 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronDown, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2, FileText } from 'lucide-react';
-import { Customer, SystemConfig } from '../types';
-import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo, generateVietQrUrl } from '../utils';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ChevronLeft, ChevronDown, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2, FileText, Users, Search, ArrowRight } from 'lucide-react';
+import { Customer, SystemConfig, WaterGroup } from '../types';
+import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo, openZaloChat, generateVietQrUrl, normalizeString } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
 
 interface DetailViewProps {
   customer: Customer;
   config: SystemConfig;
+  groups?: WaterGroup[];
   onBack: () => void;
   onNavigate: (dir: 'next' | 'prev' | 'next10' | 'prev10') => void;
   onUpdate: (updates: Partial<Customer>) => void;
@@ -17,13 +18,17 @@ interface DetailViewProps {
   onEditInfo: () => void;
   onDelete: () => void;
   onAddAfter: () => void;
-  onSendZalo: () => void;
+  onCopyBill?: (msg: string) => void;
+  onSendZalo: (msg?: string) => void;
   onShowCutoffNotice?: (customerId: string) => void;
+  onQuickCreateGroup?: (customer: Customer, groupName: string) => void;
+  onQuickAddToGroup?: (customer: Customer, groupId: string) => void;
+  onOpenGroup?: (groupId: string) => void;
   generateMsg: (c: Customer, ni: string, pi: string) => string;
 }
 
 export const DetailView: React.FC<DetailViewProps> = ({ 
-  customer, config, onBack, onNavigate, onUpdate, onUpdateConfig, onClearAllRecordDates, onShowQr, onEditInfo, onDelete, onAddAfter, onSendZalo, onShowCutoffNotice, generateMsg 
+  customer, config, groups = [], onBack, onNavigate, onUpdate, onUpdateConfig, onClearAllRecordDates, onShowQr, onEditInfo, onDelete, onAddAfter, onCopyBill, onSendZalo, onShowCutoffNotice, onQuickCreateGroup, onQuickAddToGroup, onOpenGroup, generateMsg 
 }) => {
   // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -38,7 +43,26 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [copiedTax, setCopiedTax] = useState(false);
   const [copiedCompany, setCopiedCompany] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedBill, setCopiedBill] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showQuickGroupModal, setShowQuickGroupModal] = useState(false);
+  const [quickGroupName, setQuickGroupName] = useState(customer.name.toUpperCase());
+  const [quickGroupSearch, setQuickGroupSearch] = useState("");
+
+  const customerGroups = useMemo(() => {
+    return groups.filter(g =>
+      (g.members || []).some(m => m.maKH === customer.maKH && m.source === customer.listType)
+    );
+  }, [groups, customer.maKH, customer.listType]);
+
+  const filteredQuickGroups = useMemo(() => {
+    const q = normalizeString(quickGroupSearch).trim();
+    if (!q) return groups;
+    return groups.filter(g =>
+      normalizeString(g.name).includes(q) ||
+      (g.members || []).some(m => normalizeString(m.maKH).includes(q))
+    );
+  }, [groups, quickGroupSearch]);
 
   // Kéo ngang để chuyển đổi khách hàng trên điện thoại (Swipe gesture)
   const [touchStartX, setTouchStartX] = useState<number>(0);
@@ -118,6 +142,10 @@ export const DetailView: React.FC<DetailViewProps> = ({
     setTempInstallDate(customer.installDate || "");
     setTempRecordDate(customer.recordDate || config.globalRecordDate || new Date().toISOString().slice(0, 10));
     setCopiedName(false);
+    setCopiedBill(false);
+    setShowQuickGroupModal(false);
+    setQuickGroupName(customer.name.toUpperCase());
+    setQuickGroupSearch("");
     setCopiedTax(false);
     setCopiedCompany(false);
     setCopiedEmail(false);
@@ -392,17 +420,243 @@ export const DetailView: React.FC<DetailViewProps> = ({
           </div>
         </div>
 
-        {/* NÚT GỬI ZALO & CHỐT SỐ (ĐƯỢC ĐẶT DƯỚI THẺ KHÁCH TRẢ TIỀN) */}
-        <button onClick={onSendZalo} className="w-full bg-blue-700 text-white py-3.5 rounded-xl font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 border-b-4 border-blue-900 text-sm"><MessageCircle size={18}/> Gửi Zalo & Chốt số</button>
-
-        {onShowCutoffNotice && (customer.balance > 0 || customer.oldDebt > 0) && (
-          <button 
+        {/* HÀNG NÚT CHÍNH: COPY BILL (TRÁI) & MỞ ZALO (PHẢI) */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
             type="button"
-            onClick={() => onShowCutoffNotice(customer.id)} 
-            className="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 py-3 rounded-xl font-black uppercase flex items-center justify-center gap-2 border-2 border-rose-200 active:scale-95 text-xs shadow-xs transition-all"
+            onClick={async () => {
+              const msg = generateMsg(customer, ni, pi);
+              if (onCopyBill) {
+                onCopyBill(msg);
+              } else {
+                await copyToClipboard(msg);
+                onUpdate({ isProcessed: true });
+              }
+              setCopiedBill(true);
+              setTimeout(() => setCopiedBill(false), 2000);
+            }}
+            className={`py-3.5 px-2.5 rounded-xl font-black uppercase flex items-center justify-center gap-1.5 shadow-lg active:scale-95 border-b-4 text-xs sm:text-sm transition-all ${
+              copiedBill
+                ? 'bg-emerald-600 text-white border-emerald-900 shadow-emerald-100'
+                : 'bg-teal-600 hover:bg-teal-700 text-white border-teal-900 shadow-teal-100'
+            }`}
           >
-            <FileText size={16}/> Giấy Báo Tạm Ngừng Cấp Nước
+            {copiedBill ? <CheckCheck size={18} className="shrink-0" /> : <Copy size={18} className="shrink-0" />}
+            <span className="truncate">{copiedBill ? 'Đã Copy Bill!' : 'Copy Bill'}</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => onSendZalo(generateMsg(customer, ni, pi))}
+            className="bg-blue-700 hover:bg-blue-800 text-white py-3.5 px-2.5 rounded-xl font-black uppercase flex items-center justify-center gap-1.5 shadow-lg shadow-blue-100 active:scale-95 border-b-4 border-blue-900 text-xs sm:text-sm transition-all"
+          >
+            <MessageCircle size={18} className="shrink-0" />
+            <span className="truncate">Gửi Zalo</span>
+          </button>
+        </div>
+
+        {/* THANH 2 Ô: TẠO NHÓM (TRÁI) & TẠM DỪNG CẤP NƯỚC (PHẢI) */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              setQuickGroupName(customer.name.toUpperCase());
+              setQuickGroupSearch("");
+              setShowQuickGroupModal(true);
+            }}
+            className={`py-3 px-2.5 rounded-xl font-black uppercase flex items-center justify-center gap-1.5 border-2 active:scale-95 text-[11px] sm:text-xs shadow-xs transition-all ${
+              customerGroups.length > 0
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-700'
+                : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+            }`}
+          >
+            <Users size={16} className="shrink-0" />
+            <span className="truncate">
+              {customerGroups.length > 0 ? `Nhóm (${customerGroups.length})` : 'Tạo Nhóm'}
+            </span>
+          </button>
+
+          {onShowCutoffNotice && (
+            <button 
+              type="button"
+              onClick={() => onShowCutoffNotice(customer.id)} 
+              className={`py-3 px-2.5 rounded-xl font-black uppercase flex items-center justify-center gap-1.5 border-2 active:scale-95 text-[11px] sm:text-xs shadow-xs transition-all ${
+                (customer.balance > 0 || customer.oldDebt > 0)
+                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200'
+              }`}
+            >
+              <FileText size={16} className="shrink-0"/>
+              <span className="truncate">Tạm Dừng</span>
+            </button>
+          )}
+        </div>
+
+        {/* MODAL TẠO NHÓM / THÊM VÀO NHÓM NHANH 1 CHẠM */}
+        {showQuickGroupModal && (
+          <div className="fixed inset-0 bg-slate-900/60 z-[260] flex items-center justify-center p-4 backdrop-blur-xs" onClick={() => setShowQuickGroupModal(false)}>
+            <div className="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-150" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b pb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="p-2 bg-indigo-100 text-indigo-700 rounded-xl shrink-0">
+                    <Users size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-black text-sm uppercase text-indigo-800 truncate">Tạo Danh Bộ Nhóm</h3>
+                    <p className="text-[11px] font-bold text-slate-500 truncate">
+                      Mã KH {customer.maKH} • {customer.name}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setShowQuickGroupModal(false)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-600 shrink-0">
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Nếu hộ đã thuộc nhóm nào đó -> Hiện nút mở nhanh */}
+              {customerGroups.length > 0 && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 space-y-2 shrink-0">
+                  <p className="text-[10px] font-black uppercase text-emerald-700">Đang thuộc nhóm:</p>
+                  <div className="flex flex-col gap-1.5">
+                    {customerGroups.map(g => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => {
+                          setShowQuickGroupModal(false);
+                          onOpenGroup?.(g.id);
+                        }}
+                        className="w-full flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-emerald-200 text-left hover:bg-emerald-100/50 active:scale-[0.99] transition-all"
+                      >
+                        <span className="font-black text-xs text-emerald-900 uppercase truncate">{g.name}</span>
+                        <span className="text-[10px] font-black text-emerald-700 uppercase flex items-center gap-1 shrink-0">
+                          Mở <ArrowRight size={12} />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tạo nhóm mới từ hộ này */}
+              <div className="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-3.5 space-y-2.5 shrink-0">
+                <p className="text-[10px] font-black uppercase text-indigo-700 tracking-wider">Tạo nhóm mới từ hộ này</p>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={quickGroupName}
+                    onChange={e => setQuickGroupName(e.target.value)}
+                    placeholder="Nhập tên nhóm..."
+                    className="w-full bg-white px-3 py-2.5 pr-9 rounded-xl border-2 border-indigo-200 focus:border-indigo-500 outline-none font-black text-sm text-indigo-900"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && quickGroupName.trim() && onQuickCreateGroup) {
+                        onQuickCreateGroup(customer, quickGroupName.trim().toUpperCase());
+                        setShowQuickGroupModal(false);
+                      }
+                    }}
+                  />
+                  {quickGroupName && (
+                    <button
+                      type="button"
+                      onClick={() => setQuickGroupName("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 p-1"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={!quickGroupName.trim()}
+                  onClick={() => {
+                    if (quickGroupName.trim() && onQuickCreateGroup) {
+                      onQuickCreateGroup(customer, quickGroupName.trim().toUpperCase());
+                      setShowQuickGroupModal(false);
+                    }
+                  }}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-1.5 shadow-md border-b-2 border-indigo-900 active:scale-95 transition-all"
+                >
+                  <Plus size={16} />
+                  <span>Tạo nhóm mới & Thêm mã {customer.maKH}</span>
+                </button>
+              </div>
+
+              {/* Thêm nhanh vào nhóm đã có */}
+              {groups.length > 0 && (
+                <div className="flex-1 min-h-0 flex flex-col space-y-2">
+                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-wider shrink-0">
+                    Hoặc thêm vào nhóm đã có ({groups.length})
+                  </p>
+                  <div className="relative shrink-0">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={quickGroupSearch}
+                      onChange={e => setQuickGroupSearch(e.target.value)}
+                      placeholder="Tìm tên nhóm hoặc Mã KH..."
+                      className="w-full bg-slate-50 pl-8 pr-8 py-2 rounded-xl border border-slate-200 focus:border-indigo-400 outline-none text-xs font-bold text-slate-700"
+                    />
+                    {quickGroupSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setQuickGroupSearch("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500"
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="overflow-y-auto space-y-1.5 pr-1 flex-1 min-h-[120px]">
+                    {filteredQuickGroups.map(g => {
+                      const isMember = (g.members || []).some(
+                        m => m.maKH === customer.maKH && m.source === customer.listType
+                      );
+                      return (
+                        <div
+                          key={g.id}
+                          className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
+                            isMember
+                              ? 'bg-emerald-50 border-emerald-200'
+                              : 'bg-slate-50 border-slate-200 hover:border-indigo-300'
+                          }`}
+                        >
+                          <div className="min-w-0 pr-2">
+                            <p className="font-black text-xs text-slate-800 uppercase truncate">{g.name}</p>
+                            <p className="text-[10px] font-bold text-slate-400">
+                              {(g.members || []).length} hộ thành viên
+                            </p>
+                          </div>
+                          {isMember ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowQuickGroupModal(false);
+                                onOpenGroup?.(g.id);
+                              }}
+                              className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase shrink-0 active:scale-95"
+                            >
+                              Đã có • Mở
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => onQuickAddToGroup?.(customer, g.id)}
+                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-black uppercase shrink-0 active:scale-95"
+                            >
+                              + Thêm
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {filteredQuickGroups.length === 0 && (
+                      <p className="text-center text-xs text-slate-400 font-bold py-4">Không tìm thấy nhóm phù hợp</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* THANH XEM TRƯỚC TIN NHẮN (COLLAPSIBLE) - NẰM YÊN TRONG HỘP CHO ĐẾN KHI BẤM XEM */}
@@ -442,8 +696,10 @@ export const DetailView: React.FC<DetailViewProps> = ({
           </button>
           <button 
             onClick={() => {
-              const sdt = normalizePhoneForZalo(customer.phoneTenant || customer.phone);
-              window.location.href = `https://zalo.me/${sdt}`;
+              const ok = openZaloChat(customer.phoneTenant || customer.phone);
+              if (!ok) {
+                alert("Khách hàng này chưa có số điện thoại hợp lệ!");
+              }
             }}
             className="flex items-center justify-center gap-2 py-3 bg-white text-indigo-700 rounded-2xl font-black uppercase text-[10px] border-2 border-indigo-200 shadow-sm active:scale-95"
           >

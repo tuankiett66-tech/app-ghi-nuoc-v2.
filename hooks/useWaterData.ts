@@ -245,8 +245,8 @@ export const useWaterData = () => {
   };
 
   // Logic Quan ly Nhom
-  const addGroup = (name: string, members: GroupMember[] = []) => {
-    const newGroup: WaterGroup = { id: `group-${Date.now()}`, name, masterSdt: '', members };
+  const addGroup = (name: string, members: GroupMember[] = [], masterSdt: string = '') => {
+    const newGroup: WaterGroup = { id: `group-${Date.now()}`, name, masterSdt, members };
     setGroups(prev => [...prev, newGroup]);
     return newGroup;
   };
