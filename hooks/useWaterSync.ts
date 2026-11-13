@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Customer, SystemConfig, WaterGroup, LossRecord, DailySupplyReading } from '../types';
+import { Customer, CustomerHistoryRecord, SystemConfig, WaterGroup, LossRecord, DailySupplyReading } from '../types';
 import { parseStringOrDateToNumber, normalizeDate, normalizeMonthYear, parseSafeBool, safeJsonStringify, calculateRow, isDateStale } from '../utils';
 
 interface UseWaterSyncProps {
@@ -550,11 +550,76 @@ export const useWaterSync = ({
     }
   };
 
+  const fetchCustomerHistory = async (
+    maKH: string,
+    listType: 'list1' | 'list2',
+    limit = 3
+  ): Promise<{
+    status: string;
+    totalHistoryTabs?: number;
+    history?: CustomerHistoryRecord[];
+    message?: string;
+  }> => {
+    const url = config.sheetUrl?.trim();
+    if (!url) {
+      return { status: 'error', message: 'Chưa cấu hình Link Script Google Sheets trong mục Cấu hình!' };
+    }
+    if (!url.toLowerCase().includes('/exec')) {
+      return { status: 'error', message: 'Link Script không đúng định dạng Web App (/exec).' };
+    }
+
+    try {
+      const sep = url.includes('?') ? '&' : '?';
+      const queryUrl = `${url}${sep}action=get_customer_history&maKH=${encodeURIComponent(maKH)}&listType=${encodeURIComponent(listType)}&limit=${limit}&t=${Date.now()}`;
+      const res = await fetch(queryUrl, { credentials: 'omit' });
+      if (!res.ok) {
+        return { status: 'error', message: `Lỗi kết nối HTTP ${res.status}` };
+      }
+
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        return {
+          status: 'error',
+          message: 'Script trên Google Sheets chưa cập nhật bản V4.8 (hoặc chưa mở quyền Anyone). Vào Cấu hình > Copy mã Apps Script V4.8 để cập nhật.'
+        };
+      }
+
+      let result: any;
+      try {
+        result = await res.json();
+      } catch {
+        return {
+          status: 'error',
+          message: 'Phản hồi không hợp lệ. Vui lòng cập nhật mã Apps Script V4.8 trong mục Cấu hình.'
+        };
+      }
+
+      if (result.status === 'success' && Array.isArray(result.history)) {
+        return {
+          status: 'success',
+          totalHistoryTabs: Number(result.totalHistoryTabs) || result.history.length,
+          history: result.history as CustomerHistoryRecord[]
+        };
+      }
+
+      return {
+        status: 'error',
+        message: result.message || 'Script chưa hỗ trợ xem lịch sử. Vui lòng cập nhật Apps Script V4.8.'
+      };
+    } catch (err: any) {
+      return {
+        status: 'error',
+        message: 'Lỗi mạng khi tải lịch sử: ' + (err instanceof Error ? err.message : String(err))
+      };
+    }
+  };
+
   return {
     isSyncing,
     syncStatus,
     lastAutoBackup,
     handleSyncCloud,
-    handleBackupCloud
+    handleBackupCloud,
+    fetchCustomerHistory
   };
 };

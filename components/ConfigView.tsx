@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { X, CloudUpload, FileSpreadsheet, Trash2, Globe } from 'lucide-react';
 import { SystemConfig } from '../types';
 import { parseSafe } from '../utils';
-import { APPS_SCRIPT_V4_6 } from './ScriptContent';
+import { APPS_SCRIPT_V4_8 } from './ScriptContent';
 
 interface ConfigViewProps {
   config: SystemConfig;
@@ -81,20 +81,20 @@ export const ConfigView: React.FC<ConfigViewProps> = ({ config, setConfig, onBac
 
              <div className="pt-2 border-t border-slate-100 space-y-2">
                 <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-                  💡 <b>ĐỒNG BỘ CHUẨN VÀ TỰ ĐỘNG LƯU TRỮ (V4.6):</b> Bản cập nhật này tối ưu hóa đồng bộ, hỗ trợ tự động lưu trữ 2 Tab Lịch sử (Bộ 01 & Bộ 02) độc lập khi chốt kỳ. Bạn có thể xóa hoàn toàn các tab không dùng (như <i>DailySupply</i>, <i>LossRecords</i>) trên Google Sheets mà không sợ bị script tự động tạo lại. Vui lòng sao chép và cập nhật mã Apps Script của bạn:
+                  💡 <b>ĐỒNG BỘ V4.8 (XEM LỊCH SỬ NHIỀU THÁNG + VAT 22 CỘT):</b> Hỗ trợ tra cứu nhanh <b>3 - 12 tháng gần nhất</b> của từng Mã KH trực tiếp từ các tab <i>LichSu_*</i> trên Google Sheets, tự động lưu trữ 2 Tab Lịch sử (Bộ 01 & Bộ 02) khi chốt kỳ và đầy đủ 22 cột VAT. Vui lòng sao chép và cập nhật mã Apps Script:
                 </p>
                 <button 
                   onClick={async () => {
                     try {
-                      await navigator.clipboard.writeText(APPS_SCRIPT_V4_6);
-                      alert("📋 Đã sao chép mã Google Apps Script V4.6 thành công!\n\nHướng dẫn:\n1. Mở file Google Sheets của bạn.\n2. Vào Tiện ích mở rộng (Extensions) > Apps Script.\n3. Chọn toàn bộ mã cũ và dán đè mã mới này vào.\n4. Nhấn nút Save (Biểu tượng đĩa) và nhấn Triển khai (Deploy) > Tùy chọn triển khai mới (New Deployment) > Chọn loại Web App > Nhấn Deploy.");
+                      await navigator.clipboard.writeText(APPS_SCRIPT_V4_8);
+                      alert("📋 Đã sao chép mã Google Apps Script V4.8 thành công!\n\nHướng dẫn cập nhật giữ nguyên link cũ:\n1. Mở file Google Sheets > Tiện ích mở rộng (Extensions) > Apps Script.\n2. Chọn toàn bộ mã cũ (Ctrl+A) rồi dán đè mã V4.8 này vào và bấm Save (Lưu).\n3. Bấm Triển khai (Deploy) > Quản lý bản triển khai (Manage deployments) > Bấm biểu tượng Bút chì (Edit) > Tại ô Phiên bản (Version) chọn 'Phiên bản mới' (New version) > Bấm Triển khai (Deploy).\n\n(Cách này giữ nguyên Link Script cũ, không cần dán lại trên App!)");
                     } catch (err) {
                       alert("Lỗi tải script: " + (err instanceof Error ? err.message : String(err)));
                     }
                   }} 
                   className="w-full bg-slate-100 text-slate-800 hover:bg-slate-200 py-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border border-slate-200 active:scale-95"
                 >
-                  📋 Copy mã Apps Script V4.6 mới nhất
+                  📋 Copy mã Apps Script V4.8 mới nhất
                 </button>
              </div>
           </div>

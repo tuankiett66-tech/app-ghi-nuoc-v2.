@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronDown, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2, FileText, Users, Search, ArrowRight } from 'lucide-react';
-import { Customer, SystemConfig, WaterGroup } from '../types';
+import { ChevronLeft, ChevronDown, Calendar, Pencil, QrCode, X, MessageCircle, Plus, CheckCheck, Copy, Trash2, FileText, Users, Search, ArrowRight, History, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Customer, CustomerHistoryRecord, SystemConfig, WaterGroup } from '../types';
 import { formatCurrency, parseSafe, copyToClipboard, getMeterStatus, normalizePhoneForZalo, openZaloChat, generateVietQrUrl, normalizeString } from '../utils';
 import { AlertTriangle, Clock } from 'lucide-react';
 
@@ -24,11 +24,12 @@ interface DetailViewProps {
   onQuickCreateGroup?: (customer: Customer, groupName: string) => void;
   onQuickAddToGroup?: (customer: Customer, groupId: string) => void;
   onOpenGroup?: (groupId: string) => void;
+  onFetchHistory?: (maKH: string, listType: 'list1' | 'list2', limit?: number) => Promise<{ status: string; totalHistoryTabs?: number; history?: CustomerHistoryRecord[]; message?: string }>;
   generateMsg: (c: Customer, ni: string, pi: string) => string;
 }
 
 export const DetailView: React.FC<DetailViewProps> = ({ 
-  customer, config, groups = [], onBack, onNavigate, onUpdate, onUpdateConfig, onClearAllRecordDates, onShowQr, onEditInfo, onDelete, onAddAfter, onCopyBill, onSendZalo, onShowCutoffNotice, onQuickCreateGroup, onQuickAddToGroup, onOpenGroup, generateMsg 
+  customer, config, groups = [], onBack, onNavigate, onUpdate, onUpdateConfig, onClearAllRecordDates, onShowQr, onEditInfo, onDelete, onAddAfter, onCopyBill, onSendZalo, onShowCutoffNotice, onQuickCreateGroup, onQuickAddToGroup, onOpenGroup, onFetchHistory, generateMsg 
 }) => {
   // Khoi tao state tu du lieu khach hang
   const [ni, setNi] = useState(customer.newIndex > 0 ? customer.newIndex.toString() : "");
@@ -48,6 +49,13 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const [showQuickGroupModal, setShowQuickGroupModal] = useState(false);
   const [quickGroupName, setQuickGroupName] = useState(customer.name.toUpperCase());
   const [quickGroupSearch, setQuickGroupSearch] = useState("");
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyRecords, setHistoryRecords] = useState<CustomerHistoryRecord[]>([]);
+  const [historyTotalTabs, setHistoryTotalTabs] = useState(0);
+  const [historyLimit, setHistoryLimit] = useState<number>(3);
+  const [copiedHistory, setCopiedHistory] = useState(false);
 
   const customerGroups = useMemo(() => {
     return groups.filter(g =>
@@ -149,7 +157,69 @@ export const DetailView: React.FC<DetailViewProps> = ({
     setCopiedTax(false);
     setCopiedCompany(false);
     setCopiedEmail(false);
+    setShowHistoryModal(false);
+    setHistoryLoading(false);
+    setHistoryError(null);
+    setHistoryRecords([]);
+    setHistoryTotalTabs(0);
+    setHistoryLimit(3);
+    setCopiedHistory(false);
   }, [customer.id, config.globalRecordDate]);
+
+  const loadCustomerHistory = async (limitVal: number = historyLimit) => {
+    setHistoryLimit(limitVal);
+    setShowHistoryModal(true);
+    if (!onFetchHistory) {
+      setHistoryError("Tính năng tra cứu lịch sử chưa được kết nối.");
+      return;
+    }
+    setHistoryLoading(true);
+    setHistoryError(null);
+    const res = await onFetchHistory(customer.maKH, customer.listType, limitVal);
+    setHistoryLoading(false);
+    if (res.status === 'success' && res.history) {
+      setHistoryRecords(res.history);
+      setHistoryTotalTabs(res.totalHistoryTabs || res.history.length);
+    } else {
+      setHistoryRecords([]);
+      setHistoryError(res.message || "Không thể tải lịch sử từ Google Sheets.");
+    }
+  };
+
+  const historyStats = useMemo(() => {
+    const valid = historyRecords.filter(r => r.found);
+    if (valid.length === 0) return null;
+    const totalCons = valid.reduce((sum, r) => sum + (Number(r.consumption) || 0), 0);
+    const avgCons = totalCons / valid.length;
+    const curVol = customer.volume || 0;
+    const diffPct = avgCons > 0 ? ((curVol - avgCons) / avgCons) * 100 : 0;
+    return {
+      count: valid.length,
+      avgCons,
+      diffPct,
+      isSpike: avgCons > 0 && diffPct >= 30 && curVol >= 3,
+      isDrop: avgCons > 0 && diffPct <= -30
+    };
+  }, [historyRecords, customer.volume]);
+
+  const buildHistoryZaloText = () => {
+    const valid = historyRecords.filter(r => r.found);
+    const lines: string[] = [
+      `📊 ĐỐI CHIẾU CHỈ SỐ NƯỚC (${valid.length} KỲ GẦN NHẤT)`,
+      `MÃ KH: ${customer.maKH} - ${customer.name}`,
+      `----------------`,
+      `• Kỳ hiện tại: ${ni || customer.newIndex} - ${customer.oldIndex} = ${customer.volume} m³ (${formatCurrency(customer.amount)})`
+    ];
+    valid.forEach(r => {
+      const label = r.sheetTitle ? r.sheetTitle.replace(/^TIỀN NƯỚC\s*/i, '').trim() : `Kỳ ${r.periodLabel}`;
+      lines.push(`• ${label}: ${r.newIndex} - ${r.oldIndex} = ${r.consumption} m³ (${formatCurrency(r.amount)}) | Còn nợ: ${formatCurrency(r.remainingDebt)}`);
+    });
+    if (historyStats) {
+      lines.push(`----------------`);
+      lines.push(`Trung bình ${historyStats.count} kỳ trước: ${historyStats.avgCons.toFixed(1)} m³/tháng`);
+    }
+    return lines.join('\n');
+  };
 
   // Cap nhat du lieu len store khi nguoi dung nhap lieu
   useEffect(() => {
@@ -654,6 +724,207 @@ export const DetailView: React.FC<DetailViewProps> = ({
                     )}
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* NÚT XEM LỊCH SỬ 3 THÁNG TỪ GOOGLE SHEETS */}
+        <button
+          type="button"
+          onClick={() => loadCustomerHistory(3)}
+          className="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 border-2 border-amber-200 py-3 px-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 shadow-xs active:scale-95 transition-all"
+        >
+          <History size={17} className="shrink-0 text-amber-600" />
+          <span>Xem lịch sử 3 tháng gần nhất (Sheets)</span>
+        </button>
+
+        {/* MODAL XEM LỊCH SỬ NHIỀU THÁNG TỪ GOOGLE SHEETS */}
+        {showHistoryModal && (
+          <div className="fixed inset-0 bg-slate-900/60 z-[270] flex items-center justify-center p-4 backdrop-blur-xs" onClick={() => setShowHistoryModal(false)}>
+            <div className="bg-white w-full max-w-md rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3.5 max-h-[88vh] flex flex-col animate-in zoom-in-95 duration-150" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b pb-3 shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 bg-amber-100 text-amber-700 rounded-xl shrink-0">
+                    <History size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-black text-sm uppercase text-slate-900 truncate">Lịch sử dùng nước</h3>
+                    <p className="text-[11px] font-bold text-slate-500 truncate">
+                      Mã KH {customer.maKH} • {customer.name}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setShowHistoryModal(false)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-600 shrink-0">
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* CHỌN SỐ THÁNG TRA CỨU */}
+              <div className="grid grid-cols-3 gap-2 shrink-0">
+                {[3, 6, 12].map(lim => (
+                  <button
+                    key={lim}
+                    type="button"
+                    onClick={() => loadCustomerHistory(lim)}
+                    disabled={historyLoading}
+                    className={`py-2 rounded-xl font-black text-xs uppercase border transition-all active:scale-95 ${
+                      historyLimit === lim
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-sm'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {lim} tháng
+                  </button>
+                ))}
+              </div>
+
+              {/* NỘI DUNG LỊCH SỬ */}
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5 pr-0.5">
+                {historyLoading ? (
+                  <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
+                    <Loader2 size={28} className="animate-spin text-amber-500" />
+                    <p className="text-xs font-black uppercase tracking-wider">Đang đọc dữ liệu từ Google Sheets...</p>
+                  </div>
+                ) : historyError ? (
+                  <div className="bg-rose-50 border-2 border-rose-200 rounded-2xl p-4 space-y-2 text-rose-800">
+                    <div className="flex items-center gap-2 font-black text-xs uppercase">
+                      <AlertTriangle size={16} className="shrink-0 text-rose-600" />
+                      <span>Chưa đọc được lịch sử</span>
+                    </div>
+                    <p className="text-xs font-bold leading-relaxed">{historyError}</p>
+                    <button
+                      type="button"
+                      onClick={() => loadCustomerHistory(historyLimit)}
+                      className="w-full bg-rose-600 text-white py-2.5 rounded-xl font-black uppercase text-[11px] active:scale-95"
+                    >
+                      Thử tải lại
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* CẢNH BÁO / SO SÁNH TIÊU THỤ KỲ NÀY VS TRUNG BÌNH */}
+                    {historyStats && (
+                      <div className={`p-3 rounded-2xl border-2 flex items-center justify-between gap-2 ${
+                        historyStats.isSpike
+                          ? 'bg-rose-50 border-rose-200 text-rose-800'
+                          : historyStats.isDrop
+                            ? 'bg-sky-50 border-sky-200 text-sky-800'
+                            : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      }`}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          {historyStats.diffPct >= 0 ? <TrendingUp size={18} className="shrink-0" /> : <TrendingDown size={18} className="shrink-0" />}
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-black uppercase">TB {historyStats.count} kỳ trước: {historyStats.avgCons.toFixed(1)} m³/tháng</p>
+                            <p className="text-xs font-black">
+                              {historyStats.isSpike
+                                ? `Tăng đột biến +${Math.round(historyStats.diffPct)}% (Kiểm tra rò rỉ!)`
+                                : historyStats.isDrop
+                                  ? `Giảm mạnh ${Math.round(historyStats.diffPct)}% so với TB`
+                                  : `Kỳ này ${customer.volume} m³ (${historyStats.diffPct >= 0 ? '+' : ''}${Math.round(historyStats.diffPct)}% so với TB)`}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* KỲ HIỆN TẠI TRÊN APP */}
+                    <div className="bg-blue-50/70 border-2 border-blue-200 rounded-2xl p-3 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase bg-blue-600 text-white px-2 py-0.5 rounded-md">Kỳ hiện tại (App)</span>
+                        <span className="text-sm font-black text-blue-800">{customer.volume} m³ • {formatCurrency(customer.amount)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-bold text-slate-600">
+                        <span>Chỉ số: <b className="text-slate-900">{customer.oldIndex} → {ni || customer.newIndex}</b></span>
+                        <span>Còn nợ: <b className={customer.balance > 0 ? 'text-rose-600' : 'text-emerald-600'}>{formatCurrency(customer.balance)}</b></span>
+                      </div>
+                    </div>
+
+                    {/* DANH SÁCH CÁC KỲ ĐÃ LƯU TRỮ */}
+                    {historyRecords.length === 0 ? (
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center space-y-1">
+                        <p className="text-xs font-black text-slate-600 uppercase">Chưa có tab Lịch sử trên Google Sheets</p>
+                        <p className="text-[11px] font-bold text-slate-400">Khi bấm "1. Sao lưu Lịch sử" trong mục Báo cáo, các tháng sẽ được lưu tại đây.</p>
+                      </div>
+                    ) : (
+                      historyRecords.map((rec, idx) => (
+                        <div key={`${rec.sheetName}-${idx}`} className="bg-white border border-slate-200 rounded-2xl p-3 shadow-xs space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-xs font-black uppercase text-slate-800 truncate">
+                                {rec.sheetTitle ? rec.sheetTitle : `Kỳ ${rec.periodLabel}`}
+                              </p>
+                              <p className="text-[10px] font-bold text-slate-400 truncate">{rec.sheetName}</p>
+                            </div>
+                            {rec.found ? (
+                              <span className="text-sm font-black text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg shrink-0">
+                                {rec.consumption} m³
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg shrink-0">
+                                Chưa có mã này
+                              </span>
+                            )}
+                          </div>
+
+                          {rec.found && (
+                            <>
+                              <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-100 text-[11px] font-bold">
+                                <div>
+                                  <span className="text-slate-400 block text-[9px] uppercase">Chỉ số</span>
+                                  <span className="text-slate-800 font-black">{rec.oldIndex} → {rec.newIndex}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 block text-[9px] uppercase">Tiền nước</span>
+                                  <span className="text-slate-800 font-black">{formatCurrency(rec.amount)}</span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-slate-400 block text-[9px] uppercase">Còn nợ kỳ đó</span>
+                                  <span className={`font-black ${rec.remainingDebt > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                    {rec.remainingDebt > 0 ? formatCurrency(rec.remainingDebt) : 'Đã thu đủ'}
+                                  </span>
+                                </div>
+                              </div>
+                              {(rec.oldDebt > 0 || rec.paid > 0 || rec.note) && (
+                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg">
+                                  {rec.oldDebt > 0 && <span>Nợ cũ: <b className="text-rose-600">{formatCurrency(rec.oldDebt)}</b></span>}
+                                  {rec.paid > 0 && <span>Đã trả: <b className="text-emerald-600">{formatCurrency(rec.paid)}</b></span>}
+                                  {rec.note && <span>Ghi chú: <b className="text-slate-700">{rec.note}</b></span>}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ))
+                    )}
+
+                    {historyTotalTabs > historyRecords.length && (
+                      <p className="text-center text-[10px] font-bold text-slate-400">
+                        Đang hiện {historyRecords.length}/{historyTotalTabs} kỳ lưu trữ trên Sheets
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* NÚT COPY ĐỐI CHIẾU GỬI ZALO */}
+              {!historyLoading && !historyError && historyRecords.some(r => r.found) && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await copyToClipboard(buildHistoryZaloText());
+                    setCopiedHistory(true);
+                    setTimeout(() => setCopiedHistory(false), 2000);
+                  }}
+                  className={`w-full py-3 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 shadow-md border-b-2 active:scale-95 transition-all shrink-0 ${
+                    copiedHistory
+                      ? 'bg-emerald-600 text-white border-emerald-800'
+                      : 'bg-blue-700 hover:bg-blue-800 text-white border-blue-900'
+                  }`}
+                >
+                  {copiedHistory ? <CheckCheck size={16} /> : <Copy size={16} />}
+                  <span>{copiedHistory ? 'Đã Copy bảng đối chiếu!' : 'Copy đối chiếu gửi Zalo'}</span>
+                </button>
               )}
             </div>
           </div>

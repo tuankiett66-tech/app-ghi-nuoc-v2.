@@ -51,7 +51,8 @@ const App: React.FC = () => {
     syncStatus,
     lastAutoBackup,
     handleSyncCloud,
-    handleBackupCloud
+    handleBackupCloud,
+    fetchCustomerHistory
   } = useWaterSync({
     config,
     setConfig,
@@ -398,6 +399,7 @@ Nội dung: TT NUOC ${c.maKH}_${cleanName} (BAM GIU DE SAO CHEP)`;
             setSelectedGroupId(groupId);
             navigateTo('group_detail');
           }}
+          onFetchHistory={fetchCustomerHistory}
           generateMsg={generateMsg}
         />
       )}

@@ -91,4 +91,23 @@ export interface DailySupplyReading {
   updatedAt: number;
 }
 
+export interface CustomerHistoryRecord {
+  sheetName: string;
+  periodLabel: string;
+  sheetTitle?: string;
+  found: boolean;
+  maKH?: string;
+  name?: string;
+  newIndex: number;
+  oldIndex: number;
+  consumption: number;
+  amount: number;
+  oldDebt: number;
+  paid: number;
+  remainingDebt: number;
+  isProcessed?: boolean;
+  updatedAt?: number;
+  note?: string;
+}
+
 export type ViewState = 'list' | 'edit' | 'detail' | 'quick_record' | 'config' | 'stats' | 'edit_customer' | 'add_customer' | 'edit_message_template' | 'group_list' | 'group_detail' | 'verify' | 'loss_management' | 'loss_daily_record' | 'loss_daily_history' | 'agent_view' | 'water_cutoff_notice';
